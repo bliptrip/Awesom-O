@@ -33,6 +33,11 @@
     * [libgphoto2 Use-case examples.  Better than documentation.](https://github.com/gphoto/libgphoto2/tree/master/examples)
 * Javascript
     * [Node.js bindings to gphoto2](https://www.npmjs.com/package/gphoto2) - Supports getting/setting configuration on camera, along with taking pictures.
+## Putting it all together
+* [Full Stack](https://medium.com/javascript-in-plain-english/full-stack-mongodb-react-node-js-express-js-in-one-simple-app-6cc8ed6de274) MongoDB, React, Node, and Express (MERN) app.  A nice reference to putting it all together.
+    * Backend - This will the node expressjs server that will keep track of system state and notify connected clients of updates to images, etc.
+    * Frontend - React.js derived UI.
+    * DB - MongoDB
 ## Other Topics/Interesting Links
 * [ECMAScript6 Overview](https://github.com/lukehoban/es6features#readme) - Newest Javascript syntax and libraries.
 * Accessing python functionality from Node.js webapp (NOTE: I’ve since decided to use a websocket or socket.io-type connection to interface with the camera/motor controller module, so this isn’t necessary)
