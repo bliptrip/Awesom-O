@@ -1,0 +1,28 @@
+{
+  "name": "server.js",
+  "version": "1.0.0",
+  "description": "The backend express.js node server application that manages current state of the system (current camera preview, last pictures taken, current location of camera on x-y plane, project-specific settings, database access, etc.)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bliptrip/Awesom-O/backend/"
+  },
+  "keywords": [
+    "image",
+    "scanner",
+    "image",
+    "analysis",
+    "plant",
+    "science",
+    "science",
+    "robotics"
+  ],
+  "author": "Andrew Maule",
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "express-ws": "^4.0.0"
+  }
+}
