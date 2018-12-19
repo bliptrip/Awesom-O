@@ -1,0 +1,28 @@
+{
+  "name": "Awesom-O",
+  "version": "1.0.0",
+  "description": "A web-based application developed to take ultra-high resolution pictures of seedlings on petri plates and control a camera-mounted robotic arm.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "concurrently \"cd backend && node server.js\" \"cd client && npm start\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bliptrip/Awesom-O.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bliptrip/Awesom-O/issues"
+  },
+  "homepage": "https://github.com/bliptrip/Awesom-O#readme",
+  "dependencies": {
+    "concurrently": "^4.1.0"
+  }
+}
