@@ -76,46 +76,46 @@ The general idea is to have two separate processes that run on the system, which
 * Cloud - Submodule to upload images to cloud.
 
 ## Intermodule Communication (HTTP and websockets)
-    * WebSocket is a computer communications protocol, providing full-duplex communication channels over a single TCP connection.
-    * Functionality: All the features exported by the Camera and Motor APIs, plus 
-        * open-communication for maintaining live views of current camera preview state
-        * load route
-        * start/resume route
-        * pause route
-        * abort route
-    * Protocol Format: JSON-format
+* WebSocket is a computer communications protocol, providing full-duplex communication channels over a single TCP connection.
+* Functionality: All the features exported by the Camera and Motor APIs, plus 
+    * open-communication for maintaining live views of current camera preview state
+    * load route
+    * start/resume route
+    * pause route
+    * abort route
+* Protocol Format: JSON-format
 
 ## DB Module
-    * The database (DB) submodule module will store project configuration information.
-    * Implementation: I like the idea of using a MongoDB-type database format (JSON-encoding) to store DB structures.
-    * DB Contents:
-        * project structure - Stores the project configuration
-            * camera and it's configuration
-                * camera model/name and port?
-                * image settings - ISO, F#, aperture, whitebalance 
-                * focus settings (this may not work — may need to have user fine-tune this each time)
-                * image format - JPEG, raw?
-            * petri plate metadata
-                * map QR-code associated with a petri plate to experimental information, such as:
-                    * row, column, image filename prefix, and other experimental fields
-            * Route configuration
-                * mode (burst or sequential)
-                * interplate timeout (seconds)
-                * interloop timeout (minutes)
-                * preview hooks, in order of execution (includes option for picture delay)
-                * capture hooks, in order of execution
-                * list of (row,col) to move to, in order
-                * number of loops (0 for infinite)
+* The database (DB) submodule module will store project configuration information.
+* Implementation: I like the idea of using a MongoDB-type database format (JSON-encoding) to store DB structures.
+* DB Contents:
+    * project structure - Stores the project configuration
+        * camera and it's configuration
+            * camera model/name and port?
+            * image settings - ISO, F#, aperture, whitebalance 
+            * focus settings (this may not work — may need to have user fine-tune this each time)
+            * image format - JPEG, raw?
+        * petri plate metadata
+            * map QR-code associated with a petri plate to experimental information, such as:
+                * row, column, image filename prefix, and other experimental fields
+        * Route configuration
+            * mode (burst or sequential)
+            * interplate timeout (seconds)
+            * interloop timeout (minutes)
+            * preview hooks, in order of execution (includes option for picture delay)
+            * capture hooks, in order of execution
+            * list of (row,col) to move to, in order
+            * number of loops (0 for infinite)
 * Motor controller instruction set: Research what EnvLab did for it’s PlantCNC controller:
-    * They load a route file as a csv with x,y,z coordinates.  This is a good way to go in terms of defining a route path, but define in context of having an instruction set that the controller process parses and executes, as in an instruction set architecture in computers.
-        * Instruction Set:
-            * <Set Timer>: <ms> - Sleep controller process for <ms> milliseconds before processing next operation.
-            * <Seek>: <type>, <x>, <y>, <z> - Seek arm to position defined by <x>, <y>, <z>, relative to position defined by type (SEEK_CURRENT, SEEK_START (home)).
-            * <Preview>, <hook>, <params> - Preview image, and apply/call <hook> callback with <params>.  This may be use to apply picture preprocessing and adjust arm to center image, etc.  An image buffer from preview is automatically passed to the <hook> callback.
-            * <Capture>, <hook>, <params> - Capture an image, and call <hook> callback with <params> after taking picture to apply image processing/file upload.
-            * <Loop>, <num> - Loop through script number of times.
-        * NOTE: Hook callbacks are installed as extensions on the local system (not configurable from the web browser, for security reason), and provide standard functionality such as:
-            * call motor controller primitives (to recenter plates) based on images not being centered
-            * rename image file based on QR code and mapping file
-            * Upload files to a remote cloud server if desired
-            * Consider that, like Express.js’s chaining of multiple middleware functions to a route request/response cycle, I could allow multiple registrations of hook functions to a given preview or capture sequence — Need to think about what the interface for doing this is: How will I register a sequence of hook functions with a given capture/preview function?  Each hook function would, like an Express.js middleware function, have a next() function that is called to call the next stage of the hook processing pipeline.
+* They load a route file as a csv with x,y,z coordinates.  This is a good way to go in terms of defining a route path, but define in context of having an instruction set that the controller process parses and executes, as in an instruction set architecture in computers.
+    * Instruction Set:
+        * <Set Timer>: <ms> - Sleep controller process for <ms> milliseconds before processing next operation.
+        * <Seek>: <type>, <x>, <y>, <z> - Seek arm to position defined by <x>, <y>, <z>, relative to position defined by type (SEEK_CURRENT, SEEK_START (home)).
+        * <Preview>, <hook>, <params> - Preview image, and apply/call <hook> callback with <params>.  This may be use to apply picture preprocessing and adjust arm to center image, etc.  An image buffer from preview is automatically passed to the <hook> callback.
+        * <Capture>, <hook>, <params> - Capture an image, and call <hook> callback with <params> after taking picture to apply image processing/file upload.
+        * <Loop>, <num> - Loop through script number of times.
+    * NOTE: Hook callbacks are installed as extensions on the local system (not configurable from the web browser, for security reason), and provide standard functionality such as:
+        * call motor controller primitives (to recenter plates) based on images not being centered
+        * rename image file based on QR code and mapping file
+        * Upload files to a remote cloud server if desired
+        * Consider that, like Express.js’s chaining of multiple middleware functions to a route request/response cycle, I could allow multiple registrations of hook functions to a given preview or capture sequence — Need to think about what the interface for doing this is: How will I register a sequence of hook functions with a given capture/preview function?  Each hook function would, like an Express.js middleware function, have a next() function that is called to call the next stage of the hook processing pipeline.
