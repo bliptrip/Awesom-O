@@ -1,8 +1,8 @@
-#Software Design
+# Software Design
 
 ![High Level Design](https://github.com/bliptrip/Awesom-O/blob/master/design/Awesome-O_HighDesign.png)
 
-##Overall Design Layout
+## Overall Design Layout
 The general idea is to have two separate processes that run on the system, which communicate with each other using HTTP REST protocols and websockets.:
 * Node.js Controller Module (backend/): This module directly accesses and controls the motor and camera APIs, stores/retrieves/updates project configuration data from the database, and in general is the event processing loop that executes the programmed arm movements.
     * Motor API: A reverse-engineered set of routines for controlling the motors that guide the camera position.  These are simple ASCII-type commands sent over a COM/serial port.
@@ -10,7 +10,7 @@ The general idea is to have two separate processes that run on the system, which
     are robust enough, then they will be viable interface to the camera.
 * React.js Frontend (client/): This module will host the user interface frontend, using a React.js 
 
-##Frontend
+## Frontend
 * Load/Edit/Save Project Settings
     * Custom Routes
     * Interplate Image Timers and Imaging Mode (Burst vs. Sequential)
@@ -31,7 +31,7 @@ The general idea is to have two separate processes that run on the system, which
         * Burst Mode: Take a burst of pictures right after each other, with a long sleep between bursts.
         * Sequential Mode: Take pictures with a long sleep between pictures.
 
-##Controller (Backend)
+## Controller (Backend)
 * Camera Access/Control Primitives
     * Implemented using the Node.js node-gphoto2 bindings library for libgphoto2. 
     * Exported Functionality
@@ -75,7 +75,7 @@ The general idea is to have two separate processes that run on the system, which
         * Consider that, like Express.js’s chaining of multiple middleware functions to a route request/response cycle, I could allow multiple registrations of hook functions to a given preview or capture sequence — Need to think about what the interface for doing this is: How will I register a sequence of hook functions with a given capture/preview function?  Each hook function would, like an Express.js middleware function, have a next() function that is called to call the next stage of the hook processing pipeline.
 * Cloud - Submodule to upload images to cloud.
 
-##Intermodule Communication (HTTP and websockets)
+## Intermodule Communication (HTTP and websockets)
     * WebSocket is a computer communications protocol, providing full-duplex communication channels over a single TCP connection.
     * Functionality: All the features exported by the Camera and Motor APIs, plus 
         * open-communication for maintaining live views of current camera preview state
@@ -85,7 +85,7 @@ The general idea is to have two separate processes that run on the system, which
         * abort route
     * Protocol Format: JSON-format
 
-##DB Module
+## DB Module
     * The database (DB) submodule module will store project configuration information.
     * Implementation: I like the idea of using a MongoDB-type database format (JSON-encoding) to store DB structures.
     * DB Contents:
