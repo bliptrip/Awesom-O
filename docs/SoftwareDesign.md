@@ -1,6 +1,6 @@
 #Software Design
 
-![High Level Design](https://github.com/bliptrip/Awesom-O/design/Awesome-O_HighDesign.png)
+![High Level Design](https://github.com/bliptrip/Awesom-O/blob/master/design/Awesome-O_HighDesign.png)
 
 ##Overall Design Layout
 The general idea is to have two separate processes that run on the system, which communicate with each other using HTTP REST protocols and websockets.:
