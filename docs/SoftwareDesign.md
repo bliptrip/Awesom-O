@@ -62,18 +62,12 @@ The general idea is to have two separate processes that run on the system, which
     * Have a timer submodule/thread that upon timer interrupts will launch next set of instructions to control motor arm and camera API.
 * DB - Database access for retrieving/saving project settings, most likely through a MongoDB interface
 * Route - Submodule that processes router timeouts to drive motor movements and camera capture events, along with calling custom user hooks to process images.  Will at a primitive level process an instruction program encoded in csv/text file that guides arm, waits for timeouts, takes pictures, and executes hook callbacks.
-    * Instruction Set:
-        * <Set Timer>: <ms> - Sleep controller process for <ms> milliseconds before processing next operation.
-        * <Seek>: <type>, <x>, <y>, <z> - Seek arm to position defined by <x>, <y>, <z>, relative to position defined by type (SEEK_CURRENT, SEEK_START (home)).
-        * <Preview>, <hook>, <params> - Preview image, and apply/call <hook> callback with <params>.  This may be use to apply picture preprocessing and adjust arm to center image, etc.  An image buffer from preview is automatically passed to the <hook> callback.
-        * <Capture>, <hook>, <params> - Capture an image, and call <hook> callback with <params> after taking picture to apply image processing/file upload.
-        * <Loop>, <num> - Loop through script number of times.
     * NOTE: Hook callbacks are installed as extensions on the local system (not configurable from the web browser, for security reason), and provide standard functionality such as:
         * call motor controller primitives (to recenter plates) based on images not being centered
         * rename image file based on QR code and mapping file
         * upload files to a remote cloud server if desired
         * Consider that, like Express.js’s chaining of multiple middleware functions to a route request/response cycle, I could allow multiple registrations of hook functions to a given preview or capture sequence — Need to think about what the interface for doing this is: How will I register a sequence of hook functions with a given capture/preview function?  Each hook function would, like an Express.js middleware function, have a next() function that is called to call the next stage of the hook processing pipeline.
-* Cloud - Submodule to upload images to cloud.
+* Cloud - Submodule to handle cloud account parameters for uploading images to remote storage.
 
 ## Intermodule Communication (HTTP and websockets)
 * WebSocket is a computer communications protocol, providing full-duplex communication channels over a single TCP connection.
@@ -98,24 +92,14 @@ The general idea is to have two separate processes that run on the system, which
         * petri plate metadata
             * map QR-code associated with a petri plate to experimental information, such as:
                 * row, column, image filename prefix, and other experimental fields
+        * Filesystem Local Images location
+        * Location of hook scripts to execute
+        * Cloud computing module location
         * Route configuration
             * mode (burst or sequential)
             * interplate timeout (seconds)
             * interloop timeout (minutes)
             * preview hooks, in order of execution (includes option for picture delay)
             * capture hooks, in order of execution
-            * list of (row,col) to move to, in order
-            * number of loops (0 for infinite)
-* Motor controller instruction set: Research what EnvLab did for it’s PlantCNC controller:
-* They load a route file as a csv with x,y,z coordinates.  This is a good way to go in terms of defining a route path, but define in context of having an instruction set that the controller process parses and executes, as in an instruction set architecture in computers.
-    * Instruction Set:
-        * <Set Timer>: <ms> - Sleep controller process for <ms> milliseconds before processing next operation.
-        * <Seek>: <type>, <x>, <y>, <z> - Seek arm to position defined by <x>, <y>, <z>, relative to position defined by type (SEEK_CURRENT, SEEK_START (home)).
-        * <Preview>, <hook>, <params> - Preview image, and apply/call <hook> callback with <params>.  This may be use to apply picture preprocessing and adjust arm to center image, etc.  An image buffer from preview is automatically passed to the <hook> callback.
-        * <Capture>, <hook>, <params> - Capture an image, and call <hook> callback with <params> after taking picture to apply image processing/file upload.
-        * <Loop>, <num> - Loop through script number of times.
-    * NOTE: Hook callbacks are installed as extensions on the local system (not configurable from the web browser, for security reason), and provide standard functionality such as:
-        * call motor controller primitives (to recenter plates) based on images not being centered
-        * rename image file based on QR code and mapping file
-        * Upload files to a remote cloud server if desired
-        * Consider that, like Express.js’s chaining of multiple middleware functions to a route request/response cycle, I could allow multiple registrations of hook functions to a given preview or capture sequence — Need to think about what the interface for doing this is: How will I register a sequence of hook functions with a given capture/preview function?  Each hook function would, like an Express.js middleware function, have a next() function that is called to call the next stage of the hook processing pipeline.
+            * A list of location coordinates to move camera to
+            * Number of execution loops (0 for infinite)
