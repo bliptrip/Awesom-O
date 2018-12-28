@@ -18,7 +18,7 @@ The general idea is to have two separate processes that run on the system, which
     * Plate Metadata (csv file?)
     * Cloud-computing configuration
     * Camera hook script functionality
-    * Camera configuration (whitebalance and focus settings, etc.)
+    * Camera configuration (whitebalance and focus settings, etc.) - Option to load from current camera settings
 * Current Camera View - A persistent image frame that shows current state of camera
 * Camera Settings View
 * Route View - Allows user to configure route settings and view current route in real time
@@ -30,6 +30,11 @@ The general idea is to have two separate processes that run on the system, which
     * Two different picture loop methods::
         * Burst Mode: Take a burst of pictures right after each other, with a long sleep between bursts.
         * Sequential Mode: Take pictures with a long sleep between pictures.
+    * Current Route State: Highlight where the software thinks the camera currently is, and show a current preview taken from camera.
+        * Goto Home
+        * Start Route
+        * Pause/Resume Route
+        * Stop Route
 
 ## Controller (Backend)
 * Camera Access/Control Primitives
