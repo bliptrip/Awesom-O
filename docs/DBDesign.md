@@ -9,6 +9,7 @@ Defines list of users of system, credentials, and projects associated with them.
 `user`<br>
 `{   'version': <version>,`<br>
 `    'username': <name>,`<br>
+`    'email': <email>,`<br>
 `    'hash': <password hash>,`<br>
 `    'projects': [<project table id>, ...]`<br>
 `}`
@@ -16,7 +17,7 @@ Defines list of users of system, credentials, and projects associated with them.
 ## Project Table
 Defines project-specific configuration parameters.
 
-`project`</br>
+`project`<br>
 `{   'version': <version>,`<br>
 `    'id': <integer identifier>,`<br>
 `    'description': <description string>,`<br>
@@ -67,6 +68,8 @@ This defines the camera route configuration parameters.
 `    'capture_hooks': [list of hook scripts to execute after image is capture]`<br>
 `    'stepsPerCmX': <number of steps per centimeter in X axis for motors>,`<br>
 `    'stepsPerCmY': <number of steps per centimeter in Y axis for motors>,`<br>
+`    'distanceX': <x distance in cm between plates>,`<br>
+`    'distanceY': <y distance in cm between plates>,`<br>
 `    'route': [ [x0, y0], [x1, y1], ..., [xn, yn] ] - Coordinates of route traversed`<br>
 `}`
 
