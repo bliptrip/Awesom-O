@@ -27,6 +27,7 @@
 * [MongoDB](https://www.mongodb.com/) - DB that stored data in flexible, JSON-like documents (fields can vary from doc to doc and data structure can change over time) - Maps object in application code/distributed DB at core
 * [Node.js MongoDB Driver](https://www.npmjs.com/package/mongodb) - Official MongoDB driver for Node.js
 * [MongoDB description, setup, use cases](https://contextneutral.com/story/mongodb-and-nodejs-how-to-begin) - Nice brief description of MongoDB, setup and install (on Linux), and how to integrate in with Node.js
+* [Mongoose](https://mongoosejs.com/) - Mongoose provides a straight-forward, schema-based solution to model your application data. It includes built-in type casting, validation, query building, business logic hooks and more, out of the box.
 ## Camera Bindings - These are alternative language wrappers to accessing libgphoto2 functionality (natively written in C).  Only one is necessary for implementation of the application.
 * Python 
     * [SWIG-based libgphoto2 python wrapper](https://pypi.org/project/gphoto2/)
@@ -38,6 +39,9 @@
     * Backend - This will the node expressjs server that will keep track of system state and notify connected clients of updates to images, etc.
     * Frontend - React.js derived UI.
     * DB - MongoDB
+## Authentication
+* [Authentication with Passport Tutorial](https://medium.freecodecamp.org/learn-how-to-handle-authentication-with-node-using-passport-js-4a56ed18e81e)
+* [Passport](http://www.passportjs.org/)
 ## Other Topics/Interesting Links
 * [ECMAScript6 Overview](https://github.com/lukehoban/es6features#readme) - Newest Javascript syntax and libraries.
 * Accessing python functionality from Node.js webapp (NOTE: I’ve since decided to use a websocket or socket.io-type connection to interface with the camera/motor controller module, so this isn’t necessary)
