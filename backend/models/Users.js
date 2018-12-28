@@ -10,6 +10,7 @@ const UsersSchema = new Schema({
     email: String,
     hash: String,
     salt: String,
+    tokenIds: [String],
 });
 
 UsersSchema.methods.setPassword = function(password) {
@@ -22,23 +23,25 @@ UsersSchema.methods.validatePassword = function(password) {
     return this.hash === hash;
 };
 
-UsersSchema.methods.generateJWT = function() {
+UsersSchema.methods.generateJWT = function(tokenid) {
     const today = new Date();
     const expirationDate = new Date(today);
     expirationDate.setDate(today.getDate() + 60);
+    const expiration = parseInt(expirationDate.getTime() / 1000, 10);
 
     return jwt.sign({
         email: this.email,
         id: this._id,
-        exp: parseInt(expirationDate.getTime() / 1000, 10),
-    }, 'secret');
+        exp: expiration,
+        jti: tokenid,
+       }, 'awesome-No');
 }
 
-UsersSchema.methods.toAuthJSON = function() {
+UsersSchema.methods.toAuthJSON = function(tokenid) {
     return {
         _id: this._id,
         email: this.email,
-        token: this.generateJWT(),
+        token: this.generateJWT(tokenid),
     };
 };
 
