@@ -1,0 +1,41 @@
+$icon-dimensions: 2rem;
+$icon-dimensions-small: 1.5rem;
+$icon-dimensions-medium: 2.5rem;
+$icon-dimensions-large: 3.5rem;
+
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  animation: App-logo-spin infinite 20s linear;
+  height: 40vmin;
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@charset "utf-8";
+@import "bulma/bulma.sass";
+@import 'bulma-extensions/bulma-tooltip/dist/css/bulma-tooltip.sass';
