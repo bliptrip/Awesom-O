@@ -6,7 +6,7 @@ import ScheduleConfigurationPanel from './ScheduleConfigurationPanel.js';
 import React, {useState} from 'react';
 
 function ConfigurationPanel(props) {
-    const [currentTab, setCurrentTab] = useState(<DataConfigurationPanel />);
+    const [currentTab, setCurrentTab] = useState(<CameraConfigurationPanel />);
 
     function currentTabWrapper(id) {
         switch(id) {
