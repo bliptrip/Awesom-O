@@ -51,6 +51,7 @@ class Login extends Component {
         this.props.submitLogin(this.state.email, this.state.password);
     }
 
+
     createLogin() {
         axios.post("/api/users/", {
             email: this.state.email,
@@ -60,22 +61,34 @@ class Login extends Component {
             });
     }
 
+    isActive(loggedin) {
+        return( loggedin ? "" : "is-active" );
+    }
+
     render() {
         return(
-            <div>
-                <label>Email</label>
-                <input
-                    type="text"
-                    value={this.state.email}
-                    onChange={this.updateEmail}
-                />
-                <label>Password</label>
-                <input
-                    type="text"
-                    value={this.state.password}
-                    onChange={this.updatePassword}
-                />
-                <button onClick={this.handleSubmitLogin}>Submit Login</button>
+            <div class={"modal "+this.isActive(this.props.loggedin)}>
+                <div class="modal-background"></div>
+                <div class="modal-card">
+                    <header class="modal-card-head">
+                        <p class="modal-card-title">Login</p>
+                    </header>
+                    <section class="modal-card-body">
+                        <label>Email</label>
+                        <input
+                            type="text"
+                            value={this.state.email}
+                            onChange={this.updateEmail}
+                        />
+                        <label>Password</label>
+                        <input
+                            type="password"
+                            value={this.state.password}
+                            onChange={this.updatePassword}
+                        />
+                        <button onClick={this.handleSubmitLogin}>Submit Login</button>
+                    </section>
+                </div>
             </div>);
     }
 }
@@ -118,12 +131,13 @@ class App extends Component {
                     this.setState( {token: res.data.user.token, loggedin: true} );
                 } else {
                     alert("Failed to login: Status code: " + res.status + ": " + res.statusText);
+                    this.setState( {loggedin: false} );
                 }
             });
     }
 
     componentDidMount() {
-        this.checkLogin()
+        this.checkLogin();
     }
 
     checkLogin() {
@@ -145,28 +159,15 @@ class App extends Component {
         return(fetchp);
     }
 
-    renderApp() {
-        return(
-            <div class="container">
-                <Toolbar user={this.state.email} rstatus="running" />
-                <Viewport />
-                <ConfigurationPanel />
-            </div>
-        );
-    }
-
     render() {
-        var renderText;
-        //if (this.state.loggedin == true) {
-            renderText = this.renderApp();
-        //} 
-        //else {
-        //    renderText = <Login email={this.state.email} submitLogin={this.handleSubmitLogin} />;
-        //}
-
         return (
             <div>
-                {renderText}
+                <div class="container">
+                    <Toolbar user={this.state.email} rstatus="running" />
+                    <Viewport />
+                    <ConfigurationPanel />
+                </div>
+                <Login loggedin={this.state.loggedin} email={this.state.email} submitLogin={this.handleSubmitLogin} />
             </div>
         );
     }
