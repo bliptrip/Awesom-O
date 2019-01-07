@@ -3,7 +3,6 @@ const BACKEND_PORT = 3001;
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
-const session = require('express-session');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const errorHandler = require('errorhandler');
@@ -23,7 +22,6 @@ app.use(require('morgan')('dev'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(session({ secret: 'awesom-O', cookie: { maxAge: 60000 }, resave: false, saveUninitialized: false }));
 
 if(!isProduction) {
       app.use(errorHandler());
@@ -33,13 +31,15 @@ if(!isProduction) {
 mongoose.connect('mongodb://localhost/Awesome-O', {useNewUrlParser: true});
 mongoose.set('debug', true);
 
-//Models and routes
+//Models and Configuration
 require('./models/RouteConfig');
 require('./models/CameraConfig');
 require('./models/ExperimentConfig');
 require('./models/Projects');
 require('./models/Users');
 require('./config/passport');
+
+//Routes
 app.use(require('./routes'));
 
 //Error handlers & middlewares
