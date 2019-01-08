@@ -5,13 +5,17 @@ import RouteConfigurationPanel from './RouteConfigurationPanel.js';
 import ScheduleConfigurationPanel from './ScheduleConfigurationPanel.js';
 import React, {useState} from 'react';
 
+const cameraConfiguration = {configuration: {cameraConfiguration:{
+                                main: {children: {}}
+                            }}};
+
 function ConfigurationPanel(props) {
-    const [currentTab, setCurrentTab] = useState(<CameraConfigurationPanel />);
+    const [currentTab, setCurrentTab] = useState(<CameraConfigurationPanel cameraConfiguration={cameraConfiguration}/>);
 
     function currentTabWrapper(id) {
         switch(id) {
             case 'tab-camera':
-                setCurrentTab(<CameraConfigurationPanel />);
+                setCurrentTab(<CameraConfigurationPanel cameraConfiguration={cameraConfiguration}/>);
                 break;
             case 'tab-data':
                 setCurrentTab(<DataConfigurationPanel />);
