@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 
-router.use('/', require('./camera'));
+const cammod = require('./camera').router;
+
+router.use('/', cammod);
 
 module.exports = router;

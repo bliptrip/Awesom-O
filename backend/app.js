@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const errorHandler = require('errorhandler');
+const http = require('http'); //Simple http server
 
 //Configure mongoose's promise to global promise
 mongoose.promise = global.Promise;
@@ -15,6 +16,9 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 //Initiate our app
 const app = express();
+
+//Initialize http server
+const server = http.createServer(app);
 
 //Configure our app
 app.use(cors());
@@ -38,6 +42,7 @@ require('./models/ExperimentConfig');
 require('./models/Projects');
 require('./models/Users');
 require('./config/passport');
+
 
 //Routes
 app.use(require('./routes'));
@@ -69,8 +74,9 @@ app.use((err, req, res, next) => {
     next(err)
 });
 
-//Express websocket library
-const expressWs = require('express-ws')(app);
+//Initialize websocket server
+const WebSocket = require('./routes/camera/camera');
+WebSocket.initializeWebSocket(server);
 
 //Listen
-app.listen(BACKEND_PORT, () => console.log("Server running on http://localhost:"+BACKEND_PORT));
+server.listen(BACKEND_PORT, () => console.log("Server running on http://localhost:"+BACKEND_PORT));

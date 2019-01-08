@@ -24,6 +24,7 @@
   "license": "GPL-3.0-or-later",
   "dependencies": {
     "body-parser": "^1.18.3",
+    "btoa": "^1.2.1",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "errorhandler": "^1.5.0",
@@ -37,6 +38,7 @@
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
     "path": "^0.12.7",
-    "uuid": "^3.3.2"
+    "uuid": "^3.3.2",
+    "ws": "^6.1.2"
   }
 }

@@ -13,12 +13,13 @@
     "react-grid-layout": "^0.16.6",
     "react-scripts": "^2.1.2",
     "react-table": "^6.8.6",
+    "react-websocket": "^2.0.0",
     "uuid": "^3.3.2"
   },
   "scripts": {
     "build-css": "node-sass-chokidar --include-path ./src --include-path ./src/toolbar --include-path --include-path ./node_modules src/ -o src/",
     "watch-css": "npm run build-css && node-sass-chokidar --include-path ./src --include ./src/toolbar --include-path ./node_modules src/ -o src/ --watch --recursive",
-    "start-js": "export HTTPS=true; react-scripts start",
+    "start-js": "export HTTPS=false; react-scripts start",
     "start": "npm-run-all -p watch-css start-js",
     "build-js": "react-scripts build",
     "build": "npm-run-all build-css build-js",

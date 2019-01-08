@@ -1,11 +1,14 @@
+const btoa           = require('btoa');
 const mongoose       = require('mongoose');
 const passport       = require('passport');
 const router         = require('express').Router();
 const auth           = require('../auth');
 const fs             = require('fs');
 const gphoto2        = require('gphoto2');
+const WebSocket      = require('ws');
 
 var   gphoto = new gphoto2.GPhoto2();
+var   wss = null;
 
 // Negative value or undefined will disable logging, levels 0-4 enable it.
 gphoto.setLogLevel(1);
@@ -25,6 +28,34 @@ function listCameras() {
                 camera = list[0];
             }
         }));
+}
+
+//Initialize WebSocket server instance
+function initializeWebSocket(server) {
+    wss = new WebSocket.Server({server});
+
+    // Broadcast preview image to all connected clients.
+    wss.broadcast = function broadcast(data) {
+        wss.clients.forEach(function each(client) {
+            if (client.readyState === WebSocket.OPEN) {
+                let dataB64 = btoa(data);
+                client.send('data:image/jpeg;base64,'+dataB64);
+            }
+        });
+    };
+    
+    wss.on('connection', function connection(ws) {
+        ws.on('message', function incoming(data) {
+            // Broadcast to everyone else.
+            wss.clients.forEach(function each(client) {
+                if (client !== ws && client.readyState === WebSocket.OPEN) {
+                    client.send(data);
+                }
+            });
+        });
+    });
+
+    return(wss);
 }
 
 //Retrieve/refresh cameras
@@ -77,7 +108,8 @@ router.get('/capture', auth.required, (req, res, next) => {
             res.sendStatus(400);
         } else {
             fs.writeFileSync(__dirname + '/picture.jpg', data);
-            res.json({data: data});
+            wss.broadcast(data);
+            res.sendStatus(200);
         }
     });
 });
@@ -92,9 +124,10 @@ router.get('/preview', auth.required, (req, res, next) => {
         if( err ) {
             res.sendStatus(400);
         } else {
-            res.json({data: data});
+            wss.broadcast(data);
+            res.sendStatus(200);
         }
     });
 });
 
-module.exports = router;
+module.exports = {router: router, initializeWebSocket: initializeWebSocket};
