@@ -94,6 +94,14 @@ router.get('/settings', auth.required, (req, res, next) => {
 
 //Put saves settings to camera
 router.put('/settings', auth.required, (req, res, next) => {
+    camera.setConfigValue(req.body.name, req.body.value, (err) => 
+        {
+            if(err) {
+                res.status(404).send("setConfigValue failed with error code: " + JSON.stringify(err));
+            } else {
+                res.sendStatus(200);
+            }
+        });
     return;
 });
 
