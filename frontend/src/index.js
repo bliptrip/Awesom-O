@@ -2,12 +2,18 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
-
+import rootReducer from './reducers';
+import {createStore} from 'redux';
+import {Provider} from 'react-redux';
 import * as serviceWorker from './serviceWorker';
+
+const store = createStore(rootReducer);
 
 export default function Root() {
     return (
-        <App />
+        <Provider store={store}>
+            <App />
+        </Provider>
     );
 }
 

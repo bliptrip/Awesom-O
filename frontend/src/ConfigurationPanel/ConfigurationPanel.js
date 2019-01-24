@@ -1,21 +1,17 @@
 import './ConfigurationPanel.scss';
-import CameraConfigurationPanel from './CameraConfigurationPanel.js';
+import VisibleCameraConfigurationPanel from './CameraConfigurationPanel.js';
 import DataConfigurationPanel from './DataConfigurationPanel.js';
 import RouteConfigurationPanel from './RouteConfigurationPanel.js';
 import ScheduleConfigurationPanel from './ScheduleConfigurationPanel.js';
 import React, {useState} from 'react';
 
-const cameraConfiguration = {configuration: {cameraConfiguration:{
-                                main: {children: {}}
-                            }}};
-
 function ConfigurationPanel(props) {
-    const [currentTab, setCurrentTab] = useState(<CameraConfigurationPanel cameraConfiguration={cameraConfiguration}/>);
+    const [currentTab, setCurrentTab] = useState(<VisibleCameraConfigurationPanel />);
 
     function currentTabWrapper(id) {
         switch(id) {
             case 'tab-camera':
-                setCurrentTab(<CameraConfigurationPanel cameraConfiguration={cameraConfiguration}/>);
+                setCurrentTab(<VisibleCameraConfigurationPanel />);
                 break;
             case 'tab-data':
                 setCurrentTab(<DataConfigurationPanel />);

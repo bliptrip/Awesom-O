@@ -8,7 +8,7 @@ import Toolbar from './Toolbar/Toolbar';
 import Viewport from './Viewport/Viewport';
 import ConfigurationPanel from './ConfigurationPanel/ConfigurationPanel';
 
-class Online  extends Component {
+class Online extends Component {
     render() {
         return(
             <div>
