@@ -11,12 +11,15 @@
     "react-cookies": "^0.1.0",
     "react-dom": "^16.7.0-alpha.2",
     "react-grid-layout": "^0.16.6",
+    "react-redux": "^6.0.0",
     "react-scripts": "^2.1.2",
     "react-table": "^6.8.6",
     "react-websocket": "^2.0.0",
+    "redux": "^4.0.1",
     "uuid": "^3.3.2"
   },
   "scripts": {
+    "build-babel": "babel src -d lib",
     "build-css": "node-sass-chokidar --include-path ./src --include-path ./src/toolbar --include-path --include-path ./node_modules src/ -o src/",
     "watch-css": "npm run build-css && node-sass-chokidar --include-path ./src --include ./src/toolbar --include-path ./node_modules src/ -o src/ --watch --recursive",
     "start-js": "export HTTPS=false; react-scripts start",
@@ -35,5 +38,11 @@
     "not dead",
     "not ie <= 11",
     "not op_mini all"
-  ]
+  ],
+  "devDependencies": {
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.2.2",
+    "@babel/plugin-proposal-object-rest-spread": "^7.3.1",
+    "@babel/preset-env": "^7.3.1"
+  }
 }
