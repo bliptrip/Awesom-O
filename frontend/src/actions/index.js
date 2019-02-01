@@ -40,8 +40,24 @@ export const setCameraEntryValue = (id, value) => ({
     id,
     value,
 });
-
 export const resetCameraConfigurationChangeFlag = (id) => ({
     type: "RESET_CAMERA_CONFIGURATION_CHANGE_FLAG",
     id,
+});
+
+//Viewport receive current picture
+export const receiveCurrentPicture = (src) => ({
+    type: "RECEIVE_CURRENT_PICTURE",
+    src,
+});
+
+//Controller state: Things like running, paused, stopped, and current location of camera arm (row, col)
+export const receiveControllerStateStatus = (status) => ({
+    type: "RECEIVE_CONTROLLER_STATE_STATUS",
+    status: status,
+});
+
+export const receiveControllerStateLocation = (location) => ({
+    type: "RECEIVE_CONTROLLER_STATE_LOCATION",
+    location: location,
 });

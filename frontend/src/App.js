@@ -5,8 +5,9 @@ import axios from "axios";
 import logo from './logo.svg';
 import './App.css';
 import Toolbar from './Toolbar/Toolbar';
-import Viewport from './Viewport/Viewport';
+import VisibleViewport from './Viewport/Viewport';
 import ConfigurationPanel from './ConfigurationPanel/ConfigurationPanel';
+import ConnectedWsEventHandler from './WsEventHandler/WsEventHandler';
 
 class Online extends Component {
     render() {
@@ -162,9 +163,10 @@ class App extends Component {
     render() {
         return (
             <div>
+                <ConnectedWsEventHandler />
                 <div class="container">
-                    <Toolbar user={this.state.email} rstatus="running" />
-                    <Viewport />
+                    <Toolbar user={this.state.email} wsehrstatus="running" />
+                    <VisibleViewport />
                     <ConfigurationPanel />
                 </div>
                 <Login loggedin={this.state.loggedin} email={this.state.email} submitLogin={this.handleSubmitLogin} />
