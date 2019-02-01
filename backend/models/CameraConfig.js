@@ -7,9 +7,9 @@ const CameraConfigSchema = new Schema({
     description: String,
     manufacturer: String,
     model: String,
-    device_version: String,
-    gphoto2_config: String
+    deviceVersion: String,
+    gphoto2Config: String
 });
 
-const CameraConfig = mongoose.model('CameraConfig', CameraConfigSchema);
+mongoose.model('CameraConfig', CameraConfigSchema);
 

@@ -12,9 +12,9 @@ const ExperimentConfigSchema = new Schema({
     version: Number, //Version ID
     datetime: Boolean, //Append datetime suffix to files as they are created
     rename: Boolean, //Rename files from default
-    image_meta: Boolean, //Embed metadata in image file, if supported
-    filename_fields: [String], //Which metadata fields include in filename, in order listed
+    imageMeta: Boolean, //Embed metadata in image file, if supported
+    filenameFields: [String], //Which metadata fields include in filename, in order listed
     config: [PlateSchema]
 });
 
-const ExperimentConfig = mongoose.model('ExperimentConfig', ExperimentConfigSchema);
+mongoose.model('ExperimentConfig', ExperimentConfigSchema);
