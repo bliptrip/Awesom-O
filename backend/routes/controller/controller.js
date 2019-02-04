@@ -1,3 +1,24 @@
+/**************************************************************************************
+This file is part of Awesom-O, an image acquisition and analysis web application,
+consisting of a frontend web interface and a backend database, camera, and motor access
+management framework.
+
+Copyright (C)  2019  Andrew F. Maule
+
+Awesom-O is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Awesom-O is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
+**************************************************************************************/
+
 const auth           = require('../auth');
 const mongoose       = require('mongoose');
 const passport       = require('passport');
@@ -15,7 +36,7 @@ const SLEEP_INT   = 100; //sleep time in milliseconds between sending subcommand
 const DISTANCE_BW_PLATE_X = 12.0; //Distance (cm) between plates in X direction
 const DISTANCE_BW_PLATE_Y = 12.0; //Distance (cm) between plates in Y direction
 const STEPS_PER_CM = 9804; //motor steps per cm
-const DEFAULT_PATH = "/dev/ttyS0";
+const DEFAULT_PATH = "/dev/cu.USA19H142P1.1";
 const HOME_TIMEOUT = 30000;
 const MOVE_TIMEOUT   = 15000;
 const UNDEFINED_PROJECT_ID = -1;
@@ -32,10 +53,22 @@ var current_state = "STOPPED"; //The state of the controller: "RUNNING", "STOPPE
 const openPort = (path) => {
     let lport = new SerialPort(path, {
                           baudRate: 9600,
-                          parity: none,
+                          parity: 'none',
                           dataBits: 8,
-                          stopBits: 1
+                          stopBits: 1,
+                          autoOpen: false
                          });
+
+    lport.open(function(err) {
+        if (err) {
+            return console.log('Error opening port: ', err.message);
+        }
+    });
+
+    lport.on('readable', () => {
+        console.log('Data:' +  lport.read());
+    });
+    
     return(lport);
 }
 
@@ -53,6 +86,7 @@ const sleep = (ms) => {
 
 const sendCommand = (command) => {
     port.write(command + "\r\n");
+    //port.drain();
     const r = port.read();
     return(r);
 }
@@ -102,7 +136,7 @@ const sendCommandHome = () => {
         sendCommand('DI-1200000');
         sleep(SLEEP_INT);
         //Velocity rate 1 rev/sec
-        sendCommand('VE1');
+        sendCommand('VE3');
         sleep(SLEEP_INT);
         //Feed length command
         sendCommand('FL');
@@ -121,7 +155,7 @@ const sendCommandHomeX = () => {
         sendCommand('1DI-1200000');
         sleep(SLEEP_INT);
         //Velocity axis 1
-        sendCommand('1VE1');
+        sendCommand('1VE3');
         sleep(SLEEP_INT);
         //Axis 1 Feed length command
         sendCommand('1FL');
@@ -140,7 +174,7 @@ const sendCommandHomeY = () => {
         sendCommand('2DI-1200000');
         sleep(SLEEP_INT);
         //Velocity axis 1
-        sendCommand('2VE1');
+        sendCommand('2VE3');
         sleep(SLEEP_INT);
         //Axis 1 Feed length command
         sendCommand('2FL');
@@ -154,10 +188,10 @@ const sendCommandMove = (axes, steps)  => {
     const p = new Promise( (resolve) => {
         //Define position x steps along axis 1 (x-axis)
         axes.forEach( (axis) => {
-            sendCommand(axis + 'DI%d'%(x));
+            sendCommand(axis + 'DI' + steps);
             sleep(SLEEP_INT);
             //Velocity 3
-            sendCommand(axis + 'VE3');
+            sendCommand(axis + 'VE5');
             sleep(SLEEP_INT);
             //Axis 1 Feed length command
             sendCommand(axis + 'FL');
@@ -171,33 +205,34 @@ const sendCommandMove = (axes, steps)  => {
 const waitForComplete = (axes, timeout = 0) => {
     const p = new Promise( (resolve,reject) => {
         let r = "";
+        let timeout;
         let alarmCode = "";
-        if( timeout !== 0 ) {
-            setTimeout(timeout, () => { reject('timeout') }); //Set a timeout to give up on operation, and if times out, call reject CB with timeout event
+        if( (timeout !== 0) && reject ) {
+            timeout = setTimeout(() => { reject('timeout') }, timeout); //Set a timeout to give up on operation, and if times out, call reject CB with timeout event
         }
         axes.forEach( (axis) => {
             do {
                 r = sendCommand(axis+'RS');
-                if( r.match(/R/g) ) {
-                    resolve();
-                    break;
-                } else if ( r.match(/A/g) ) {
-                    alarmCode = sendCommand(axis+'AL');
+                if ( r.match(/A/g) ) {
+                    console.log("Alarm: " + alarmcode);
                     //Reset alarm
                     sendCommand(axis+'AR');
                     break;
-                } else if ( r.match(/E/g) ) {
+                }
+
+                if ( r.match(/E/g) ) {
                     //Reset drive fault
                     sendCommand(axis+'AR');
-                    reject('');
+                    alarmCode="AE";
                     break;
                 }
             } while( alarmCode === "" );
         });
+        clearTimeout(timeout);
         if( alarmCode !== "" ) {
             reject(alarmCode);
         } else {
-            resolve(alarmCode);
+            resolve();
         }
     });
     return(p);
@@ -209,8 +244,7 @@ const sendCommandAndWait = (axes, steps, timeout, res) => {
         waitForComplete(axes,timeout)
         .then( () => { 
             res.sendStatus(200); 
-        })
-        .then( (err) => {
+        }, (err) => {
             res.status(404).send(JSON.stringify(err));
         });
     });
@@ -241,9 +275,9 @@ const moveToPlate = (project, prev, next) => {
     sendCommandMove(axes,steps)
         .then( () => {
             waitForComplete(axes,MOVE_TIMEOUT)
-                .then( () => {
-                    postal.publish("controller", "route.move", {row: next.y, col: next.x});
-                });
+            .then( () => {
+                postal.publish("controller", "route.move", {row: next.y, col: next.x});
+            });
         });
 };
 
@@ -269,23 +303,22 @@ controllerEventLoopChan.subscribe("notification.start", (data, envelope) => {
     
     //Send home
     sendCommandHome()
-        .then( () => {
-            waitForComplete(['1','2'],HOME_TIMEOUT)
-                .then( () => { 
-                    //Reset route index
-                    current_route_index = 0;
-                    nextRoute = getRoute(current_project, current_route_index);
-                    //Move to first route location -- assume home is x = 0, y = 0
-                    moveToPlate(current_project, {x: 0, y: 0}, nextRoute);
-                    current_route_index++;
-                    //Setup an interval timer to handle next route location
-                    current_project_timer = pauseable.setTimeout( () => {
-                        controllerEventLoopChan.publish("notification.timeout", {index: current_route_index});
-                    }, current_project.route.interplateDelay * 1000);
-                    res.sendStatus(200); 
-                })
-                .then( (err) => {});
-        });
+    .then( () => {
+        waitForComplete(['1','2'],HOME_TIMEOUT)
+        .then( () => { 
+            //Reset route index
+            current_route_index = 0;
+            nextRoute = getRoute(current_project, current_route_index);
+            //Move to first route location -- assume home is x = 0, y = 0
+            moveToPlate(current_project, {x: 0, y: 0}, nextRoute);
+            current_route_index++;
+            //Setup an interval timer to handle next route location
+            current_project_timer = pauseable.setTimeout( () => {
+                controllerEventLoopChan.publish("notification.timeout", {index: current_route_index});
+            }, current_project.route.interplateDelay * 1000);
+            res.sendStatus(200); 
+        }, (err) => {});
+    });
 });
 
 controllerEventLoopChan.subscribe("notification.resume", (data, envelope) => {
@@ -309,10 +342,12 @@ controllerEventLoopChan.subscribe("notification.stop", (data, envelope) => {
 
 //Middleware function: Check current status and reject if not stopped
 const checkIfStopped = (res, req, next) => {
+    console.log("checkIfStopped begin.");
     if( current_state !== "STOPPED" ) {
         res.sendStatus(404).send("Current controller route in progress.  Stop route to execute this operation."); 
         return;
     }
+    console.log("checkIfStopped end.");
     next();
 }
 
@@ -333,9 +368,10 @@ const checkIfRunning = (res, req, next) => {
 }
 
 //Open serial port
-router.put('/open/', auth.required, checkIfStopped, (req, res, next) => {
+router.put('/open', auth.required, checkIfStopped, (req, res, next) => {
+    console.log("Opening default port.");
     port = openPort(DEFAULT_PATH);
-    if( port ) {
+    if( port != undefined ) {
         res.sendStatus(200);
     } else {
         res.sendStatus(400);
@@ -343,6 +379,7 @@ router.put('/open/', auth.required, checkIfStopped, (req, res, next) => {
 });
 
 router.put('/open/:path', auth.required, checkIfStopped, (req, res, next) => {
+    console.log("Opening non-default port.");
     port = openPort(req.params.path);
     if( port ) {
         res.sendStatus(200);
@@ -363,8 +400,9 @@ router.put('/homex', auth.required, checkIfStopped, (req, res, next) => {
     sendCommandHomeX()
     .then( () => {
         waitForComplete(['1'],HOME_TIMEOUT)
-        .then( () => { res.sendStatus(200); } )
-        .then( (err) => {
+        .then( () => { 
+            res.sendStatus(200); 
+        }, (err) => {
             res.status(404).send(JSON.stringify(err));
         });
     });
@@ -374,8 +412,8 @@ router.put('/homey', auth.required, checkIfStopped, (req, res, next) => {
     sendCommandHomeY()
     .then( () => {
         waitForComplete(['2'],HOME_TIMEOUT)
-        .then( () => { res.sendStatus(200); } )
-        .then( (err) => {
+        .then( () => { res.sendStatus(200); },
+        (err) => {
             res.status(404).send(JSON.stringify(err));
         });
     });
@@ -387,8 +425,7 @@ router.put('/home', auth.required, checkIfStopped, (req, res, next) => {
         waitForComplete(['1','2'],HOME_TIMEOUT)
         .then( () => {
             res.sendStatus(200); 
-        })
-        .then( (err) => {
+        }, (err) => {
             res.status(404).send(JSON.stringify(err));
         });
     });
@@ -424,7 +461,7 @@ router.put('/move/:cardinal/:units/:num', auth.required, checkIfStopped, (req, r
         default:
             break;
     }
-    sendCommandAndWait(axis, steps, MOVE_TIMEOUT, res);
+    sendCommandAndWait([axis], steps, MOVE_TIMEOUT, res);
 });
 
 router.put('/start/:projectid', auth.required, checkIfStopped, (req, res, next) => {
