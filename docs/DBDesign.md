@@ -12,6 +12,7 @@ Defines list of users of system, credentials, and projects associated with them.
 `    'email': <email>,`<br>
 `    'hash': <password hash>,`<br>
 `    'projects': [<project table id>, ...]`<br>
+`    'tokenIds': [<active javascript web token id 0, ...]>`<br>
 `}`
 
 ## Project Table
@@ -19,59 +20,64 @@ Defines project-specific configuration parameters.
 
 `project`<br>
 `{   'version': <version>,`<br>
-`    'id': <integer identifier>,`<br>
 `    'description': <description string>,`<br>
-`    'camera_config': <camera_config table id>,`<br>
-`    'experiment_config': <experiment_config table id>,`<br>
-`    'image_path': <local FS path>,`<br>
-`    'cloud_config': <cloud_config table id>,`<br>
-`    'route_config': <route_config table id>`<br>
+`    'cameraConfig': <camera_config table id>,`<br>
+`    'experimentConfig': <experimental configuration table id reference>,`<br>
+`    'storageConfig': [<persistent storage configuration 0>, <persistent storage configuration 1>, ...]`<br>
+`    'routeConfig': <route configuration table id reference>`<br>
 `}`
 
 ## Camera Configuration Table
 Defines the camera configuration associated with project.
 
-`camera_config`<br>
+`CameraConfig`<br>
 `{   'version': <version>,`<br>
-`    'id': <integer identifier>,`<br>
 `    'description': <description string>,`<br>
 `    'manufacturer': <manufacturer string>,`<br>
-`    'cameramodel': <model string>,`<br>
-`    'deviceversion': <device version string>,`<br>
-`    'gphoto2JSON': {JSON object representation from node-gphoto2}`<br>
+`    'model': <model string>,`<br>
+`    'deviceVersion': <device version string>,`<br>
+`    'sn': <device serial number>,` <br>
+`    'gphoto2Config': {stringified JSON object representation from node-gphoto2}`<br>
 `}`
 
 ## Experiment Config
 This defines the experimental config.  The user will typically upload a CSV file with minimum of following
 fields at start: `<row>, <col>, <file_prefix>`.
 
-`experiment_config`<br>
+`ExperimentConfig`<br>
 `{  'version': <version>,`<br>
-`   'id': <integer identifier>,`<br>
-`   'config': [<rows of CSV config converted to JSON dictionary objects>]`<br>
+`   'datetime': <boolean - apply datetime suffix to files as they are created>`<br>
+`   'rename': <boolean - rename files from default camera convention>`<br>
+`   'imageMeta': <boolean - embed metadata in image file, if supported.`<br>
+`   'filenameFields': [<metadata field 0>, <metadata field 1>, ...]`<br>
+`   'config': [<plate 0 coordinates>, <plate 1 coordinates>, ...>]`<br>
 `}`
 
-## Cloud Config
-This will define the login credentials and parameters of accessing/using cloud data services, such as Cyverse, Box.com, dropbox.com, google drive, rsync.
-The details of this can be hashed out in the future.
+## Storage Config
+This will define the storage configuration for where to place downloaded camera image files.  Login credentials and parameters of accessing/using cloud data services, where required,
+will be embedded in a JSON-stringified field.  Current support is for local storage only, but eventually cloud services
+such as Cyverse, Box.com, dropbox.com, google drive, rsync, etc. will be supported.  
+NOTE: Multiple storage configurations can be specified, as a user may want to sync their images to multiple locations
+(local, cyverse, and more).
+
+`StorageConfig`<br>
+`    version: <version>`<br>
+`    type: <storage type identifier>`<br>
+`    params: <stringified JSON representation of parameters>`<br>
+`}`
 
 ## Route Config
 This defines the camera route configuration parameters.
 
-`route_config`<br>
+`RouteConfig`<br>
 `{   'version': <version>,`<br>
-`    'id': <integer identifier>,`<br>
-`    'mode': "burst" || "sequential",`<br>
 `    'interplatedelay': <integer delay in seconds between capturing images>,`<br>
 `    'loopdelay': <integer delay in seconds between capturing next round of images>`<br>
-`    'preview_hooks': [list of hook scripts to execute before image is captured],`<br>
-`    'capture_hooks': [list of hook scripts to execute after image is capture]`<br>
+`    'previewHooks': [list of hook scripts to execute before image is captured],`<br>
+`    'captureHooks': [list of hook scripts to execute after image is capture]`<br>
 `    'stepsPerCmX': <number of steps per centimeter in X axis for motors>,`<br>
 `    'stepsPerCmY': <number of steps per centimeter in Y axis for motors>,`<br>
 `    'distanceX': <x distance in cm between plates>,`<br>
 `    'distanceY': <y distance in cm between plates>,`<br>
-`    'route': [ [x0, y0], [x1, y1], ..., [xn, yn] ] - Coordinates of route traversed`<br>
+`    'route': [ [x0, y0], [x1, y1], ..., [xn, yn] ] - Coordinates of route traversed -- these are 'plate' coordinates`<br>
 `}`
-
-
-

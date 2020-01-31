@@ -24,13 +24,13 @@ const mongoose = require('mongoose');
 const {Schema} = mongoose;
 
 const CameraConfigSchema = new Schema({
-    version: String,
-    description: String,
-    manufacturer: String,
-    model: String,
-    deviceVersion: String,
-    gphoto2Config: String
+    version: Number, //Table Version ID
+    description: String, //Camera description string
+    manufacturer: String, //Manufacturer
+    model: String, //Camera model
+    deviceVersion: String, //Camera device version
+    sn: String, //Camera serial number
+    gphoto2Config: String //JSONified string representation of the camera configuration, as recognized by gphoto2
 });
 
 mongoose.model('CameraConfig', CameraConfigSchema);
-

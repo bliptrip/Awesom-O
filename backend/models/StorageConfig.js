@@ -23,19 +23,10 @@ const mongoose = require('mongoose');
 
 const {Schema} = mongoose;
 
-const RouteLocationSchema = new Schema({x: Number, y: Number}) //Plate coordinates
-
-const RouteConfigSchema = new Schema({
-    version: Number,
-    interplateDelay: Number, //In seconds
-    loopDelay: Number,  //In seconds
-    previewHooks: [String], //List of preview hook scripts to call
-    captureHooks: [String], //List of capture hook scripts to call
-    stepsPerCmX: Number, //Motor steps/cm in x direction
-    stepsPerCmY: Number, //Motor steps/cm in y direction
-    distanceX: Number, //X distance in cm b/w plates
-    distanceY: Number, //Y distance in cm b/w plates
-    route: [RouteLocationSchema]
+const StorageConfigSchema = new Schema({
+    version: Number, //Table Version ID
+    type: String, //Storage type -- local, box.com, dropbox.com, google drive, etc.
+    params: String //Stringified JSON representation of parameters specific to each supported type of storage -- only support local storage for now
 });
 
-mongoose.model('RouteConfig', RouteConfigSchema);
+mongoose.model('StorageConfig', StorageConfigSchema);
