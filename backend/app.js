@@ -28,7 +28,6 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const errorHandler = require('errorhandler');
 const http = require('http'); //Simple http server
-const WebSocket      = require('ws');
 
 //Configure mongoose's promise to global promise
 mongoose.promise = global.Promise;
@@ -42,29 +41,6 @@ const app = express();
 //Initialize http server
 const server = http.createServer(app);
 
-//Initialize WebSocket server instance
-const wss = new WebSocket.Server({server: server});
-
-// Broadcast preview image to all connected clients.
-wss.broadcast = function broadcast(data) {
-    wss.clients.forEach(function each(client) {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(data);
-        }
-    });
-};
-
-wss.on('connection', function connection(ws) {
-    ws.on('message', function incoming(data) {
-        // Broadcast to everyone else.
-        wss.clients.forEach(function each(client) {
-            if (client !== ws && client.readyState === WebSocket.OPEN) {
-                client.send(data);
-            }
-        });
-    });
-});
-
 //Configure our app
 app.use(cors());
 app.use(require('morgan')('dev'));
@@ -77,15 +53,11 @@ if(!isProduction) {
 }
 
 //Configure Mongoose
-mongoose.connect('mongodb://localhost/Awesome-O', {useNewUrlParser: true});
+mongoose.connect('mongodb://localhost/houseportal', {useNewUrlParser: true});
 mongoose.set('debug', true);
 
 //Models and Configuration
 require('./models/RouteConfig');
-require('./models/CameraConfig');
-require('./models/ExperimentConfig');
-require('./models/Projects');
-require('./models/Users');
 require('./config/passport');
 
 //Routes
@@ -117,10 +89,6 @@ app.use((err, req, res, next) => {
     });
     next(err)
 });
-
-//Tell submodules the websocket server reference
-const camSetWss = require('./routes/camera/camera').setWss;
-camSetWss(wss);
 
 //Listen
 server.listen(BACKEND_PORT, () => console.log("Server running on http://localhost:"+BACKEND_PORT));

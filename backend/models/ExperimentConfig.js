@@ -23,20 +23,13 @@ const mongoose = require('mongoose');
 
 const {Schema} = mongoose;
 
-const PlateSchema = new Schema({
-    version: Number, //Table Version ID
-    row: Number, //Row of plate
-    col: Number, //Column of plate
-    meta: {type: Map, of: String} //Experimental metadata fields associated with plate
-});
-
 const ExperimentConfigSchema = new Schema({
     version: Number, //Table Version ID
     datetime: Boolean, //Append datetime suffix to files as they are created
     rename: Boolean, //Rename files from default
     imageMeta: Boolean, //Embed metadata in image file, if supported
     filenameFields: [String], //Which metadata fields include in filename, in order listed
-    config: [PlateSchema]
+    plateMeta: [{ row: Number, col: Number, meta: {type: Map, of: String}}]
 });
 
 mongoose.model('ExperimentConfig', ExperimentConfigSchema);

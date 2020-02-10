@@ -20,12 +20,13 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
 import React, { Component } from 'react';
+import {Redirect} from 'react-router-dom/Redirect';
 import { instanceOf } from 'prop-types';
 import cookie from 'react-cookies';
 import axios from "axios";
 import logo from './logo.svg';
 import './App.css';
-import Toolbar from './Toolbar/Toolbar';
+import AweToolbar from './Toolbar/Toolbar';
 import VisibleViewport from './Viewport/Viewport';
 import ConfigurationPanel from './ConfigurationPanel/ConfigurationPanel';
 import ConnectedWsEventHandler from './WsEventHandler/WsEventHandler';
@@ -181,16 +182,21 @@ class App extends Component {
         return(fetchp);
     }
 
+    renderLogin() {
+        if(!this.state.loggedin)
+            return <Redirect url='/login' />
+    }
+
     render() {
         return (
             <div>
                 <ConnectedWsEventHandler />
+                {this.renderLogin()}
                 <div class="container">
-                    <Toolbar user={this.state.email} wsehrstatus="running" />
+                    <AweToolbar user={this.state.email} wsehrstatus="running" />
                     <VisibleViewport />
                     <ConfigurationPanel />
                 </div>
-                <Login loggedin={this.state.loggedin} email={this.state.email} submitLogin={this.handleSubmitLogin} />
             </div>
         );
     }

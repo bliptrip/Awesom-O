@@ -19,20 +19,46 @@ You should have received a copy of the GNU Affero General Public License
 along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
-import './Toolbar.scss'
+import './Toolbar.css'
 import React, { useState } from 'react';
+import { makeStyles } from '@material-ui/core/styles';
+import AppBar from '@material-ui/core/AppBar';
+import Toolbar from '@material-ui/core/Toolbar';
+import Typography from '@material-ui/core/Typography';
+import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
+import MenuIcon from '@material-ui/icons/Menu';
+
 import UserProfile from './UserProfile';
 import ProjectToolbar from './ProjectToolbar';
 import RouteToolbar from './RouteToolbar';
 import StatusIndicator from './StatusIndicator';
 
+const useStyles = makeStyles(theme => ({
+  root: {
+    flexGrow: 1,
+  },
+  menuButton: {
+    marginRight: theme.spacing(2),
+  },
+  title: {
+    flexGrow: 1,
+  },
+}));
 
-function Toolbar(props) {
+function AweToolbar(props) {
     const [user, setUser] = useState(props.user);
     const [rstatus, setRStatus] = useState(props.rstatus);
+    const classes = useStyles();
+
     return (
         <div class="box">
-            <h1><strong>Awesom-O</strong></h1>
+            <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
+                <MenuIcon />
+            </IconButton>
+            <Typography variant="h6" className={classes.title}>
+                Awesom-O
+            </Typography>
             <nav class="level">
                 <div class="level-left level-item">
                     <UserProfile user={user}/>
@@ -46,6 +72,7 @@ function Toolbar(props) {
                 <div class="level-right level-item">
                     <StatusIndicator rstatus={rstatus}/>
                 </div>
+                <Button color="inherit">Logout</Button>
             </nav>
         </div>
     )

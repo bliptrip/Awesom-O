@@ -27,13 +27,14 @@ import rootReducer from './reducers';
 import {createStore} from 'redux';
 import {Provider} from 'react-redux';
 import * as serviceWorker from './serviceWorker';
+import {renderRoutes} from './routes';
 
 const store = createStore(rootReducer);
 
 export default function Root() {
     return (
         <Provider store={store}>
-            <App />
+            {renderRoutes()}
         </Provider>
     );
 }

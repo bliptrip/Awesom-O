@@ -33,7 +33,7 @@ const UsersSchema = new Schema({
     email: String,
     hash: String,
     salt: String,
-    projects: {type: Schema.Types.ObjectId, ref: 'Projects'} //Reference to the projects associated with the current user
+    projects: [{type: Schema.Types.ObjectId, ref: 'Projects'}], //Reference to the projects associated with the current user
     tokenIds: [String],
 });
 

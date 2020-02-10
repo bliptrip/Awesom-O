@@ -20,6 +20,81 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
 const uuidv4 = require('uuid/v4');
+import '../lib/fetch';
+
+const cameraConfigReducer = (state, action) => {
+    let newstate = state;
+    switch(action.type) {
+        case CAMERA_CONFIG_REQUEST:
+            newstate = {...state,
+                isFetching: true,
+                statusError: undefined,
+                _id: action.id
+            };
+            fetchAwesomOJWT('/api/camera/get/'+action.id)
+            .then(response => response.json(),
+                  error => store.dispatch(cameraConfigFetchError(error)))
+            .then( json => store.dispatch(cameraConfigFetchSuccess(json));
+            break;
+        case CAMERA_CONFIG_ERROR:
+            newstate = {...state,
+                isFetching: false,
+                statusError: action.error,
+            };
+            break;
+        case CAMERA_CONFIG_SUCCESS:
+            newstate = {...state,
+                isFetching: false,
+                _id: action.cameraConfig._id, //TODO - check if _id matches request
+                description: action.cameraConfig.description,
+                manufacturer: action.cameraConfig.manufacturer,
+                model: action.cameraConfig.model,
+                deviceVersion: action.cameraConfig.deviceVersion,
+                sn: action.cameraConfig.sn,
+                gphoto2Config: action.cameraConfig.gphoto2Config //Hydrate the rest of the state based on the string in here
+            };
+            break;
+        case CAMERA_CONFIG_SET_DESCRIPTION:
+            newstate = {...state,
+                _id: action.id,
+                description: action.description
+            };
+            break;
+        case CAMERA_CONFIG_SET_MANUFACTURER:
+            newstate = {...state,
+                _id: action.id,
+                manufacturer: action.manufacturer
+            };
+            break;
+        case CAMERA_CONFIG_SET_MODEL:
+            newstate = {...state,
+                _id: action.id,
+                model: action.model
+            };
+            break;
+        case CAMERA_CONFIG_SET_DEVICE_VERSION:
+            newstate = {...state,
+                _id: action.id,
+                deviceVersion: action.deviceVersion
+            };
+            break;
+        case CAMERA_CONFIG_SET_SN:
+            newstate = {...state,
+                _id: action.id,
+                sn: action.sn
+            };
+            break;
+        case CAMERA_CONFIG_SET_GPHOTO2_CONFIG:
+            newstate = {...state,
+                _id: action.id,
+                gphoto2Config: action.gphoto2Config //TODO: Parse out string?
+            };
+            break;
+        default:
+            break;
+    }
+    return(newstate);
+};
 
 //NOTE: I am overwriting the state rather than making a shallow copy 
 const generateConfigurationEntries = (state, parentId, entry) => {

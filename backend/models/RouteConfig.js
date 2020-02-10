@@ -23,7 +23,7 @@ const mongoose = require('mongoose');
 
 const {Schema} = mongoose;
 
-const RouteLocationSchema = new Schema({x: Number, y: Number}) //Plate coordinates
+const RouteLocationSchema = new Schema({row: Number, col: Number}) //Plate coordinates
 
 const RouteConfigSchema = new Schema({
     version: Number,

@@ -23,10 +23,17 @@ const mongoose = require('mongoose');
 
 const {Schema} = mongoose;
 
-const StorageConfigSchema = new Schema({
+const StorageTypeSchema = new Schema({
     version: Number, //Table Version ID
+    description: String, //Description
     type: String, //Storage type -- local, box.com, dropbox.com, google drive, etc.
-    params: String //Stringified JSON representation of parameters specific to each supported type of storage -- only support local storage for now
 });
 
+const StorageConfigSchema = new Schema({
+    version: Number, //Table Version ID
+    type: {type: Schema.Type.ObjectId, ref: ""}, //Storage type -- local, box.com, dropbox.com, google drive, etc.
+    params: {type: Map, of: String} //representation of parameters specific to each supported type of storage -- only support local storage for now
+});
+
+mongoose.model('StorageType', StorageTypeSchema);
 mongoose.model('StorageConfig', StorageConfigSchema);

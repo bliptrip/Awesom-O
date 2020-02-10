@@ -28,7 +28,7 @@ const ProjectsSchema = new Schema({
     description: String, //Project description as entered by user
     cameraConfig: {type: Schema.Types.ObjectId, ref: 'CameraConfig'}, //Reference to camera configuration document associated with this project
     experimentConfig: {type: Schema.Types.ObjectId, ref: 'ExperimentConfig'}, //Reference to experimental configuration document associated with this project
-    storageConfig: {type: Schema.Types.ObjectId, ref: 'StorageConfig'}, //Reference to storage configuration document associated with this project
+    storageConfigs: [{type: Schema.Types.ObjectId, ref: 'StorageConfig'}], //Reference to storage configuration document associated with this project
     routeConfig: {type: Schema.Types.ObjectId, ref: 'RouteConfig'} //Reference to the robotic route configuration associated with this project
 });
 
