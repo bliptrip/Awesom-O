@@ -21,13 +21,52 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 
 /* Define our action creators here */
 
+export const USER_SET_USERNAME = 'USER_SET_USERNAME';
+export const userSetUsername(username) => ({
+    type: USER_SET_USERNAME,
+    username
+});
+
+export const USER_SET_EMAIL = 'USER_SET_EMAIL';
+export const userSetEmail(email) => ({
+    type: USER_SET_EMAIL,
+    email
+});
+
+export const USER_SET_PASSWORD = 'USER_SET_PASSWORD';
+export const userSetPassword(password) => ({
+    type: USER_SET_PASSWORD,
+    password
+});
+
+export const USER_SET_TOKEN = 'USER_SET_TOKEN';
+export const userSetToken(token) => ({
+    type: USER_SET_TOKEN,
+    token
+});
+
+export const USER_LOGIN_REQUEST = 'USER_LOGIN_REQUEST';
+export const userLoginRequest = () => ({
+    type: USER_LOGIN_REQUEST
+});
+
+export const USER_LOGIN_ERROR = 'USER_LOGIN_ERROR';
+export const userLoginError = (error) => ({
+    type: USER_LOGIN_ERROR,
+    error
+});
+
+export const USER_LOGIN_SUCCESS = 'USER_LOGIN_SUCCESS';
+export const userLoginSuccess = (token, user) => ({
+    type: USER_LOGIN_SUCCESS,
+    token,
+    user
+});
+
 /* Create a New User */
 export const USER_CREATE_REQUEST = 'USER_CREATE_REQUEST';
-export const userCreateRequest = (username, email, password) => ({
-    type: USER_CREATE_REQUEST,
-    username,
-    email,
-    password,
+export const userCreateRequest = () => ({
+    type: USER_CREATE_REQUEST
 });
 
 export const USER_CREATE_ERROR = 'USER_CREATE_ERROR';
@@ -45,21 +84,20 @@ export const userCreateSuccess = () => ({
  * Fetch User Schema Data from DB
  */
 export const USER_FETCH_REQUEST = 'USER_FETCH_REQUEST';
-export const userFetchRequest = (username) => ({
-    type: USER_FETCH_REQUEST,
-    username,
+export const userFetchRequest = () => ({
+    type: USER_FETCH_REQUEST
 });
 
 export const USER_FETCH_ERROR = 'USER_FETCH_ERROR';
 export const userFetchError = (error) => ({
     type: USER_FETCH_ERROR,
-    error,
+    error
 });
 
 export const USER_FETCH_SUCCESS = 'USER_FETCH_SUCCESS';
 export const userFetchSuccess = (user) => ({
     type: USER_FETCH_SUCCESS,
-    user,
+    user
 });
 
 //Project-level action creators

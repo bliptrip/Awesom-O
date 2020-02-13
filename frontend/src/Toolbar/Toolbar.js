@@ -19,7 +19,6 @@ You should have received a copy of the GNU Affero General Public License
 along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
-import './Toolbar.css'
 import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
@@ -46,9 +45,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-function AweToolbar(props) {
-    const [user, setUser] = useState(props.user);
-    const [rstatus, setRStatus] = useState(props.rstatus);
+function Toolbar(props) {
     const classes = useStyles();
 
     return (
@@ -70,7 +67,7 @@ function AweToolbar(props) {
                     <RouteToolbar />
                 </div>
                 <div class="level-right level-item">
-                    <StatusIndicator rstatus={rstatus}/>
+                    <StatusIndicator />
                 </div>
                 <Button color="inherit">Logout</Button>
             </nav>

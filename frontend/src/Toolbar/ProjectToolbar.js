@@ -19,24 +19,27 @@ You should have received a copy of the GNU Affero General Public License
 along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
-import './ProjectToolbar.scss'
 import React, { useState } from 'react';
+import AccountTreeTwoToneIcon from '@material-ui/icons/AccountTreeTwoTone';
+import SaveAltTwoToneIcon from '@material-ui/icons/SaveAltTwoTone';
+import {ButtonGroup, Tooltip, IconButton} from '@material-ui/core/';
+
 
 function ProjectToolbar(props) {
     return(
-        <div>
-            <a href="#" class="button tooltip" data-tooltip="Load Project">
-                <span class="icon is-large">
-                    <i class="fas fa-2x fa-folder"></i>
-                </span>
-            </a>
-            <a href="#" class="button tooltip" data-tooltip="Save Project">
-                <span class="icon is-large">
-                    <i class="fas fa-2x fa-save"></i>
-                </span>
-            </a>
-        </div>
-    )
+        <ButtonGroup size="large" color="primary" aria-label="large outlined primary button group">
+            <Tooltip title="Load Project">
+                <IconButton aria-label="load project">
+                    <AccountTreeTwoToneIcon />
+                </IconButton>
+            </Tooltip>
+            <Tooltip title="Save Project">
+                <IconButton aria-label="save project">
+                    <SaveAltTwoToneIcon />
+                </IconButton>
+            </Tooltip>
+        </ButtonGroup>
+    );
 };
 
 export default ProjectToolbar;
