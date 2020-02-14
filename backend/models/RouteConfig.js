@@ -36,6 +36,7 @@ const RouteConfigSchema = new Schema({
     distanceX: Number, //X distance in cm b/w plates
     distanceY: Number, //Y distance in cm b/w plates
     route: [RouteLocationSchema]
+    users: [{type: Schema.Types.ObjectId, ref: 'Users'}] //Users with access to this RouteConfig
 });
 
 mongoose.model('RouteConfig', RouteConfigSchema);

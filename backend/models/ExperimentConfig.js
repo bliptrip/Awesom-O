@@ -30,6 +30,7 @@ const ExperimentConfigSchema = new Schema({
     imageMeta: Boolean, //Embed metadata in image file, if supported
     filenameFields: [String], //Which metadata fields include in filename, in order listed
     plateMeta: [{ row: Number, col: Number, meta: {type: Map, of: String}}]
+    users: [{type: Schema.Types.ObjectId, ref: 'Users'}] //Users with access to this ExperimentConfig
 });
 
 mongoose.model('ExperimentConfig', ExperimentConfigSchema);
