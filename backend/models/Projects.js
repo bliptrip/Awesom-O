@@ -30,6 +30,7 @@ const ProjectsSchema = new Schema({
     experimentConfig: {type: Schema.Types.ObjectId, ref: 'ExperimentConfig'}, //Reference to experimental configuration document associated with this project
     storageConfigs: [{type: Schema.Types.ObjectId, ref: 'StorageConfig'}], //Reference to storage configuration document associated with this project
     routeConfig: {type: Schema.Types.ObjectId, ref: 'RouteConfig'} //Reference to the robotic route configuration associated with this project
+    users: [{type: Schema.Types.ObjectId, ref: 'Users'}] //Users with access to this project
 });
 
 mongoose.model('Projects', ProjectsSchema);
