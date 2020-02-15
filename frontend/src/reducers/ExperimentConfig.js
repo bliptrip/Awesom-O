@@ -25,24 +25,57 @@ const uuidv4 = require('uuid/v4');
 const experimentConfigReducer = (state, action) => {
     let newstate = state;
     switch(action.type) {
-        case EXPERIMENT_CONFIG_REQUEST:
+        case EXPERIMENT_CONFIG_CREATE_REQUEST:
+            newstate = {...state,
+                isFetching: true,
+                statusError: undefined
+            }
+            break;
+        case EXPERIMENT_CONFIG_CREATE_ERROR:
+            newstate = {...state,
+                isFetching: false,
+                statusError: action.error
+            };
+            break;
+        case EXPERIMENT_CONFIG_REMOVE_REQUEST:
+            newstate = {...state,
+                _id: action.id,
+                isFetching: true,
+                statusError: undefined
+            }
+            break;
+        case EXPERIMENT_CONFIG_REMOVE_ERROR:
+            newstate = {...state,
+                isFetching: false,
+                statusError: action.error
+            };
+            break;
+        case EXPERIMENT_CONFIG_REMOVE_SUCCESS:
+            newstate = {...state,
+                _id: undefined,
+                isFetching: false,
+                statusError: undefined
+            };
+            break;
+        case EXPERIMENT_CONFIG_FETCH_REQUEST:
             newstate = {...state,
                 isFetching: true,
                 statusError: undefined,
-                _id: action.id
+                _id: action._id
             };
             fetchAwesomOJWT('/api/experiment/get/'+action.id)
             .then(response => response.json(),
                   error => store.dispatch(experimentConfigError(error)))
             .then( json => store.dispatch(experimentConfigSuccess(json));
             break;
-        case EXPERIMENT_CONFIG_ERROR:
+        case EXPERIMENT_CONFIG_FETCH_ERROR:
             newstate = {...state,
                 isFetching: false,
                 statusError: action.error,
             };
             break;
-        case EXPERIMENT_CONFIG_SUCCESS:
+        case EXPERIMENT_CONFIG_CREATE_SUCCESS:
+        case EXPERIMENT_CONFIG_FETCH_SUCCESS:
             newstate = {...state,
                 isFetching: false,
                 _id: action.experimentConfig._id, //TODO - check if _id matches request
@@ -50,7 +83,8 @@ const experimentConfigReducer = (state, action) => {
                 rename: action.experimentConfig.rename,
                 imageMeta: action.experimentConfig.imageMeta,
                 filenameFields: action.experimentConfig.filenameFields,
-                plateMeta: action.experimentConfig.plateMeta
+                plateMeta: action.experimentConfig.plateMeta,
+                users: action.experimentConfig.users
             };
             break;
         case EXPERIMENT_CONFIG_SET_DATETIME:
@@ -97,12 +131,8 @@ const experimentConfigReducer = (state, action) => {
             newstate = { ...state,
                 areSaving: true, //TODO: Check that we aren't already processing a save or fetching request
                 statusError: undefined,
-                _id: action.experimentConfig._id
+                _id: action._id
             };
-            fetchAwesomOJWT('/api/experiment/save/', method='POST', body=action.experimentConfig)
-            .then(  response => response.json(),
-                    error => store.dispatch(experimentConfigError(error)) )
-            .then(json => store.dispatch(experimentConfigSuccess(json.id)))
             break;
         case EXPERIMENT_CONFIG_SAVE_ERROR:
             newstate = { ...state,
@@ -112,7 +142,7 @@ const experimentConfigReducer = (state, action) => {
         case EXPERIMENT_CONFIG_SAVE_SUCCESS:
             newstate = { ...state,
                 areSaving: false,
-                _id: action.id };
+                _id: action._id };
             break;
         default:
             break;

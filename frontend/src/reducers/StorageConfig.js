@@ -24,25 +24,44 @@ export const fetchProjectsRequest = store;
 export const storage = (state = {}, action) => {
     let newstate = state;
     switch( action.type ) {
+        case STORAGE_CONFIG_CREATE_REQUEST:
+            newstate = { ...state,
+                isFetching: true,
+                statusError: undefined
+            };
+            break;
+        case STORAGE_CONFIG_CREATE_ERROR:
+            newstate = { ...state,
+                isFetching: false,
+                statusError: error
+            };
+            break;
+        case STORAGE_CONFIG_REMOVE_REQUEST:
+            newstate = {...state,
+                _id: action.id,
+                isFetching: true,
+                statusError: undefined
+            }
+            break;
+        case STORAGE_CONFIG_REMOVE_ERROR:
+            newstate = {...state,
+                isFetching: false,
+                statusError: action.error
+            };
+            break;
+        case STORAGE_CONFIG_REMOVE_SUCCESS:
+            newstate = {...state,
+                _id: undefined,
+                isFetching: false,
+                statusError: undefined
+            };
+            break;
         case STORAGE_CONFIG_FETCH_REQUEST:
             newstate = { ...state,
                 isFetching: true,
                 statusError: undefined,
                 _id: action.id
             };
-            fetchAwesomeOJWT(`/api/storage/get/`+action.id)
-            .then( response => response.json(),
-                // Do not use catch, because that will also catch
-                // any errors in the dispatch and resulting render,
-                // causing a loop of 'Unexpected batch number' errors.
-                // https://github.com/facebook/react/issues/6895
-                error => store.dispatch(storageConfigFetchError(error));
-            )
-            .then(json =>
-                // We can dispatch many times!
-                // Here, we update the app state with the results of the API call.
-                store.dispatch(storageConfigFetchSuccess(json));
-            );
             break;
         case STORAGE_CONFIG_FETCH_ERROR:
             newstate = { ...state,
@@ -50,24 +69,22 @@ export const storage = (state = {}, action) => {
                 statusError: error
             };
             break;
+        case STORAGE_CONFIG_CREATE_SUCCESS:
         case STORAGE_CONFIG_FETCH_SUCCESS:
             newstate = { ...state,
                 isFetching: false,
                 _id: action.storageConfig._id, //TODO: Validate that ID returned is same as that requested
                 type: action.storageConfig.type,
-                params: action.storageConfig.params
+                params: action.storageConfig.params,
+                users: action.storageConfig.users
             };
             break;
         case STORAGE_CONFIG_SAVE_REQUEST:
             newstate = { ...state,
+                _id: action._id,
                 areSaving: true, //TODO: Check that we aren't already processing a save or fetching request
                 statusError: undefined,
-                _id: action.storageConfig._id
             };
-            fetchAwesomOJWT('/api/storages/save/'+action.storageConfig._id, method='POST', body=action.storageConfig)
-            .then(  response => response.json(),
-                    error => store.dispatch(storageSaveError(error)) )
-            .then(json => store.dispatch(storageSaveSuccess(json.id)))
             break;
         case STORAGE_CONFIG_SAVE_ERROR:
             newstate = { ...state,

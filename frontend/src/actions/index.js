@@ -33,21 +33,10 @@ export const userSetEmail(email) => ({
     email
 });
 
-export const USER_SET_PASSWORD = 'USER_SET_PASSWORD';
-export const userSetPassword(password) => ({
-    type: USER_SET_PASSWORD,
-    password
-});
-
-export const USER_SET_TOKEN = 'USER_SET_TOKEN';
-export const userSetToken(token) => ({
-    type: USER_SET_TOKEN,
-    token
-});
-
 export const USER_LOGIN_REQUEST = 'USER_LOGIN_REQUEST';
-export const userLoginRequest = () => ({
-    type: USER_LOGIN_REQUEST
+export const userLoginRequest = (username) => ({
+    type: USER_LOGIN_REQUEST,
+    username: username
 });
 
 export const USER_LOGIN_ERROR = 'USER_LOGIN_ERROR';
@@ -57,9 +46,8 @@ export const userLoginError = (error) => ({
 });
 
 export const USER_LOGIN_SUCCESS = 'USER_LOGIN_SUCCESS';
-export const userLoginSuccess = (token, user) => ({
+export const userLoginSuccess = (user) => ({
     type: USER_LOGIN_SUCCESS,
-    token,
     user
 });
 
@@ -77,15 +65,72 @@ export const userCreateError = (error) => ({
 
 export const USER_CREATE_SUCCESS = 'USER_CREATE_SUCCESS';
 export const userCreateSuccess = () => ({
-    type: USER_CREATE_SUCCESS,
+    type: USER_CREATE_SUCCESS
+});
+
+/* Remove current user */
+export const USER_REMOVE_REQUEST = 'USER_REMOVE_REQUEST';
+export const userRemoveRequest = (_id) => ({
+    type: USER_REMOVE_REQUEST,
+    _id: _id
+});
+
+export const USER_REMOVE_ERROR = 'USER_REMOVE_ERROR';
+export const userRemoveError = (error) => ({
+    type: USER_REMOVE_ERROR,
+    error,
+});
+
+export const USER_REMOVE_SUCCESS = 'USER_REMOVE_SUCCESS';
+export const userRemoveSuccess = (_id) => ({
+    type: USER_REMOVE_SUCCESS,
+    _id: _id
+});
+
+/* Remove current user */
+export const USER_SAVE_REQUEST = 'USER_SAVE_REQUEST';
+export const userSaveRequest = (_id) => ({
+    type: USER_SAVE_REQUEST,
+    _id: _id
+});
+
+export const USER_SAVE_ERROR = 'USER_SAVE_ERROR';
+export const userSaveError = (error) => ({
+    type: USER_SAVE_ERROR,
+    error,
+});
+
+export const USER_SAVE_SUCCESS = 'USER_SAVE_SUCCESS';
+export const userSaveSuccess = (_id) => ({
+    type: USER_SAVE_SUCCESS,
+    _id: _id
+});
+
+export const USER_CHANGEPASSWORD_REQUEST = 'USER_CHANGEPASSWORD_REQUEST';
+export const userChangePasswordRequest = (_id) => ({
+    type: USER_CHANGEPASSWORD_REQUEST,
+    _id: _id
+});
+
+export const USER_CHANGEPASSWORD_ERROR = 'USER_CHANGEPASSWORD_ERROR';
+export const userChangePasswordError = (error) => ({
+    type: USER_CHANGEPASSWORD_ERROR,
+    error,
+});
+
+export const USER_CHANGEPASSWORD_SUCCESS = 'USER_CHANGEPASSWORD_SUCCESS';
+export const userChangePasswordSuccess = (_id) => ({
+    type: USER_CHANGEPASSWORD_SUCCESS,
+    _id: _id
 });
 
 /*
  * Fetch User Schema Data from DB
  */
 export const USER_FETCH_REQUEST = 'USER_FETCH_REQUEST';
-export const userFetchRequest = () => ({
-    type: USER_FETCH_REQUEST
+export const userFetchRequest = (username) => ({
+    type: USER_FETCH_REQUEST,
+    username: username
 });
 
 export const USER_FETCH_ERROR = 'USER_FETCH_ERROR';
@@ -100,11 +145,154 @@ export const userFetchSuccess = (user) => ({
     user
 });
 
+/* User-action thunks */
+const userLogin = (username,password) => dispatch =>  {
+    dispatch(userLoginRequest(username))
+    return(fetchAwesomO(`/api/users/login`,
+                method='POST',
+                headers={'Content-Type': 'application/json'},
+                body={username: username,
+                      password: password})
+    .then( response => response.json(),
+        error => dispatch(userLoginError(error))
+    )
+    .then( (data) => {
+        dispatch(userLoginSuccess(data));
+    }));
+};
+
+const userCreate = (username,email,password) => dispatch =>  {
+    dispatch(userCreateRequest())
+    return(fetchAwesomO(`/api/users/create`,
+                method='POST',
+                headers={'Content-Type': 'application/json'},
+                body={username: username,
+                      email: email,
+                      password: password})
+    .then( response => response.json(),
+        error => dispatch(userCreateError(error))
+    )
+    .then( (data) => {
+        dispatch(userCreateSuccess(data));
+    }));
+};
+
+const userRemove = (_id) => dispatch =>  {
+    let fetchURL;
+    //TODO - Recursively remove all projects associated with this user?
+    dispatch(userRemoveRequest(_id))
+    fetchURL = '/api/users/remove/' + _id;
+    return(fetchAwesomO(fetchURL)
+    .then( response => response.json(),
+        error => dispatch(userRemoveError(error))
+    )
+    .then( (data) => {
+        dispatch(userRemoveSuccess(data));
+    }));
+};
+
+/* Not sure if userFetch logic is necessary, but it's implemented just in case */
+const userFetch = username => dispatch =>  {
+    dispatch(userFetchRequest(username))
+    return(fetchAwesomOJWT(`/api/users/get/`+newstate.username)
+    .then( response => response.json(),
+        // Do not use catch, because that will also catch
+        // any errors in the dispatch and resulting render,
+        // causing a loop of 'Unexpected batch number' errors.
+        // https://github.com/facebook/react/issues/6895
+        error => dispatch(userFetchError(error))
+    )
+    .then(user =>
+        // We can dispatch many times!
+        // Here, we update the app state with the results of the API call.
+        dispatch(userFetchSuccess(user));
+    ));
+};
+
+const userSave = user => dispatch =>  {
+    dispatch(userSaveRequest(username))
+    return(fetchAwesomOJWT(`/api/users/save`,
+        method='POST',)
+        headers={'Content-Type': 'application/json'},
+        body={username: username,
+              email: email});
+    .then( response => response.json(),
+        // Do not use catch, because that will also catch
+        // any errors in the dispatch and resulting render,
+        // causing a loop of 'Unexpected batch number' errors.
+        // https://github.com/facebook/react/issues/6895
+        error => dispatch(userSaveError(error))
+    )
+    .then(user =>
+        // We can dispatch many times!
+        // Here, we update the app state with the results of the API call.
+        dispatch(userSaveSuccess(user));
+    ));
+};
+
+const userChangePassword = (_id, oldpassword, password) => dispatch =>  {
+    dispatch(userChangePasswordRequest(_id));
+    return(fetchAwesomOJWT(`/api/users/changepassword`,
+        method='POST',
+        headers={'Content-Type': 'application/json'},
+        body={_id: _id,
+              oldpassword: oldpassword,
+              password: password})
+    .then( response => response.json(),
+        // Do not use catch, because that will also catch
+        // any errors in the dispatch and resulting render,
+        // causing a loop of 'Unexpected batch number' errors.
+        // https://github.com/facebook/react/issues/6895
+        error => dispatch(userChangePasswordError(error))
+    )
+    .then(_id =>
+        // We can dispatch many times!
+        // Here, we update the app state with the results of the API call.
+        dispatch(userChangePasswordSuccess(_id));
+    ));
+};
+
+
 //Project-level action creators
+export const PROJECT_CREATE_REQUEST = 'PROJECT_CREATE_REQUEST';
+export const projectCreateRequest = () => ({
+    type: PROJECT_CREATE_REQUEST
+});
+
+export const PROJECT_CREATE_ERROR= 'PROJECT_CREATE_ERROR';
+export const projectCreateError = (error) => ({
+    type: PROJECT_CREATE_ERROR,
+    error
+});
+
+export const PROJECT_CREATE_SUCCESS= 'PROJECT_CREATE_SUCCESS';
+export const projectCreateSuccess = (project) => ({
+    type: PROJECT_CREATE_SUCCESS,
+    project
+});
+
+export const PROJECT_REMOVE_REQUEST = 'PROJECT_REMOVE_REQUEST';
+export const projectRemoveRequest = (_id) => ({
+    type: PROJECT_REMOVE_REQUEST,
+    _id
+});
+
+export const PROJECT_REMOVE_ERROR= 'PROJECT_REMOVE_ERROR';
+export const projectRemoveError = (error) => ({
+    type: PROJECT_REMOVE_ERROR,
+    error
+});
+
+export const PROJECT_REMOVE_SUCCESS= 'PROJECT_REMOVE_SUCCESS';
+export const projectRemoveSuccess= (_id) => ({
+    type: PROJECT_REMOVE_SUCCESS,
+    _id
+});
+
 export const PROJECT_FETCH_REQUEST = 'PROJECT_FETCH_REQUEST';
-export const projectFetchRequest = (id) => ({
+export const projectFetchRequest = (_id) => ({
     type: PROJECT_FETCH_REQUEST,
-    id,
+    _id,
 });
 
 export const PROJECT_FETCH_ERROR = 'PROJECT_FETCH_ERROR';
@@ -185,22 +373,109 @@ export const projectSetRouteConfig = (id, routeId) => ({
     routeId,
 });
 
+/* Project thunks */
+const projectCreate = (userId,templateId=undefined) => dispatch => {
+    let fetchURL;
+    dispatch(projectCreateRequest(userId,templateId));
+    fetchURL = `/api/project/create/`;
+    return(fetchAwesomeOJWT(fetchURL,
+            method='POST',
+            headers={'Content-Type': 'application/json'},
+            body={userId: userId,
+                  templateId: templateId})
+    .then( response => response.json(),
+        // Do not use catch, because that will also catch
+        // any errors in the dispatch and resulting render,
+        // causing a loop of 'Unexpected batch number' errors.
+        // https://github.com/facebook/react/issues/6895
+        error => dispatch(projectCreateError(error));
+    )
+    .then(project =>
+        // We can dispatch many times!
+        // Here, we update the app state with the results of the API call.
+        dispatch(projectCreateSuccess(project));
+    ));
+};
+
+const projectRemove = (_id) => dispatch => {
+    let fetchURL;
+    dispatch(projectRemoveRequest(_id));
+    fetchURL = `/api/project/remove/`+_id;
+    return(fetchAwesomeOJWT(fetchURL) //username must be passed as it allows backend to track where to add project
+    .then( response => response.json(),
+        // Do not use catch, because that will also catch
+        // any errors in the dispatch and resulting render,
+        // causing a loop of 'Unexpected batch number' errors.
+        // https://github.com/facebook/react/issues/6895
+        error => dispatch(projectRemoveError(error));
+    )
+    .then(_id =>
+        // We can dispatch many times!
+        // Here, we update the app state with the results of the API call.
+        dispatch(userRemoveProject(_id));
+        dispatch(projectRemoveSuccess(_id));
+    ));
+};
+
+const projectFetch = _id => dispatch => {
+    dispatch(projectFetchRequest(_id));
+    fetchAwesomeOJWT(`/api/project/get/`+_id)
+    .then( response => response.json(),
+        // Do not use catch, because that will also catch
+        // any errors in the dispatch and resulting render,
+        // causing a loop of 'Unexpected batch number' errors.
+        // https://github.com/facebook/react/issues/6895
+        error => dispatch(projectFetchError(error));
+    )
+    .then(project =>
+        // We can dispatch many times!
+        // Here, we update the app state with the results of the API call.
+        dispatch(projectFetchSuccess(project));
+    );
+};
+
+const projectSave = project => dispatch => {
+    dispatch(projectSaveRequest(project));
+    return(fetchAwesomOJWT('/api/project/save/', method='POST', body=project)
+    .then(  response => response.json(),
+            error => dispatch(projectSaveError(error)) )
+    .then(json => dispatch(projectSaveSuccess(json._id))));
+    
+}
+
 //Camera-configuration action-creators
-export const CAMERA_CONFIG_REQUEST = 'CAMERA_CONFIG_REQUEST';
-export const cameraConfigFetchRequest = (id) => ({
-    type: CAMERA_CONFIG_REQUEST,
-    id,
+export const CAMERA_CONFIG_CREATE_REQUEST = 'CAMERA_CONFIG_CREATE_REQUEST';
+export const cameraConfigCreateRequest = () => ({
+    type: CAMERA_CONFIG_CREATE_REQUEST
 });
 
-export const CAMERA_CONFIG_ERROR = 'CAMERA_CONFIG_ERROR';
-export const cameraConfigFetchError = (error) => ({
-    type: CAMERA_CONFIG_ERROR,
+export const CAMERA_CONFIG_CREATE_ERROR = 'CAMERA_CONFIG_CREATE_ERROR';
+export const cameraConfigCreateError = (error) => ({
+    type: CAMERA_CONFIG_CREATE_ERROR,
     error,
 });
 
-export const CAMERA_CONFIG_SUCCESS = 'CAMERA_CONFIG_SUCCESS';
+export const CAMERA_CONFIG_CREATE_SUCCESS = 'CAMERA_CONFIG_CREATE_SUCCESS';
+export const cameraConfigCreateSuccess = (cameraConfig) => ({
+    type: CAMERA_CONFIG_CREATE_SUCCESS,
+    cameraConfig
+});
+
+export const CAMERA_CONFIG_FETCH_REQUEST = 'CAMERA_CONFIG_FETCH_REQUEST';
+export const cameraConfigFetchRequest = (_id) => ({
+    type: CAMERA_CONFIG_FETCH_REQUEST,
+    _id,
+});
+
+export const CAMERA_CONFIG_FETCH_ERROR = 'CAMERA_CONFIG_FETCH_ERROR';
+export const cameraConfigFetchError = (error) => ({
+    type: CAMERA_CONFIG_FETCH_ERROR,
+    error,
+});
+
+export const CAMERA_CONFIG_FETCH_SUCCESS = 'CAMERA_CONFIG_FETCH_SUCCESS';
 export const cameraConfigFetchSuccess = (cameraConfig) => ({
-    type: CAMERA_CONFIG_SUCCESS,
+    type: CAMERA_CONFIG_FETCH_SUCCESS,
     cameraConfig,
 });
 
@@ -247,7 +522,7 @@ export const cameraConfigSetGphoto2Config = (id,gphoto2Config) => ({
 });
 
 export const CAMERA_CONFIG_SAVE_REQUEST = 'CAMERA_CONFIG_SAVE_REQUEST';
-export const cameraConfigSaveRequest = (cameraConfig) => ({
+export const cameraConfigSaveRequest = () => ({
     type: CAMERA_CONFIG_SAVE_REQUEST,
     cameraConfig,
 });
@@ -259,28 +534,86 @@ export const cameraConfigSaveError = (error) => ({
 });
 
 export const CAMERA_CONFIG_SAVE_SUCCESS = 'CAMERA_CONFIG_SAVE_SUCCESS';
-export const cameraConfigSaveSuccess = (id) => ({
+export const cameraConfigSaveSuccess = (_id) => ({
     type: CAMERA_CONFIG_SAVE_SUCESS,
-    id,
+    _id,
 });
+
+/* CameraConfig thunks */
+const cameraConfigCreate = (userId, templateId=undefined) => dispatch => {
+    dispatch(cameraConfigCreateRequest());
+    return(fetchAwesomOJWT('/api/camera/create',
+        method='POST',
+        headers={'Content-Type': 'application/json'},
+        body={userId: userId,
+              templateId: templateId})
+    .then(response => response.json(),
+          error => dispatch(cameraConfigCreateError(error)))
+    .then( cameraConfig => dispatch(cameraConfigCreateSuccess(cameraConfig))));
+};
+
+const cameraConfigFetch = _id => dispatch => {
+    dispatch(cameraConfigFetchRequest(_id));
+    return(fetchAwesomOJWT('/api/camera/get/'+_id)
+    .then(response => response.json(),
+          error => dispatch(cameraConfigFetchError(error)))
+    .then( cameraConfig => dispatch(cameraConfigFetchSuccess(cameraConfig))));
+};
+
+const cameraConfigSave = (cameraConfig) => dispatch => {
+    dispatch(cameraConfigSaveRequest());
+    return(fetchAwesomOJWT('/api/camera/save',
+        method='POST',
+        headers={'Content-Type': 'application/json'},
+        body=cameraConfig
+    )
+    .then(response => response.json(),
+          error => dispatch(cameraConfigSaveError(error)))
+    .then( _id => dispatch(cameraConfigSaveSuccess(_id))));
+};
+
+const cameraConfigRemove = (_id) => dispatch => {
+    dispatch(cameraConfigRemoveRequest(_id));
+    return(fetchAwesomOJWT('/api/camera/remove/'+_id)
+    .then(response => response.json(),
+          error => dispatch(cameraConfigRemoveError(error)))
+    .then( _id => dispatch(cameraConfigRemoveSuccess(_id))));
+};
 
 //Experimental Config
-export const EXPERIMENT_CONFIG_REQUEST = 'EXPERIMENT_CONFIG_REQUEST';
-export const experimentConfigFetchRequest = (id) => ({
-    type: EXPERIMENT_CONFIG_REQUEST,
-    id,
+export const EXPERIMENT_CONFIG_CREATE_REQUEST = 'EXPERIMENT_CONFIG_CREATE_REQUEST';
+export const experimentConfigCreateRequest = () => ({
+    type: EXPERIMENT_CONFIG_CREATE_REQUEST
 });
 
-export const EXPERIMENT_CONFIG_ERROR = 'EXPERIMENT_CONFIG_ERROR';
-export const experimentConfigFetchError = (error) => ({
-    type: EXPERIMENT_CONFIG_ERROR,
+export const EXPERIMENT_CONFIG_CREATE_ERROR = 'EXPERIMENT_CONFIG_CREATE_ERROR';
+export const experimentConfigCreateError = (error) => ({
+    type: EXPERIMENT_CONFIG_CREATE_ERROR,
     error,
 });
 
-export const EXPERIMENT_CONFIG_SUCCESS = 'EXPERIMENT_CONFIG_SUCCESS';
+export const EXPERIMENT_CONFIG_CREATE_SUCCESS = 'EXPERIMENT_CONFIG_CREATE_SUCCESS';
+export const experimentConfigCreateSuccess = (experimentConfig) => ({
+    type: EXPERIMENT_CONFIG_CREATE_SUCCESS,
+    experimentConfig,
+});
+
+export const EXPERIMENT_CONFIG_FETCH_REQUEST = 'EXPERIMENT_CONFIG_FETCH_REQUEST';
+export const experimentConfigFetchRequest = (id) => ({
+    type: EXPERIMENT_CONFIG_FETCH_REQUEST,
+    id,
+});
+
+export const EXPERIMENT_CONFIG_FETCH_ERROR = 'EXPERIMENT_CONFIG_FETCH_ERROR';
+export const experimentConfigFetchError = (error) => ({
+    type: EXPERIMENT_CONFIG_FETCH_ERROR,
+    error,
+});
+
+export const EXPERIMENT_CONFIG_FETCH_SUCCESS = 'EXPERIMENT_CONFIG_FETCH_SUCCESS';
 export const experimentConfigFetchSuccess = (experimentConfig) => ({
-    type: EXPERIMENT_CONFIG_SUCCESS,
-    project,
+    type: EXPERIMENT_CONFIG_FETCH_SUCCESS,
+    experimentConfig,
 });
 
 export const EXPERIMENT_CONFIG_SET_DATETIME = 'EXPERIMENT_CONFIG_SET_DATETIME';
@@ -345,24 +678,102 @@ export const experimentConfigSaveSuccess = (id) => ({
     id,
 });
 
+/* Experimental Configuration Thunks */
+export const experimentConfigCreate = (userId, templateId=undefined) => dispatch => {
+    let fetchURL;
+    dispatch(experimentConfigCreate);
+    fetchURL = `/api/experiment/create`;
+    return(fetchAwesomeOJWT(fetchURL,
+            method='POST',
+            headers={'Content-Type': 'application/json'},
+            body={userId: userId,
+                  templateId: templateId})
+    .then( response => response.json(),
+        // Do not use catch, because that will also catch
+        // any errors in the dispatch and resulting render,
+        // causing a loop of 'Unexpected batch number' errors.
+        // https://github.com/facebook/react/issues/6895
+        error => dispatch(experimentConfigCreateError(error));
+    )
+    .then(experimentConfig =>
+        // We can dispatch many times!
+        // Here, we update the app state with the results of the API call.
+        dispatch(experimentConfigCreateSuccess(experimentConfig));
+    ));
+
+};
+
+export const experimentConfigFetch = (_id) => dispatch => {
+    let fetchURL;
+    dispatch(experimentConfigFetchRequest(_id));
+    fetchURL = `/api/experiment/get/` + _id;
+    return(fetchAwesomeOJWT(fetchURL)
+    .then( response => response.json(),
+        // Do not use catch, because that will also catch
+        // any errors in the dispatch and resulting render,
+        // causing a loop of 'Unexpected batch number' errors.
+        // https://github.com/facebook/react/issues/6895
+        error => dispatch(experimentConfigFetchError(error));
+    )
+    .then(experimentConfig =>
+        // We can dispatch many times!
+        // Here, we update the app state with the results of the API call.
+        dispatch(experimentConfigFetchSuccess(experimentConfig));
+    ));
+
+};
+
+export const experimentConfigSave= (_id) => dispatch => {
+    dispatch(experimentConfigSaveRequest(_id));
+    return(fetchAwesomOJWT('/api/experiment/save/', method='POST', body=action.experimentConfig)
+    .then(  response => response.json(),
+            error => store.dispatch(experimentConfigError(error)) )
+    .then(_id => store.dispatch(experimentConfigSuccess(_id))));
+}
+
+export const experimentConfigRemove = (_id) => dispatch => {
+    dispatch(experimentConfigRemoveRequest(_id));
+    return(fetchAwesomOJWT('/api/experiment/remove/'+_id)
+    .then(  response => response.json(),
+            error => dispatch(experimentConfigRemoveError(error)) )
+    .then(_id => dispatch(experimentConfigRemoveSuccess(_id))));
+}
+
 /*
  * Storage configuration
  */
-export const STORAGE_CONFIG_REQUEST = 'STORAGE_CONFIG_REQUEST';
+export const STORAGE_CONFIG_CREATE_REQUEST = 'STORAGE_CONFIG_CREATE_REQUEST';
+export const storageConfigCreateRequest = () => ({
+    type: STORAGE_CONFIG_CREATE_REQUEST
+});
+
+export const STORAGE_CONFIG_CREATE_ERROR = 'STORAGE_CONFIG_CREATE_ERROR';
+export const storageConfigCreateError = (error) => ({
+    type: STORAGE_CONFIG_CREATE_ERROR,
+    error
+});
+
+export const STORAGE_CONFIG_CREATE_SUCCESS = 'STORAGE_CONFIG_CREATE_SUCCESS';
+export const storageConfigCreateSuccess = (storageConfig) => ({
+    type: STORAGE_CONFIG_CREATE_SUCCESS,
+    ...storageConfig,
+});
+
+export const STORAGE_CONFIG_FETCH_REQUEST = 'STORAGE_CONFIG_FETCH_REQUEST';
 export const storageConfigFetchRequest = (id) => ({
-    type: STORAGE_CONFIG_REQUEST,
+    type: STORAGE_CONFIG_FETCH_REQUEST,
     id,
 });
 
-export const STORAGE_CONFIG_ERROR = 'STORAGE_CONFIG_ERROR';
+export const STORAGE_CONFIG_FETCH_ERROR = 'STORAGE_CONFIG_FETCH_ERROR';
 export const storageConfigFetchError = (error) => ({
-    type: STORAGE_CONFIG_ERROR,
+    type: STORAGE_CONFIG_FETCH_ERROR,
     error,
 });
 
-export const STORAGE_CONFIG_SUCCESS = 'STORAGE_CONFIG_SUCCESS';
+export const STORAGE_CONFIG_FETCH_SUCCESS = 'STORAGE_CONFIG_FETCH_SUCCESS';
 export const storageConfigFetchSuccess = (storageConfig) => ({
-    type: STORAGE_CONFIG_SUCCESS,
+    type: STORAGE_CONFIG_FETCH_SUCCESS,
     storageConfig,
 });
 
@@ -415,6 +826,64 @@ export const storageTypeFetchSuccess = (storageType) => ({
     type: STORAGE_TYPE_SUCCESS,
     storageType,
 });
+
+/* StorageConfig Thunks */
+export const storageConfigCreate = (userId, templateId = undefined) = dispatch = {
+    dispatch(storageConfigCreateRequest());
+    return(fetchAwesomeOJWT(`/api/storage/create/`,
+        method='POST',
+        headers={'Content-Type': 'application/json'},
+        body={userId: userId,
+              templateId: templateId})
+    .then( response => response.json(),
+        // Do not use catch, because that will also catch
+        // any errors in the dispatch and resulting render,
+        // causing a loop of 'Unexpected batch number' errors.
+        // https://github.com/facebook/react/issues/6895
+        error => dispatch(storageConfigCreateError(error));
+    )
+    .then(storageConfig =>
+        // We can dispatch many times!
+        // Here, we update the app state with the results of the API call.
+        dispatch(storageConfigCreateSuccess(storageConfig));
+    );
+}
+
+export const storageConfigFetch = (_id) = dispatch = {
+    dispatch(storageConfigFetchRequest(_id));
+    fetchAwesomeOJWT(`/api/storage/get/`+_id)
+    .then( response => response.json(),
+        // Do not use catch, because that will also catch
+        // any errors in the dispatch and resulting render,
+        // causing a loop of 'Unexpected batch number' errors.
+        // https://github.com/facebook/react/issues/6895
+        error => dispatch(storageConfigFetchError(error));
+    )
+    .then(storageConfig =>
+        // We can dispatch many times!
+        // Here, we update the app state with the results of the API call.
+        dispatch(storageConfigFetchSuccess(storageConfig));
+    );
+}
+
+export const storageConfigSave = (storageConfig) = dispatch = {
+    dispatch(storageConfigSaveRequest(storageConfig._id));
+    return(fetchAwesomOJWT('/api/storage/save', 
+        method='POST', 
+        headers={'Content-Type': 'application/json'},
+        body=action.storageConfig)
+        .then(  response => response.json(),
+                error => store.dispatch(storageSaveError(error)) )
+        .then(json => store.dispatch(storageSaveSuccess(json.id))))
+}
+
+export const storageConfigRemove = (_id) = dispatch = {
+    dispatch(storageConfigRemoveRequest(_id));
+    return(fetchAwesomOJWT('/api/storage/remove/'+_id)) 
+        .then(  response => response.json(),
+                error => store.dispatch(storageRemoveError(error)) )
+        .then(json => store.dispatch(storageRemoveSuccess(json.id))))
+}
 
 /*
  * Route configuration
@@ -529,3 +998,4 @@ export const receiveControllerStateLocation = (location) => ({
     type: "RECEIVE_CONTROLLER_STATE_LOCATION",
     location: location,
 });
+

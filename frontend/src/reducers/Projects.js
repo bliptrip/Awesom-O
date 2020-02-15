@@ -24,25 +24,24 @@ export const fetchProjectsRequest = store;
 const project = (state = {}, action) => {
     let newstate = state;
     switch( action.type ) {
+        case PROJECT_CREATE_REQUEST:
+            newstate = { ...state,
+                isFetching: true,
+                statusError: undefined
+            }
+            break;
+        case PROJECT_CREATE_ERROR:
+            newstate = { ...state,
+                isFetching: false,
+                statusError: action.error
+            }
+            break;
         case PROJECT_FETCH_REQUEST:
             newstate = { ...state,
                 isFetching: true,
                 statusError: undefined,
                 _id: action.id
             };
-            fetchAwesomeOJWT(`/api/project/get/`+action.id)
-            .then( response => response.json(),
-                // Do not use catch, because that will also catch
-                // any errors in the dispatch and resulting render,
-                // causing a loop of 'Unexpected batch number' errors.
-                // https://github.com/facebook/react/issues/6895
-                error => store.dispatch(projectFetchError(error));
-            )
-            .then(json =>
-                // We can dispatch many times!
-                // Here, we update the app state with the results of the API call.
-                store.dispatch(projectFetchSuccess(json));
-            );
             break;
         case PROJECT_FETCH_ERROR:
             newstate = { ...state,
@@ -50,6 +49,7 @@ const project = (state = {}, action) => {
                 statusError: error
             };
             break;
+        case PROJECT_CREATE_SUCCESS:
         case PROJECT_FETCH_SUCCESS:
             newstate = { ...state,
                 isFetching: false,
@@ -58,7 +58,8 @@ const project = (state = {}, action) => {
                 cameraConfig: action.project.cameraConfig,
                 experimentConfig: action.project.experimentConfig,
                 storageConfigs: action.project.storageConfigs,
-                routeConfig: action.project.routeConfig
+                routeConfig: action.project.routeConfig,
+                users: action.project.users
             };
             break;
         case PROJECT_SAVE_REQUEST:
@@ -67,10 +68,6 @@ const project = (state = {}, action) => {
                 statusError: undefined,
                 _id: action.project._id
             };
-            fetchAwesomOJWT('/api/project/save/', method='POST', body=action.project)
-            .then(  response => response.json(),
-                    error => store.dispatch(projectSaveError(error)) )
-            .then(json => store.dispatch(projectSaveSuccess(json.id)))
             break;
         case PROJECT_SAVE_ERROR:
             newstate = { ...state,
@@ -80,7 +77,7 @@ const project = (state = {}, action) => {
             break;
         case PROJECT_SAVE_SUCCESS:
             newstate = { ...state,
-                areSaving: false, //TODO: Check that we aren't already processing a save or fetching request
-                _id: action.id 
+                _id: action.id,
+                areSaving: false //TODO: Check that we aren't already processing a save or fetching request
             };
             break;

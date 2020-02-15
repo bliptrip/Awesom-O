@@ -25,24 +25,33 @@ import '../lib/fetch';
 const cameraConfigReducer = (state, action) => {
     let newstate = state;
     switch(action.type) {
-        case CAMERA_CONFIG_REQUEST:
+        case CAMERA_CONFIG_CREATE_REQUEST:
             newstate = {...state,
                 isFetching: true,
                 statusError: undefined,
-                _id: action.id
             };
-            fetchAwesomOJWT('/api/camera/get/'+action.id)
-            .then(response => response.json(),
-                  error => store.dispatch(cameraConfigFetchError(error)))
-            .then( json => store.dispatch(cameraConfigFetchSuccess(json));
             break;
-        case CAMERA_CONFIG_ERROR:
+        case CAMERA_CONFIG_CREATE_ERROR:
             newstate = {...state,
                 isFetching: false,
                 statusError: action.error,
             };
             break;
-        case CAMERA_CONFIG_SUCCESS:
+        case CAMERA_CONFIG_FETCH_REQUEST:
+            newstate = {...state,
+                _id: action.id,
+                isFetching: true,
+                statusError: undefined,
+            };
+            break;
+        case CAMERA_CONFIG_FETCH_ERROR:
+            newstate = {...state,
+                isFetching: false,
+                statusError: action.error
+            };
+            break;
+        case CAMERA_CONFIG_CREATE_SUCCESS:
+        case CAMERA_CONFIG_FETCH_SUCCESS:
             newstate = {...state,
                 isFetching: false,
                 _id: action.cameraConfig._id, //TODO - check if _id matches request
@@ -51,7 +60,44 @@ const cameraConfigReducer = (state, action) => {
                 model: action.cameraConfig.model,
                 deviceVersion: action.cameraConfig.deviceVersion,
                 sn: action.cameraConfig.sn,
-                gphoto2Config: action.cameraConfig.gphoto2Config //Hydrate the rest of the state based on the string in here
+                gphoto2Config: action.cameraConfig.gphoto2Config, //Hydrate the rest of the state based on the string in here
+                users: action.cameraConfig.users
+            };
+            break;
+        case CAMERA_CONFIG_SAVE_REQUEST:
+            newstate = {...state,
+                isFetching: true,
+                statusError: undefined
+            };
+            break;
+        case CAMERA_CONFIG_SAVE_ERROR:
+            newstate = {...state,
+                isFetching: false,
+                statusError: action.error
+            };
+            break;
+        case CAMERA_CONFIG_SAVE_SUCCESS:
+            newstate = {...state,
+                isFetching: false,
+                statusError: undefined
+            };
+            break;
+        case CAMERA_CONFIG_REMOVE_REQUEST:
+            newstate = {...state,
+                isFetching: true,
+                statusError: undefined
+            };
+            break;
+        case CAMERA_CONFIG_REMOVE_ERROR:
+            newstate = {...state,
+                isFetching: false,
+                statusError: action.error
+            };
+            break;
+        case CAMERA_CONFIG_REMOVE_SUCCESS:
+            newstate = {...state,
+                isFetching: false,
+                statusError: undefined
             };
             break;
         case CAMERA_CONFIG_SET_DESCRIPTION:

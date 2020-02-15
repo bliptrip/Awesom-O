@@ -28,105 +28,113 @@ const userReducer = (state={}, action) => ({
     switch(action.type) {
         case USER_LOGIN_REQUEST: //Consider making this a separate state -- not directly stored in user state
             newstate = { ...state,
-                isFetching: true,
-                statusError: undefined,
                 _id: undefined,
                 username: action.username,
-                email: action.email,
-                password: action.password
+                isFetching: true,
+                statusError: undefined,
             };
-            fetchAwesomO(`/api/users/login`,
-                        method='POST',
-                        headers={'Content-Type': 'application/json'},
-                        body={username: newstate.username,
-                              email: newstate.email,
-                              password: newstate.password})
-            .then( response => response.json(),
-                error => store.dispatch(userLoginError(error))
-            )
-            .then( (data) => {
-                store.dispatch(userLoginSuccess(data));
-            });
             break;
         case USER_LOGIN_ERROR:
             newstate = { ...state,
+                username: undefined,
                 isFetching: false,
-                statusError: action.error,
-                _id: undefined
+                statusError: action.error
             };
             break;
         case USER_LOGIN_SUCCESS:
             newstate = { ...state,
                 isFetching: false,
-                statusError: undefined
+                statusError: undefined,
                 _id: action.user._id,
-                projects: action.user.projects
+                username: action.user.username,
+                email: action.user.email,
+                token: action.user.token,
             };
             break;
         case USER_CREATE_REQUEST: //Consider making this a separate state -- not directly stored in user state
             newstate = { ...state,
+                _id: undefined,
                 isFetching: true,
-                statusError: undefined
+                statusError: undefined,
             };
-            fetchAwesomO(`/api/users/create`,
-                        method='POST',
-                        headers={'Content-Type': 'application/json'},
-                        body={username: newstate.username,
-                              email: newstate.email,
-                              password: newstate.password})
-            .then( response => response.json(),
-                error => store.dispatch(userCreateError(error))
-            )
-            .then( (data) => {
-                store.dispatch(userCreateSuccess(data));
-            });
             break;
         case USER_CREATE_ERROR:
             newstate = { ...state,
+                _id: undefined,
                 isFetching: false,
-                statusError: action.error,
-                _id: undefined
+                statusError: action.error
             };
             break;
         case USER_CREATE_SUCCESS:
             newstate = { ...state,
                 isFetching: false,
+                statusError: undefined
+            };
+            break;
+        case USER_REMOVE_REQUEST:
+            newstate = { ...state,
+                _id: action._id,
+                isFetching: true,
                 statusError: undefined,
-                _id: action.user._id,
-                projects: action.user.projects
+            };
+            break;
+        case USER_REMOVE_ERROR:
+            newstate = { ...state,
+                _id: undefined,
+                isFetching: false,
+                statusError: action.error
+            };
+            break;
+        case USER_REMOVE_SUCCESS:
+            newstate = { ...state,
+                _id: undefined,
+                isFetching: false,
+                statusError: undefined
+            };
+            break;
+        case USER_CHANGEPASSWORD_REQUEST:
+            newstate = { ...state,
+                _id: action._id,
+                isFetching: true,
+                statusError: undefined,
+            };
+            break;
+        case USER_CHANGEPASSWORD_ERROR:
+            newstate = { ...state,
+                _id: undefined,
+                isFetching: false,
+                statusError: action.error
+            };
+            break;
+        case USER_CHANGEPASSWORD_SUCCESS:
+            newstate = { ...state,
+                _id: undefined,
+                isFetching: false,
+                statusError: undefined
             };
             break;
         case USER_FETCH_REQUEST:
             newstate = { ...state,
+                username: action.username,
                 isFetching: true,
                 statusError: undefined
             };
-            fetchAwesomOJWT(`/api/users/get/`+newstate.username)
-            .then( response => response.json(),
-                // Do not use catch, because that will also catch
-                // any errors in the dispatch and resulting render,
-                // causing a loop of 'Unexpected batch number' errors.
-                // https://github.com/facebook/react/issues/6895
-                error => store.dispatch(userFetchError(error))
-            )
-            .then(data =>
-                // We can dispatch many times!
-                // Here, we update the app state with the results of the API call.
-                store.dispatch(userFetchSuccess(data));
-            );
             break;
         case USER_FETCH_ERROR:
             newstate = { ...state,
+                _id: undefined,
+                username: undefined,
                 isFetching: false,
-                statusError: action.error,
-                _id: undefined
+                statusError: action.error
             };
             break;
         case USER_FETCH_SUCCESS:
             newstate = { ...state,
+                _id: action.user._id,
+                username: action.user.username,
                 email: action.user.email,
-                projects: action.user.projects,
-                isFetching: false
+                isFetching: false,
+                statusError: undefined
             };
             break;
         default:
