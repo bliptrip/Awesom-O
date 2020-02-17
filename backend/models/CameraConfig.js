@@ -32,6 +32,7 @@ const CameraConfigSchema = new Schema({
     sn: String, //Camera serial number
     gphoto2Config: String, //JSONified string representation of the camera configuration, as recognized by gphoto2
     users: [{type: Schema.Types.ObjectId, ref: 'Users'}] //Users with access to this CameraConfig
+    projects: [{type: Schema.Types.ObjectId, ref: 'Projects'}] //Projects with access to this CameraConfig
 });
 
 mongoose.model('CameraConfig', CameraConfigSchema);

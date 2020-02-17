@@ -24,25 +24,44 @@ export const fetchProjectsRequest = store;
 const route = (state = {}, action) => {
     let newstate = state;
     switch( action.type ) {
-        case ROUTE_CONFIG_FETCH_REQUEST:
+        case ROUTE_CONFIG_REMOVE_REQUEST:
+            newstate = { ...state,
+                _id: action._id,
+                isFetching: true,
+                statusError: undefined,
+            };
+            break;
+        case ROUTE_CONFIG_REMOVE_ERROR:
+            newstate = { ...state,
+                isFetching: false,
+                statusError: error
+            };
+            break;
+        case ROUTE_CONFIG_REMOVE_SUCCESS:
+            newstate = { ...state,
+                _id: undefined,
+                isFetching: false,
+                statusError: undefined
+            };
+            break;
+        case ROUTE_CONFIG_CREATE_REQUEST:
             newstate = { ...state,
                 isFetching: true,
                 statusError: undefined,
-                _id: action.id
             };
-            fetchAwesomeOJWT(`/api/route/get/`+action.id)
-            .then( response => response.json(),
-                // Do not use catch, because that will also catch
-                // any errors in the dispatch and resulting render,
-                // causing a loop of 'Unexpected batch number' errors.
-                // https://github.com/facebook/react/issues/6895
-                error => store.dispatch(routeConfigFetchError(error));
-            )
-            .then(json =>
-                // We can dispatch many times!
-                // Here, we update the app state with the results of the API call.
-                store.dispatch(routeConfigFetchSuccess(json));
-            );
+            break;
+        case ROUTE_CONFIG_CREATE_ERROR:
+            newstate = { ...state,
+                isFetching: false,
+                statusError: error
+            };
+            break;
+        case ROUTE_CONFIG_FETCH_REQUEST:
+            newstate = { ...state,
+                _id: action.id,
+                isFetching: true,
+                statusError: undefined
+            };
             break;
         case ROUTE_CONFIG_FETCH_ERROR:
             newstate = { ...state,
@@ -50,10 +69,11 @@ const route = (state = {}, action) => {
                 statusError: error
             };
             break;
+        case ROUTE_CONFIG_CREATE_SUCCESS:
         case ROUTE_CONFIG_FETCH_SUCCESS:
             newstate = { ...state,
-                isFetching: false,
                 _id: action.routeConfig._id, //TODO: Validate that ID returned is same as that requested
+                isFetching: false,
                 interplateDelay: action.routeConfig.interplateDelay,
                 loopDelay: action.routeConfig.loopDelay,
                 previewHooks: action.routeConfig.previewHooks,
@@ -62,7 +82,9 @@ const route = (state = {}, action) => {
                 stepsPerCmY: action.routeConfig.stepsPerCmY,
                 distanceX: action.routeConfig.distanceX,
                 distanceY: action.routeConfig.distanceY,
-                route: action.routeConfig.route
+                route: action.routeConfig.route,
+                users: action.routeConfig.users,
+                projects: action.routeConfig.projects
             };
             break;
         case ROUTE_CONFIG_SET_INTERPLATE_DELAY:

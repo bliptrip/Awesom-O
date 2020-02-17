@@ -35,8 +35,9 @@ const RouteConfigSchema = new Schema({
     stepsPerCmY: Number, //Motor steps/cm in y direction
     distanceX: Number, //X distance in cm b/w plates
     distanceY: Number, //Y distance in cm b/w plates
-    route: [RouteLocationSchema]
-    users: [{type: Schema.Types.ObjectId, ref: 'Users'}] //Users with access to this RouteConfig
+    route: [RouteLocationSchema],
+    users: [{type: Schema.Types.ObjectId, ref: 'Users'}], //Users with access to this RouteConfig
+    projects: [{type: Schema.Types.ObjectId, ref: 'Projects'}], //Projects with access to this RouteConfig
 });
 
 mongoose.model('RouteConfig', RouteConfigSchema);

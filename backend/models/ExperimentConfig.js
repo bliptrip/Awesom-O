@@ -29,8 +29,9 @@ const ExperimentConfigSchema = new Schema({
     rename: Boolean, //Rename files from default
     imageMeta: Boolean, //Embed metadata in image file, if supported
     filenameFields: [String], //Which metadata fields include in filename, in order listed
-    plateMeta: [{ row: Number, col: Number, meta: {type: Map, of: String}}]
-    users: [{type: Schema.Types.ObjectId, ref: 'Users'}] //Users with access to this ExperimentConfig
+    plateMeta: [{ row: Number, col: Number, meta: {type: Map, of: String}}],
+    users: [{type: Schema.Types.ObjectId, ref: 'Users'}], //Users with access to this ExperimentConfig
+    projects: [{type: Schema.Types.ObjectId, ref: 'Projects'}], //Projects with access to this ExperimentConfig
 });
 
 mongoose.model('ExperimentConfig', ExperimentConfigSchema);

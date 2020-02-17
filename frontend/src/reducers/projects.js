@@ -62,6 +62,24 @@ const project = (state = {}, action) => {
                 users: action.project.users
             };
             break;
+        case PROJECT_REMOVE_REQUEST:
+            newstate = { ...state,
+                isFetching: true,
+                statusError: undefined,
+                _id: action.id
+            };
+            break;
+        case PROJECT_REMOVE_ERROR:
+            ewstate = { ...state,
+                isFetching: false,
+                statusError: error
+            };
+            break;
+        case PROJECT_REMOVE_SUCCESS:
+            newstate = { ...state,
+                isFetching: false,
+            };
+            break;
         case PROJECT_SAVE_REQUEST:
             newstate = { ...state,
                 areSaving: true, //TODO: Check that we aren't already processing a save or fetching request

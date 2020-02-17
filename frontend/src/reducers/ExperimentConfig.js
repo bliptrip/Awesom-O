@@ -84,7 +84,8 @@ const experimentConfigReducer = (state, action) => {
                 imageMeta: action.experimentConfig.imageMeta,
                 filenameFields: action.experimentConfig.filenameFields,
                 plateMeta: action.experimentConfig.plateMeta,
-                users: action.experimentConfig.users
+                users: action.experimentConfig.users,
+                projects: action.experimentConfig.projects
             };
             break;
         case EXPERIMENT_CONFIG_SET_DATETIME:

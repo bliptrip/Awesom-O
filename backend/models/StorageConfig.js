@@ -32,8 +32,9 @@ const StorageTypeSchema = new Schema({
 const StorageConfigSchema = new Schema({
     version: Number, //Table Version ID
     type: {type: Schema.Type.ObjectId, ref: ""}, //Storage type -- local, box.com, dropbox.com, google drive, etc.
-    params: {type: Map, of: String} //representation of parameters specific to each supported type of storage -- only support local storage for now
-    users: [{type: Schema.Types.ObjectId, ref: 'Users'}] //Users with access to this StorageConfig
+    params: {type: Map, of: String}, //representation of parameters specific to each supported type of storage -- only support local storage for now
+    users: [{type: Schema.Types.ObjectId, ref: 'Users'}], //Users with access to this StorageConfig
+    projects: [{type: Schema.Types.ObjectId, ref: 'Projects'}] //Projects with access to this StorageConfig
 });
 
 mongoose.model('StorageType', StorageTypeSchema);

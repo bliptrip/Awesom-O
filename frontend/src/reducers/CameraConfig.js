@@ -61,7 +61,8 @@ const cameraConfigReducer = (state, action) => {
                 deviceVersion: action.cameraConfig.deviceVersion,
                 sn: action.cameraConfig.sn,
                 gphoto2Config: action.cameraConfig.gphoto2Config, //Hydrate the rest of the state based on the string in here
-                users: action.cameraConfig.users
+                users: action.cameraConfig.users,
+                projects: action.cameraConfig.projects
             };
             break;
         case CAMERA_CONFIG_SAVE_REQUEST:

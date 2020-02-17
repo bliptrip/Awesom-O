@@ -76,7 +76,8 @@ export const storage = (state = {}, action) => {
                 _id: action.storageConfig._id, //TODO: Validate that ID returned is same as that requested
                 type: action.storageConfig.type,
                 params: action.storageConfig.params,
-                users: action.storageConfig.users
+                users: action.storageConfig.users,
+                projects: action.storageConfig.projects
             };
             break;
         case STORAGE_CONFIG_SAVE_REQUEST:

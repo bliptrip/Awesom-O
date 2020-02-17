@@ -397,11 +397,14 @@ const projectCreate = (userId,templateId=undefined) => dispatch => {
     ));
 };
 
-const projectRemove = (_id) => dispatch => {
-    let fetchURL;
+const projectRemove = (_id, userId) => dispatch => {
     dispatch(projectRemoveRequest(_id));
-    fetchURL = `/api/project/remove/`+_id;
-    return(fetchAwesomeOJWT(fetchURL) //username must be passed as it allows backend to track where to add project
+    return(fetchAwesomeOJWT(`/api/project/remove/`,
+        method='POST',
+        headers={'Content-type': 'application/json'},
+        body={
+            _id,
+            userId})
     .then( response => response.json(),
         // Do not use catch, because that will also catch
         // any errors in the dispatch and resulting render,
@@ -410,9 +413,6 @@ const projectRemove = (_id) => dispatch => {
         error => dispatch(projectRemoveError(error));
     )
     .then(_id =>
-        // We can dispatch many times!
-        // Here, we update the app state with the results of the API call.
-        dispatch(userRemoveProject(_id));
         dispatch(projectRemoveSuccess(_id));
     ));
 };
@@ -540,12 +540,13 @@ export const cameraConfigSaveSuccess = (_id) => ({
 });
 
 /* CameraConfig thunks */
-const cameraConfigCreate = (userId, templateId=undefined) => dispatch => {
+const cameraConfigCreate = (userId, projectId, templateId=undefined) => dispatch => {
     dispatch(cameraConfigCreateRequest());
     return(fetchAwesomOJWT('/api/camera/create',
         method='POST',
         headers={'Content-Type': 'application/json'},
         body={userId: userId,
+              projectId: projectId,
               templateId: templateId})
     .then(response => response.json(),
           error => dispatch(cameraConfigCreateError(error)))
@@ -572,9 +573,16 @@ const cameraConfigSave = (cameraConfig) => dispatch => {
     .then( _id => dispatch(cameraConfigSaveSuccess(_id))));
 };
 
-const cameraConfigRemove = (_id) => dispatch => {
+const cameraConfigRemove = (_id, userId, projectId) => dispatch => {
     dispatch(cameraConfigRemoveRequest(_id));
-    return(fetchAwesomOJWT('/api/camera/remove/'+_id)
+    return(fetchAwesomOJWT('/api/camera/remove',
+        method='POST',
+        headers={'Content-type': 'application/json'},
+        body={
+            _id,
+            userId,
+            projectId
+        })
     .then(response => response.json(),
           error => dispatch(cameraConfigRemoveError(error)))
     .then( _id => dispatch(cameraConfigRemoveSuccess(_id))));
@@ -679,7 +687,7 @@ export const experimentConfigSaveSuccess = (id) => ({
 });
 
 /* Experimental Configuration Thunks */
-export const experimentConfigCreate = (userId, templateId=undefined) => dispatch => {
+export const experimentConfigCreate = (userId, projectId, templateId=undefined) => dispatch => {
     let fetchURL;
     dispatch(experimentConfigCreate);
     fetchURL = `/api/experiment/create`;
@@ -687,6 +695,7 @@ export const experimentConfigCreate = (userId, templateId=undefined) => dispatch
             method='POST',
             headers={'Content-Type': 'application/json'},
             body={userId: userId,
+                  projectId: projectId,
                   templateId: templateId})
     .then( response => response.json(),
         // Do not use catch, because that will also catch
@@ -731,9 +740,14 @@ export const experimentConfigSave= (_id) => dispatch => {
     .then(_id => store.dispatch(experimentConfigSuccess(_id))));
 }
 
-export const experimentConfigRemove = (_id) => dispatch => {
+export const experimentConfigRemove = (_id, userId, projectId) => dispatch => {
     dispatch(experimentConfigRemoveRequest(_id));
-    return(fetchAwesomOJWT('/api/experiment/remove/'+_id)
+    return(fetchAwesomOJWT('/api/experiment/remove/',
+        method='POST',
+        headers={'Content-type': 'application/json'},
+        body = {
+            userId,
+            projectId})
     .then(  response => response.json(),
             error => dispatch(experimentConfigRemoveError(error)) )
     .then(_id => dispatch(experimentConfigRemoveSuccess(_id))));
@@ -828,12 +842,13 @@ export const storageTypeFetchSuccess = (storageType) => ({
 });
 
 /* StorageConfig Thunks */
-export const storageConfigCreate = (userId, templateId = undefined) = dispatch = {
+export const storageConfigCreate = (userId, projectId, templateId = undefined) = dispatch = {
     dispatch(storageConfigCreateRequest());
     return(fetchAwesomeOJWT(`/api/storage/create/`,
         method='POST',
         headers={'Content-Type': 'application/json'},
         body={userId: userId,
+              projectId: projectId,
               templateId: templateId})
     .then( response => response.json(),
         // Do not use catch, because that will also catch
@@ -877,21 +892,44 @@ export const storageConfigSave = (storageConfig) = dispatch = {
         .then(json => store.dispatch(storageSaveSuccess(json.id))))
 }
 
-export const storageConfigRemove = (_id) = dispatch = {
+export const storageConfigRemove = (_id,userId,projectId) = dispatch = {
     dispatch(storageConfigRemoveRequest(_id));
-    return(fetchAwesomOJWT('/api/storage/remove/'+_id)) 
+    return(fetchAwesomOJWT('/api/storage/remove',
+        method='POST',
+        headers={'Content-type': 'application/json'},
+        body={
+            _id,
+            userId,
+            projectId}) 
         .then(  response => response.json(),
                 error => store.dispatch(storageRemoveError(error)) )
-        .then(json => store.dispatch(storageRemoveSuccess(json.id))))
+        .then(json => store.dispatch(storageRemoveSuccess(json._id))))
 }
 
 /*
  * Route configuration
  */
+export const ROUTE_CONFIG_CREATE_REQUEST = 'ROUTE_CONFIG_CREATE_REQUEST';
+export const routeConfigCreateRequest = () => ({
+    type: ROUTE_CONFIG_CREATE_REQUEST
+});
+
+export const ROUTE_CONFIG_CREATE_ERROR = 'ROUTE_CONFIG_CREATE_ERROR';
+export const routeConfigCreateError = (error) => ({
+    type: ROUTE_CONFIG_CREATE_ERROR,
+    error
+});
+
+export const ROUTE_CONFIG_CREATE_SUCCESS = 'ROUTE_CONFIG_CREATE_SUCCESS';
+export const routeConfigCreateSuccess = (routeConfig) => ({
+    type: ROUTE_CONFIG_CREATE_SUCCESS,
+    routeConfig
+});
+
 export const ROUTE_CONFIG_FETCH_REQUEST = 'ROUTE_CONFIG_FETCH_REQUEST';
-export const routeConfigFetchRequest = (id) => ({
+export const routeConfigFetchRequest = (_id) => ({
+    _id,
     type: ROUTE_CONFIG_FETCH_REQUEST,
-    id,
 });
 
 export const ROUTE_CONFIG_FETCH_ERROR = 'ROUTE_CONFIG_FETCH_ERROR';
@@ -907,80 +945,155 @@ export const routeConfigFetchSuccess = (routeConfig) => ({
 });
 
 export const ROUTE_CONFIG_SET_INTERPLATE_DELAY = 'ROUTE_CONFIG_SET_INTERPLATE_DELAY';
-export const routeConfigSetLoopDelay = (id, seconds) => ({
+export const routeConfigSetLoopDelay = (_id, seconds) => ({
+    _id,
     type: ROUTE_CONFIG_SET_INTERPLATE_DELAY,
-    id,
     seconds,
 });
 
 export const ROUTE_CONFIG_SET_LOOP_DELAY = 'ROUTE_CONFIG_SET_LOOP_DELAY';
-export const routeConfigSetLoopDelay = (id, seconds) => ({
+export const routeConfigSetLoopDelay = (_id, seconds) => ({
+    _id,
     type: ROUTE_CONFIG_SET_LOOP_DELAY,
-    id,
     seconds,
 });
 
 export const ROUTE_CONFIG_SET_STEPS_PER_CM_X = 'ROUTE_CONFIG_SET_STEPS_PER_CM_X';
-export const routeConfigSetStepsPerCmX = (id, steps) => ({
+export const routeConfigSetStepsPerCmX = (_id, steps) => ({
+    _id,
     type: ROUTE_CONFIG_SET_STEPS_PER_CM_X,
-    id,
     steps,
 });
 
 export const ROUTE_CONFIG_SET_STEPS_PER_CM_Y = 'ROUTE_CONFIG_SET_STEPS_PER_CM_Y';
-export const routeConfigSetStepsPerCmX = (id, steps) => ({
+export const routeConfigSetStepsPerCmX = (_id, steps) => ({
+    _id,
     type: ROUTE_CONFIG_SET_STEPS_PER_CM_Y,
-    id,
     steps,
 });
 
 export const ROUTE_CONFIG_SET_DISTANCE_X = 'ROUTE_CONFIG_SET_DISTANCE_X';
-export const routeConfigSetDistanceX = (id, plateDistanceX) => ({
+export const routeConfigSetDistanceX = (_id, plateDistanceX) => ({
+    _id,
     type: ROUTE_CONFIG_SET_DISTANCE_X,
-    id,
     plateDistanceX,
 });
 
 export const ROUTE_CONFIG_SET_DISTANCE_Y = 'ROUTE_CONFIG_SET_DISTANCE_Y';
-export const routeConfigSetDistanceX = (id, plateDistanceY) => ({
+export const routeConfigSetDistanceX = (_id, plateDistanceY) => ({
+    _id,
     type: ROUTE_CONFIG_SET_DISTANCE_Y,
-    id,
     plateDistanceY,
 });
 
 export const ROUTE_CONFIG_ADD_ROUTE = 'ROUTE_CONFIG_ADD_ROUTE';
-export const routeConfigAddRoute = (id, row, col) => ({
+export const routeConfigAddRoute = (_id, row, col) => ({
+    _id,
     type: ROUTE_CONFIG_ADD_ROUTE,
-    id,
     row,
-    col,
+    col
 });
 
 export const ROUTE_CONFIG_REMOVE_ROUTE = 'ROUTE_CONFIG_REMOVE_ROUTE';
-export const routeConfigRemoveRoute = (id, row, col) => ({
+export const routeConfigRemoveRoute = (_id, row, col) => ({
+    _id,
     type: ROUTE_CONFIG_REMOVE_ROUTE,
-    id,
     row,
-    col,
+    col
 });
 
 export const ROUTE_CONFIG_SAVE_REQUEST = 'ROUTE_CONFIG_SAVE_REQUEST';
 export const routeConfigSaveRequest = (routeConfig) => ({
-    type: ROUTE_CONFIG_SAVE_REQUEST,
     routeConfig,
+    type: ROUTE_CONFIG_SAVE_REQUEST
 });
 
 export const ROUTE_CONFIG_SAVE_ERROR = 'ROUTE_CONFIG_SAVE_ERROR';
 export const routeConfigSaveError = (error) => ({
     type: ROUTE_CONFIG_SAVE_ERROR,
-    error,
+    error
 });
 
 export const ROUTE_CONFIG_SAVE_SUCCESS = 'ROUTE_CONFIG_SAVE_SUCCESS';
-export const routeConfigSaveSuccess = (id) => ({
-    type: ROUTE_CONFIG_SAVE_SUCESS,
-    id,
+export const routeConfigSaveSuccess = (_id) => ({
+    _id,
+    type: ROUTE_CONFIG_SAVE_SUCESS
 });
+
+export const ROUTE_CONFIG_REMOVE_REQUEST = 'ROUTE_CONFIG_REMOVE_REQUEST';
+export const routeConfigRemoveRequest = (_id) => ({
+    type: ROUTE_CONFIG_REMOVE_REQUEST,
+    _id
+});
+
+export const ROUTE_CONFIG_REMOVE_ERROR = 'ROUTE_CONFIG_REMOVE_ERROR';
+export const routeConfigRemoveError = (error) => ({
+    type: ROUTE_CONFIG_REMOVE_ERROR,
+    error
+});
+
+export const ROUTE_CONFIG_REMOVE_SUCCESS = 'ROUTE_CONFIG_REMOVE_SUCCESS';
+export const routeConfigRemoveSuccess = (_id) => ({
+    _id,
+    type: ROUTE_CONFIG_REMOVE_SUCESS,
+});
+
+/* Route thunks */
+export const routeConfigCreate => (userId, projectId, templateId=undefined) => dispatch = {
+    dispatch(routeConfigCreateRequest());
+    return(fetchAwesomOJWT('/api/route/create',
+        method='POST',
+        headers={'Content-type': 'application/json'},
+        body={
+            userId,
+            projectId,
+            templateId})
+        .then(  response => response.json(),
+                error => store.dispatch(routeConfigCreateError(error)) )
+        .then(routeConfig => store.dispatch(routeConfigCreateSuccess(routeConfig))));
+}
+
+export const routeConfigFetch => (_id) => dispatch = {
+    dispatch(routeConfigFetchRequest());
+    return(fetchAwesomeOJWT(`/api/route/get/`+_id)
+        .then( response => response.json(),
+            // Do not use catch, because that will also catch
+            // any errors in the dispatch and resulting render,
+            // causing a loop of 'Unexpected batch number' errors.
+            // https://github.com/facebook/react/issues/6895
+            error => dispatch(routeConfigFetchError(error));
+        )
+        .then(routeConfig  =>
+            // We can dispatch many times!
+            // Here, we update the app state with the results of the API call.
+            dispatch(routeConfigFetchSuccess(routeConfig));
+    ));
+}
+
+export const routeConfigSave => (routeConfig) => dispatch = {
+    dispatch(routeConfigSaveRequest());
+    return(fetchAwesomOJWT('/api/route/save',
+        method='POST',
+        headers={'Content-type': 'application/json'},
+        body=routeConfig)
+        .then(  response => response.json(),
+                error => store.dispatch(routeConfigSaveError(error)) )
+        .then(routeConfig => store.dispatch(routeConfigSaveSuccess(routeConfig))));
+}
+
+export const routeConfigRemove => (_id, userId, projectId) => dispatch = {
+    dispatch(routeConfigRemoveRequest(_id));
+    return(fetchAwesomOJWT('/api/route/remove',
+        method='POST',
+        headers={'Content-type': 'application/json'},
+        body={
+            _id,
+            userId,
+            projectId})
+        .then(  response => response.json(),
+                error => dispatch(routeConfigRemoveError(error)) )
+        .then(_id => dispatch(routeConfigRemoveSuccess(_id))));
+}
 
 //Viewport receive current picture
 export const receiveCurrentPicture = (src) => ({
