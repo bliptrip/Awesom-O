@@ -94,7 +94,7 @@ router.post('/login', auth.optional, (req, res, next) => {
             user.tokenIds.push(jti);
             user.save();
 
-            return res.json({ user: user.toAuthJSON(jti) });
+            return res.json(user.toAuthJSON(jti));
         }
 
         return status(400).info;
