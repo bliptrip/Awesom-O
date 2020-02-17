@@ -22,9 +22,10 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 import React, { Component } from 'react';
 import {Redirect} from 'react-router-dom/Redirect';
 import cookie from 'react-cookies';
-import Toolbar from './Toolbar/Toolbar';
-import VisibleViewport from './Viewport/Viewport';
-import ConfigurationPanel from './ConfigurationPanel/ConfigurationPanel';
+import Toolbar from './components/Toolbar';
+import fetch from 'cross-fetch'; //Backwards-compatibility if fetch not supported by browser
+//import VisibleViewport from './Viewport/Viewport';
+//import ConfigurationPanel from './ConfigurationPanel/ConfigurationPanel';
 import ConnectedWsEventHandler from './WsEventHandler/WsEventHandler';
 
 class App extends Component {
@@ -83,9 +84,7 @@ class App extends Component {
                 <ConnectedWsEventHandler />
                 {this.renderLogin()}
                 <div class="container">
-                    <Toolbar wsehrstatus="running" />
-                    <VisibleViewport />
-                    <ConfigurationPanel />
+                    <Toolbar />
                 </div>
             </div>
         );
