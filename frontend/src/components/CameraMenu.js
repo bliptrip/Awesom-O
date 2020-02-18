@@ -21,9 +21,10 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 
 import React, {useState} from 'react';
 import { withStyles } from '@material-ui/core/styles';
-import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
+import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import CameraAltTwoToneIcon from '@material-ui/icons/CameraAltTwoTone';

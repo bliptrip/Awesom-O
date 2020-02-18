@@ -19,14 +19,13 @@ You should have received a copy of the GNU Affero General Public License
 along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
-const uuidv4 = require('uuid/v4');
-import '../actions';
 import '../lib/fetch';
+import * as userC from '../actions';
 
-const userReducer = (state={}, action) => ({
+export const user = (state={}, action) => {
     let newstate = state;
     switch(action.type) {
-        case USER_LOGIN_REQUEST: //Consider making this a separate state -- not directly stored in user state
+        case userC.USER_LOGIN_REQUEST: //Consider making this a separate state -- not directly stored in user state
             newstate = { ...state,
                 _id: undefined,
                 username: action.username,
@@ -34,14 +33,14 @@ const userReducer = (state={}, action) => ({
                 statusError: undefined,
             };
             break;
-        case USER_LOGIN_ERROR:
+        case userC.USER_LOGIN_ERROR:
             newstate = { ...state,
                 username: undefined,
                 isFetching: false,
                 statusError: action.error
             };
             break;
-        case USER_LOGIN_SUCCESS:
+        case userC.USER_LOGIN_SUCCESS:
             newstate = { ...state,
                 isFetching: false,
                 statusError: undefined,
@@ -51,76 +50,76 @@ const userReducer = (state={}, action) => ({
                 token: action.user.token,
             };
             break;
-        case USER_CREATE_REQUEST: //Consider making this a separate state -- not directly stored in user state
+        case userC.USER_CREATE_REQUEST: //Consider making this a separate state -- not directly stored in user state
             newstate = { ...state,
                 _id: undefined,
                 isFetching: true,
                 statusError: undefined,
             };
             break;
-        case USER_CREATE_ERROR:
+        case userC.USER_CREATE_ERROR:
             newstate = { ...state,
                 _id: undefined,
                 isFetching: false,
                 statusError: action.error
             };
             break;
-        case USER_CREATE_SUCCESS:
+        case userC.USER_CREATE_SUCCESS:
             newstate = { ...state,
                 isFetching: false,
                 statusError: undefined
             };
             break;
-        case USER_REMOVE_REQUEST:
+        case userC.USER_REMOVE_REQUEST:
             newstate = { ...state,
                 _id: action._id,
                 isFetching: true,
                 statusError: undefined,
             };
             break;
-        case USER_REMOVE_ERROR:
+        case userC.USER_REMOVE_ERROR:
             newstate = { ...state,
                 _id: undefined,
                 isFetching: false,
                 statusError: action.error
             };
             break;
-        case USER_REMOVE_SUCCESS:
+        case userC.USER_REMOVE_SUCCESS:
             newstate = { ...state,
                 _id: undefined,
                 isFetching: false,
                 statusError: undefined
             };
             break;
-        case USER_CHANGEPASSWORD_REQUEST:
+        case userC.USER_CHANGEPASSWORD_REQUEST:
             newstate = { ...state,
                 _id: action._id,
                 isFetching: true,
                 statusError: undefined,
             };
             break;
-        case USER_CHANGEPASSWORD_ERROR:
+        case userC.USER_CHANGEPASSWORD_ERROR:
             newstate = { ...state,
                 _id: undefined,
                 isFetching: false,
                 statusError: action.error
             };
             break;
-        case USER_CHANGEPASSWORD_SUCCESS:
+        case userC.USER_CHANGEPASSWORD_SUCCESS:
             newstate = { ...state,
                 _id: undefined,
                 isFetching: false,
                 statusError: undefined
             };
             break;
-        case USER_FETCH_REQUEST:
+        case userC.USER_FETCH_REQUEST:
             newstate = { ...state,
                 username: action.username,
                 isFetching: true,
                 statusError: undefined
             };
             break;
-        case USER_FETCH_ERROR:
+        case userC.USER_FETCH_ERROR:
             newstate = { ...state,
                 _id: undefined,
                 username: undefined,
@@ -128,7 +127,7 @@ const userReducer = (state={}, action) => ({
                 statusError: action.error
             };
             break;
-        case USER_FETCH_SUCCESS:
+        case userC.USER_FETCH_SUCCESS:
             newstate = { ...state,
                 _id: action.user._id,
                 username: action.user.username,
@@ -141,5 +140,4 @@ const userReducer = (state={}, action) => ({
             break;
     }
     return(newstate);
-});
-
+}

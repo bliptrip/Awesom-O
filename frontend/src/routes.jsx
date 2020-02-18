@@ -1,5 +1,5 @@
 import React from 'react';
-import {Route, Router, Redirect} from 'react-router';
+import {Route, Router} from 'react-router';
 import {createBrowserHistory} from 'history';
 import App from './App';
 import SignInSide from './SignInSide';

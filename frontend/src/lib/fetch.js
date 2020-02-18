@@ -22,24 +22,26 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 import cookie from 'react-cookies';
 import fetch from 'cross-fetch';
 
-export const fetchAwesomO = (url, method='GET', headers=undefined, body=undefined) => (
-    let contents = {
+export const fetchAwesomO = ({url, method='GET', headers=undefined, body=undefined} = {}) => {
+    let contents;
+    contents = {
         method: method,
         mode: 'cors',
         cache: 'no-cache',
         credentials: 'same-origin'
-    }
+    };
     if(headers)
-        content.headers = headers;
+        contents.headers = headers;
     if(body)
         contents.body = JSON.stringify(body);
-    let fetchp = fetch(url, contents);
-)
+    return(fetch(url, contents));
+}
 
-export const fetchAwesomeOJWT = (url, method='GET', body=undefined) => (
-    let headers = {
+export const fetchAwesomOJWT = ({url, method='GET', body=undefined} = {}) => {
+    let headers;
+    headers = {
         "Content-Type": "application/json",
         "Authorization": "Token " + cookie.load('token')
     };
     return(fetchAwesomO(url, method, headers, body));
-)
+}

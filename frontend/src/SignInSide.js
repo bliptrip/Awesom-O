@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import {connect} from 'react-redux';
+import {userLogin, userCreate} from './actions';
 import cookie from 'react-cookies';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
@@ -55,29 +57,33 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function SignInSide(props) {
+export default function SignInSide({store}) {
     const classes = useStyles();
+    const [username,setUsername] = useState(undefined);
+    const [email, setEmail] = useState(undefined);
+    const [password, setPassword] = useState(undefined);
+    const [cpassword, setCPassword] = useState(undefined);
 
     const updateUsername = (e) => {
         cookie.save('username', e.target.value, { path: '/' });
-        store.dispatch(userSetUsername(e.target.value));
+        setUsername(e.target.value);
     }
 
     const updatePassword = (e) => {
-        store.dispatch(userSetPassword(e.target.value));
+        setPassword(e.target.value);
     }
 
     const updateEmail = (e) => {
         cookie.save('email', e.target.value, { path: '/' });
-        store.dispatch(userSetEmail(e.target.value));
+        setEmail(e.target.value);
     }
 
     const handleSubmitLogin = () => {
-        store.dispatch(userLoginRequest());
+        store.dispatch(userLogin(username, password));
     }
 
     const createLogin = () => {
-        store.dispatch(userCreateRequest());
+        store.dispatch(userCreate(username, email, password));
     }
 
   return (
@@ -152,3 +158,5 @@ export default function SignInSide(props) {
         </Grid>
   );
 }
+
+connect()(SignInSide);

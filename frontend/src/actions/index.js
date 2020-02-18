@@ -3,7 +3,7 @@ This file is part of Awesom-O, an image acquisition and analysis web application
 consisting of a frontend web interface and a backend database, camera, and motor access
 management framework.
 
-Copyright (C)  2019  Andrew F. Maule
+Copyright (C)  2020  Andrew F. Maule
 
 Awesom-O is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -18,18 +18,18 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
-import fetch from 'cross-fetch'; //Backwards-compatibility if fetch not supported by browser
+import {fetchAwesomO, fetchAwesomOJWT} from '../lib/fetch'; //Backwards-compatibility if fetch not supported by browser
 
 /* Define our action creators here */
 
 export const USER_SET_USERNAME = 'USER_SET_USERNAME';
-export const userSetUsername(username) => ({
+export const userSetUsername = (username) => ({
     type: USER_SET_USERNAME,
     username
 });
 
 export const USER_SET_EMAIL = 'USER_SET_EMAIL';
-export const userSetEmail(email) => ({
+export const userSetEmail = (email) => ({
     type: USER_SET_EMAIL,
     email
 });
@@ -90,9 +90,9 @@ export const userRemoveSuccess = (_id) => ({
 
 /* Remove current user */
 export const USER_SAVE_REQUEST = 'USER_SAVE_REQUEST';
-export const userSaveRequest = (_id) => ({
+export const userSaveRequest = (user) => ({
     type: USER_SAVE_REQUEST,
-    _id: _id
+    user
 });
 
 export const USER_SAVE_ERROR = 'USER_SAVE_ERROR';
@@ -104,7 +104,7 @@ export const userSaveError = (error) => ({
 export const USER_SAVE_SUCCESS = 'USER_SAVE_SUCCESS';
 export const userSaveSuccess = (_id) => ({
     type: USER_SAVE_SUCCESS,
-    _id: _id
+    _id
 });
 
 export const USER_CHANGEPASSWORD_REQUEST = 'USER_CHANGEPASSWORD_REQUEST';
@@ -147,55 +147,57 @@ export const userFetchSuccess = (user) => ({
 });
 
 /* User-action thunks */
-const userLogin = (username,password) => dispatch =>  {
+export const userLogin = (username,password) => dispatch =>  {
     dispatch(userLoginRequest(username))
-    return(fetchAwesomO(`/api/users/login`,
-                method='POST',
-                headers={'Content-Type': 'application/json'},
-                body={username: username,
-                      password: password})
+    return(fetchAwesomO({
+                url: '/api/users/login',
+                method: 'POST',
+                headers:{'Content-Type': 'application/json'},
+                body: {username: username,
+                      password: password}})
     .then( response => response.json(),
         error => dispatch(userLoginError(error))
     )
-    .then( (data) => {
-        dispatch(userLoginSuccess(data));
-    }));
+    .then( (data) => 
+        dispatch(userLoginSuccess(data))
+    ));
 };
 
-const userCreate = (username,email,password) => dispatch =>  {
+export const userCreate = (username,email,password) => dispatch =>  {
     dispatch(userCreateRequest())
-    return(fetchAwesomO(`/api/users/create`,
-                method='POST',
-                headers={'Content-Type': 'application/json'},
-                body={username: username,
+    return(fetchAwesomO({
+                url: '/api/users/create',
+                method: 'POST',
+                headers:{'Content-Type': 'application/json'},
+                body: {username: username,
                       email: email,
-                      password: password})
+                      password: password}})
     .then( response => response.json(),
         error => dispatch(userCreateError(error))
     )
     .then( (data) => {
-        dispatch(userCreateSuccess(data));
+        dispatch(userCreateSuccess(data))
     }));
 };
 
-const userRemove = (_id) => dispatch =>  {
+export const userRemove = (_id) => dispatch =>  {
     let fetchURL;
     //TODO - Recursively remove all projects associated with this user?
     dispatch(userRemoveRequest(_id))
     fetchURL = '/api/users/remove/' + _id;
-    return(fetchAwesomO(fetchURL)
+    return(fetchAwesomO({url: fetchURL})
     .then( response => response.json(),
         error => dispatch(userRemoveError(error))
     )
-    .then( (data) => {
-        dispatch(userRemoveSuccess(data));
-    }));
+    .then( (data) => 
+        dispatch(userRemoveSuccess(data))
+    ));
 };
 
 /* Not sure if userFetch logic is necessary, but it's implemented just in case */
-const userFetch = username => dispatch =>  {
+export const userFetch = username => dispatch =>  {
     dispatch(userFetchRequest(username))
-    return(fetchAwesomOJWT(`/api/users/get/`+newstate.username)
+    return(fetchAwesomOJWT({url: '/api/users/get/'+username})
     .then( response => response.json(),
         // Do not use catch, because that will also catch
         // any errors in the dispatch and resulting render,
@@ -206,17 +208,16 @@ const userFetch = username => dispatch =>  {
     .then(user =>
         // We can dispatch many times!
         // Here, we update the app state with the results of the API call.
-        dispatch(userFetchSuccess(user));
+        dispatch(userFetchSuccess(user))
     ));
 };
 
-const userSave = user => dispatch =>  {
-    dispatch(userSaveRequest(username))
-    return(fetchAwesomOJWT(`/api/users/save`,
-        method='POST',)
-        headers={'Content-Type': 'application/json'},
-        body={username: username,
-              email: email});
+export const userSave = user => dispatch =>  {
+    dispatch(userSaveRequest(user))
+    return(fetchAwesomOJWT({
+        url: '/api/users/save',
+        method: 'POST',
+        body: user})
     .then( response => response.json(),
         // Do not use catch, because that will also catch
         // any errors in the dispatch and resulting render,
@@ -227,18 +228,18 @@ const userSave = user => dispatch =>  {
     .then(user =>
         // We can dispatch many times!
         // Here, we update the app state with the results of the API call.
-        dispatch(userSaveSuccess(user));
+        dispatch(userSaveSuccess(user))
     ));
 };
 
-const userChangePassword = (_id, oldpassword, password) => dispatch =>  {
+export const userChangePassword = (_id, oldpassword, password) => dispatch =>  {
     dispatch(userChangePasswordRequest(_id));
-    return(fetchAwesomOJWT(`/api/users/changepassword`,
-        method='POST',
-        headers={'Content-Type': 'application/json'},
-        body={_id: _id,
+    return(fetchAwesomOJWT({
+        url: '/api/users/changepassword',
+        method: 'POST',
+        body: {_id: _id,
               oldpassword: oldpassword,
-              password: password})
+              password: password}})
     .then( response => response.json(),
         // Do not use catch, because that will also catch
         // any errors in the dispatch and resulting render,
@@ -249,7 +250,7 @@ const userChangePassword = (_id, oldpassword, password) => dispatch =>  {
     .then(_id =>
         // We can dispatch many times!
         // Here, we update the app state with the results of the API call.
-        dispatch(userChangePasswordSuccess(_id));
+        dispatch(userChangePasswordSuccess(_id))
     ));
 };
 
@@ -311,16 +312,16 @@ export const projectFetchSuccess = (project) => ({
 export const PROJECT_SAVE_REQUEST = 'PROJECT_SAVE_REQUEST';
 export const projectSaveRequest = (project) => ({
     type: PROJECT_SAVE_REQUEST,
-    project,
+    project
 });
 
 export const PROJECT_SAVE_ERROR = 'PROJECT_SAVE_ERROR';
 export const projectSaveError = (error) => ({
     type: PROJECT_SAVE_ERROR,
-    error,
+    error
 });
 
-export const PROJECT_SAVE_SUCESS = 'PROJECT_SAVE_SUCCESS';
+export const PROJECT_SAVE_SUCCESS = 'PROJECT_SAVE_SUCCESS';
 export const projectSaveSuccess= (id) => ({
     type: PROJECT_SAVE_SUCCESS,
     id
@@ -330,35 +331,35 @@ export const PROJECT_SET_DESCRIPTION = "PROJECT_SET_DESCRIPTION";
 export const projectSetDescription = (id, description) => ({
     type: PROJECT_SET_DESCRIPTION,
     id, //Project ID
-    description,
+    description
 });
 
 export const PROJECT_SET_CAMERA_CONFIG = "PROJECT_SET_CAMERA_CONFIG";
 export const projectSetCameraConfig= (id, cameraId) => ({
     type: PROJECT_SET_CAMERA_CONFIG,
     id, //Project ID
-    cameraId,
+    cameraId
 });
 
 export const PROJECT_SET_EXPERIMENT_CONFIG = "PROJECT_SET_EXPERIMENT_CONFIG";
 export const projectSetExperimentConfig = (id, experimentId) => ({
     type: PROJECT_SET_EXPERIMENT_CONFIG,
     id, //Project ID
-    experimentId,
+    experimentId
 });
 
 export const PROJECT_ADD_STORAGE_CONFIG = "PROJECT_ADD_STORAGE_CONFIG";
 export const projectAddStorageConfig = (id, storageId) => ({
     type: PROJECT_ADD_STORAGE_CONFIG,
     id, //Project ID
-    storageId,
+    storageId
 });
 
 export const PROJECT_REMOVE_STORAGE_CONFIG = "PROJECT_REMOVE_STORAGE_CONFIG";
 export const projectRemoveStorageConfig = (id, storageId) => ({
     type: PROJECT_REMOVE_STORAGE_CONFIG,
     id, //Project ID
-    storageId,
+    storageId
 });
 
 export const PROJECT_CLEAR_STORAGE_CONFIG = "PROJECT_CLEAR_STORAGE_CONFIG";
@@ -371,73 +372,78 @@ export const PROJECT_SET_ROUTE_CONFIG = "PROJECT_SET_ROUTE_CONFIG";
 export const projectSetRouteConfig = (id, routeId) => ({
     type: PROJECT_SET_ROUTE_CONFIG,
     id, //Project ID
-    routeId,
+    routeId
 });
 
 /* Project thunks */
-const projectCreate = (userId,templateId=undefined) => dispatch => {
+export const projectCreate = (userId,templateId=undefined) => dispatch => {
     let fetchURL;
     dispatch(projectCreateRequest(userId,templateId));
-    fetchURL = `/api/project/create/`;
-    return(fetchAwesomeOJWT(fetchURL,
-            method='POST',
-            headers={'Content-Type': 'application/json'},
-            body={userId: userId,
-                  templateId: templateId})
+    fetchURL = '/api/project/create/';
+    return(fetchAwesomOJWT({
+            url: fetchURL,
+            method: 'POST',
+            headers:{'Content-Type': 'application/json'},
+            body: {userId: userId,
+                  templateId: templateId}})
     .then( response => response.json(),
         // Do not use catch, because that will also catch
         // any errors in the dispatch and resulting render,
         // causing a loop of 'Unexpected batch number' errors.
         // https://github.com/facebook/react/issues/6895
-        error => dispatch(projectCreateError(error));
+        error => dispatch(projectCreateError(error))
     )
     .then(project =>
         // We can dispatch many times!
         // Here, we update the app state with the results of the API call.
-        dispatch(projectCreateSuccess(project));
+        dispatch(projectCreateSuccess(project))
     ));
 };
 
-const projectRemove = (_id, userId) => dispatch => {
+export const projectRemove = (_id, userId) => dispatch => {
     dispatch(projectRemoveRequest(_id));
-    return(fetchAwesomeOJWT(`/api/project/remove/`,
-        method='POST',
-        headers={'Content-type': 'application/json'},
-        body={
+    return(fetchAwesomOJWT({
+        url: '/api/project/remove/',
+        method: 'POST',
+        headers:{'Content-type': 'application/json'},
+        body: {
             _id,
-            userId})
+            userId}})
     .then( response => response.json(),
         // Do not use catch, because that will also catch
         // any errors in the dispatch and resulting render,
         // causing a loop of 'Unexpected batch number' errors.
         // https://github.com/facebook/react/issues/6895
-        error => dispatch(projectRemoveError(error));
+        error => dispatch(projectRemoveError(error))
     )
     .then(_id =>
-        dispatch(projectRemoveSuccess(_id));
+        dispatch(projectRemoveSuccess(_id))
     ));
 };
 
-const projectFetch = _id => dispatch => {
+export const projectFetch = _id => dispatch => {
     dispatch(projectFetchRequest(_id));
-    fetchAwesomeOJWT(`/api/project/get/`+_id)
+    return(fetchAwesomOJWT({url: '/api/project/get/'+_id})
     .then( response => response.json(),
         // Do not use catch, because that will also catch
         // any errors in the dispatch and resulting render,
         // causing a loop of 'Unexpected batch number' errors.
         // https://github.com/facebook/react/issues/6895
-        error => dispatch(projectFetchError(error));
+        error => dispatch(projectFetchError(error))
     )
     .then(project =>
         // We can dispatch many times!
         // Here, we update the app state with the results of the API call.
-        dispatch(projectFetchSuccess(project));
-    );
+        dispatch(projectFetchSuccess(project))
+    ));
 };
 
-const projectSave = project => dispatch => {
+export const projectSave = project => dispatch => {
     dispatch(projectSaveRequest(project));
-    return(fetchAwesomOJWT('/api/project/save/', method='POST', body=project)
+    return(fetchAwesomOJWT({
+        url: '/api/project/save/', 
+        method: 'POST', 
+        body: project})
     .then(  response => response.json(),
             error => dispatch(projectSaveError(error)) )
     .then(json => dispatch(projectSaveSuccess(json._id))));
@@ -460,6 +466,24 @@ export const CAMERA_CONFIG_CREATE_SUCCESS = 'CAMERA_CONFIG_CREATE_SUCCESS';
 export const cameraConfigCreateSuccess = (cameraConfig) => ({
     type: CAMERA_CONFIG_CREATE_SUCCESS,
     cameraConfig
+});
+
+export const CAMERA_CONFIG_REMOVE_REQUEST = 'CAMERA_CONFIG_REMOVE_REQUEST';
+export const cameraConfigRemoveRequest = (_id) => ({
+    type: CAMERA_CONFIG_REMOVE_REQUEST,
+    _id
+});
+
+export const CAMERA_CONFIG_REMOVE_ERROR = 'CAMERA_CONFIG_REMOVE_ERROR';
+export const cameraConfigRemoveError = (error) => ({
+    type: CAMERA_CONFIG_REMOVE_ERROR,
+    error,
+});
+
+export const CAMERA_CONFIG_REMOVE_SUCCESS = 'CAMERA_CONFIG_REMOVE_SUCCESS';
+export const cameraConfigRemoveSuccess = (_id) => ({
+    type: CAMERA_CONFIG_REMOVE_SUCCESS,
+    _id
 });
 
 export const CAMERA_CONFIG_FETCH_REQUEST = 'CAMERA_CONFIG_FETCH_REQUEST';
@@ -523,67 +547,66 @@ export const cameraConfigSetGphoto2Config = (id,gphoto2Config) => ({
 });
 
 export const CAMERA_CONFIG_SAVE_REQUEST = 'CAMERA_CONFIG_SAVE_REQUEST';
-export const cameraConfigSaveRequest = () => ({
+export const cameraConfigSaveRequest = (cameraConfig) => ({
     type: CAMERA_CONFIG_SAVE_REQUEST,
-    cameraConfig,
+    cameraConfig
 });
 
 export const CAMERA_CONFIG_SAVE_ERROR = 'CAMERA_CONFIG_SAVE_ERROR';
 export const cameraConfigSaveError = (error) => ({
     type: CAMERA_CONFIG_SAVE_ERROR,
-    error,
+    error
 });
 
 export const CAMERA_CONFIG_SAVE_SUCCESS = 'CAMERA_CONFIG_SAVE_SUCCESS';
 export const cameraConfigSaveSuccess = (_id) => ({
-    type: CAMERA_CONFIG_SAVE_SUCESS,
-    _id,
+    type: CAMERA_CONFIG_SAVE_SUCCESS,
+    _id
 });
 
 /* CameraConfig thunks */
-const cameraConfigCreate = (userId, projectId, templateId=undefined) => dispatch => {
+export const cameraConfigCreate = (userId, projectId, templateId=undefined) => dispatch => {
     dispatch(cameraConfigCreateRequest());
-    return(fetchAwesomOJWT('/api/camera/create',
-        method='POST',
-        headers={'Content-Type': 'application/json'},
-        body={userId: userId,
+    return(fetchAwesomOJWT({
+        url: '/api/camera/create',
+        method: 'POST',
+        body: {userId: userId,
               projectId: projectId,
-              templateId: templateId})
+              templateId: templateId}})
     .then(response => response.json(),
           error => dispatch(cameraConfigCreateError(error)))
     .then( cameraConfig => dispatch(cameraConfigCreateSuccess(cameraConfig))));
 };
 
-const cameraConfigFetch = _id => dispatch => {
+export const cameraConfigFetch = _id => dispatch => {
     dispatch(cameraConfigFetchRequest(_id));
-    return(fetchAwesomOJWT('/api/camera/get/'+_id)
+    return(fetchAwesomOJWT({url: '/api/camera/get/'+_id})
     .then(response => response.json(),
           error => dispatch(cameraConfigFetchError(error)))
     .then( cameraConfig => dispatch(cameraConfigFetchSuccess(cameraConfig))));
 };
 
-const cameraConfigSave = (cameraConfig) => dispatch => {
+export const cameraConfigSave = (cameraConfig) => dispatch => {
     dispatch(cameraConfigSaveRequest());
-    return(fetchAwesomOJWT('/api/camera/save',
-        method='POST',
-        headers={'Content-Type': 'application/json'},
-        body=cameraConfig
-    )
+    return(fetchAwesomOJWT({
+        url: '/api/camera/save',
+        method: 'POST',
+        body: cameraConfig})
     .then(response => response.json(),
           error => dispatch(cameraConfigSaveError(error)))
     .then( _id => dispatch(cameraConfigSaveSuccess(_id))));
 };
 
-const cameraConfigRemove = (_id, userId, projectId) => dispatch => {
+export const cameraConfigRemove = (_id, userId, projectId) => dispatch => {
     dispatch(cameraConfigRemoveRequest(_id));
-    return(fetchAwesomOJWT('/api/camera/remove',
-        method='POST',
-        headers={'Content-type': 'application/json'},
-        body={
+    return(fetchAwesomOJWT({
+        url: '/api/camera/remove',
+        method: 'POST',
+        body: {
             _id,
             userId,
             projectId
-        })
+        }})
     .then(response => response.json(),
           error => dispatch(cameraConfigRemoveError(error)))
     .then( _id => dispatch(cameraConfigRemoveSuccess(_id))));
@@ -605,6 +628,24 @@ export const EXPERIMENT_CONFIG_CREATE_SUCCESS = 'EXPERIMENT_CONFIG_CREATE_SUCCES
 export const experimentConfigCreateSuccess = (experimentConfig) => ({
     type: EXPERIMENT_CONFIG_CREATE_SUCCESS,
     experimentConfig,
+});
+
+export const EXPERIMENT_CONFIG_REMOVE_REQUEST = 'EXPERIMENT_CONFIG_REMOVE_REQUEST';
+export const experimentConfigRemoveRequest = (_id) => ({
+    type: EXPERIMENT_CONFIG_REMOVE_REQUEST,
+    _id
+});
+
+export const EXPERIMENT_CONFIG_REMOVE_ERROR = 'EXPERIMENT_CONFIG_REMOVE_ERROR';
+export const experimentConfigRemoveError = (error) => ({
+    type: EXPERIMENT_CONFIG_REMOVE_ERROR,
+    error
+});
+
+export const EXPERIMENT_CONFIG_REMOVE_SUCCESS = 'EXPERIMENT_CONFIG_REMOVE_SUCCESS';
+export const experimentConfigRemoveSuccess = (_id) => ({
+    type: EXPERIMENT_CONFIG_REMOVE_SUCCESS,
+    _id
 });
 
 export const EXPERIMENT_CONFIG_FETCH_REQUEST = 'EXPERIMENT_CONFIG_FETCH_REQUEST';
@@ -683,7 +724,7 @@ export const experimentConfigSaveError = (error) => ({
 
 export const EXPERIMENT_CONFIG_SAVE_SUCCESS = 'EXPERIMENT_CONFIG_SAVE_SUCCESS';
 export const experimentConfigSaveSuccess = (id) => ({
-    type: EXPERIMENT_CONFIG_SAVE_SUCESS,
+    type: EXPERIMENT_CONFIG_SAVE_SUCCESS,
     id,
 });
 
@@ -691,24 +732,25 @@ export const experimentConfigSaveSuccess = (id) => ({
 export const experimentConfigCreate = (userId, projectId, templateId=undefined) => dispatch => {
     let fetchURL;
     dispatch(experimentConfigCreate);
-    fetchURL = `/api/experiment/create`;
-    return(fetchAwesomeOJWT(fetchURL,
-            method='POST',
-            headers={'Content-Type': 'application/json'},
-            body={userId: userId,
+    fetchURL = '/api/experiment/create';
+    return(fetchAwesomOJWT({
+            url: fetchURL,
+            method: 'POST',
+            headers:{'Content-Type': 'application/json'},
+            body: {userId: userId,
                   projectId: projectId,
-                  templateId: templateId})
+                  templateId: templateId}})
     .then( response => response.json(),
         // Do not use catch, because that will also catch
         // any errors in the dispatch and resulting render,
         // causing a loop of 'Unexpected batch number' errors.
         // https://github.com/facebook/react/issues/6895
-        error => dispatch(experimentConfigCreateError(error));
+        error => dispatch(experimentConfigCreateError(error))
     )
     .then(experimentConfig =>
         // We can dispatch many times!
         // Here, we update the app state with the results of the API call.
-        dispatch(experimentConfigCreateSuccess(experimentConfig));
+        dispatch(experimentConfigCreateSuccess(experimentConfig))
     ));
 
 };
@@ -716,39 +758,42 @@ export const experimentConfigCreate = (userId, projectId, templateId=undefined) 
 export const experimentConfigFetch = (_id) => dispatch => {
     let fetchURL;
     dispatch(experimentConfigFetchRequest(_id));
-    fetchURL = `/api/experiment/get/` + _id;
-    return(fetchAwesomeOJWT(fetchURL)
+    fetchURL = '/api/experiment/get/' + _id;
+    return(fetchAwesomOJWT({url: fetchURL})
     .then( response => response.json(),
         // Do not use catch, because that will also catch
         // any errors in the dispatch and resulting render,
         // causing a loop of 'Unexpected batch number' errors.
         // https://github.com/facebook/react/issues/6895
-        error => dispatch(experimentConfigFetchError(error));
+        error => dispatch(experimentConfigFetchError(error))
     )
     .then(experimentConfig =>
         // We can dispatch many times!
         // Here, we update the app state with the results of the API call.
-        dispatch(experimentConfigFetchSuccess(experimentConfig));
+        dispatch(experimentConfigFetchSuccess(experimentConfig))
     ));
 
 };
 
-export const experimentConfigSave= (_id) => dispatch => {
-    dispatch(experimentConfigSaveRequest(_id));
-    return(fetchAwesomOJWT('/api/experiment/save/', method='POST', body=action.experimentConfig)
+export const experimentConfigSave = (experimentConfig) => dispatch => {
+    dispatch(experimentConfigSaveRequest(experimentConfig._id));
+    return(fetchAwesomOJWT({
+        url: '/api/experiment/save/', 
+        method: 'POST', 
+        body: experimentConfig})
     .then(  response => response.json(),
-            error => store.dispatch(experimentConfigError(error)) )
-    .then(_id => store.dispatch(experimentConfigSuccess(_id))));
+            error => dispatch(experimentConfigSaveError(error)) )
+    .then(_id => dispatch(experimentConfigSaveSuccess(experimentConfig._id))));
 }
 
 export const experimentConfigRemove = (_id, userId, projectId) => dispatch => {
     dispatch(experimentConfigRemoveRequest(_id));
-    return(fetchAwesomOJWT('/api/experiment/remove/',
-        method='POST',
-        headers={'Content-type': 'application/json'},
-        body = {
+    return(fetchAwesomOJWT({
+        url: '/api/experiment/remove/',
+        method: 'POST',
+        body: {
             userId,
-            projectId})
+            projectId}})
     .then(  response => response.json(),
             error => dispatch(experimentConfigRemoveError(error)) )
     .then(_id => dispatch(experimentConfigRemoveSuccess(_id))));
@@ -771,32 +816,50 @@ export const storageConfigCreateError = (error) => ({
 export const STORAGE_CONFIG_CREATE_SUCCESS = 'STORAGE_CONFIG_CREATE_SUCCESS';
 export const storageConfigCreateSuccess = (storageConfig) => ({
     type: STORAGE_CONFIG_CREATE_SUCCESS,
-    ...storageConfig,
+    ...storageConfig
+});
+
+export const STORAGE_CONFIG_REMOVE_REQUEST = 'STORAGE_CONFIG_REMOVE_REQUEST';
+export const storageConfigRemoveRequest = (_id) => ({
+    type: STORAGE_CONFIG_REMOVE_REQUEST,
+    _id
+});
+
+export const STORAGE_CONFIG_REMOVE_ERROR = 'STORAGE_CONFIG_REMOVE_ERROR';
+export const storageConfigRemoveError = (error) => ({
+    type: STORAGE_CONFIG_REMOVE_ERROR,
+    error
+});
+
+export const STORAGE_CONFIG_REMOVE_SUCCESS = 'STORAGE_CONFIG_REMOVE_SUCCESS';
+export const storageConfigRemoveSuccess = (_id) => ({
+    type: STORAGE_CONFIG_REMOVE_SUCCESS,
+    _id
 });
 
 export const STORAGE_CONFIG_FETCH_REQUEST = 'STORAGE_CONFIG_FETCH_REQUEST';
 export const storageConfigFetchRequest = (id) => ({
     type: STORAGE_CONFIG_FETCH_REQUEST,
-    id,
+    id
 });
 
 export const STORAGE_CONFIG_FETCH_ERROR = 'STORAGE_CONFIG_FETCH_ERROR';
 export const storageConfigFetchError = (error) => ({
     type: STORAGE_CONFIG_FETCH_ERROR,
-    error,
+    error
 });
 
 export const STORAGE_CONFIG_FETCH_SUCCESS = 'STORAGE_CONFIG_FETCH_SUCCESS';
 export const storageConfigFetchSuccess = (storageConfig) => ({
     type: STORAGE_CONFIG_FETCH_SUCCESS,
-    storageConfig,
+    storageConfig
 });
 
 export const STORAGE_CONFIG_SET_TYPE = 'STORAGE_CONFIG_SET_TYPE';
-export const storageConfigSetType = (id, type) => ({
+export const storageConfigSetType = (id, storageType) => ({
     type: STORAGE_CONFIG_SET_TYPE,
     id,
-    type
+    storageType
 });
 
 export const STORAGE_CONFIG_SET_PARAMS = 'STORAGE_CONFIG_SET_PARAMS';
@@ -809,102 +872,103 @@ export const storageConfigSetParams = (id, params) => ({
 export const STORAGE_CONFIG_SAVE_REQUEST = 'STORAGE_CONFIG_SAVE_REQUEST';
 export const storageConfigSaveRequest = (storageConfig) => ({
     type: STORAGE_CONFIG_SAVE_REQUEST,
-    storageConfig,
+    storageConfig
 });
 
 export const STORAGE_CONFIG_SAVE_ERROR = 'STORAGE_CONFIG_SAVE_ERROR';
 export const storageConfigSaveError = (error) => ({
     type: STORAGE_CONFIG_SAVE_ERROR,
-    error,
+    error
 });
 
 export const STORAGE_CONFIG_SAVE_SUCCESS = 'STORAGE_CONFIG_SAVE_SUCCESS';
 export const storageConfigSaveSuccess = (id) => ({
-    type: STORAGE_CONFIG_SAVE_SUCESS,
-    id,
+    type: STORAGE_CONFIG_SAVE_SUCCESS,
+    id
 });
 
 export const STORAGE_TYPE_REQUEST = 'STORAGE_TYPE_REQUEST';
 export const storageTypeFetchRequest = (id) => ({
     type: STORAGE_TYPE_REQUEST,
-    id,
+    id
 });
 
 export const STORAGE_TYPE_ERROR = 'STORAGE_TYPE_ERROR';
 export const storageTypeFetchError = (error) => ({
     type: STORAGE_TYPE_ERROR,
-    error,
+    error
 });
 
 export const STORAGE_TYPE_SUCCESS = 'STORAGE_TYPE_SUCCESS';
 export const storageTypeFetchSuccess = (storageType) => ({
     type: STORAGE_TYPE_SUCCESS,
-    storageType,
+    storageType
 });
 
 /* StorageConfig Thunks */
-export const storageConfigCreate = (userId, projectId, templateId = undefined) = dispatch = {
+export const storageConfigCreate = (userId, projectId, templateId = undefined) => dispatch => {
     dispatch(storageConfigCreateRequest());
-    return(fetchAwesomeOJWT(`/api/storage/create/`,
-        method='POST',
-        headers={'Content-Type': 'application/json'},
-        body={userId: userId,
+    return(fetchAwesomOJWT({
+        url:'/api/storage/create/',
+        method: 'POST',
+        headers:{'Content-Type': 'application/json'},
+        body: {userId: userId,
               projectId: projectId,
-              templateId: templateId})
+              templateId: templateId}})
     .then( response => response.json(),
         // Do not use catch, because that will also catch
         // any errors in the dispatch and resulting render,
         // causing a loop of 'Unexpected batch number' errors.
         // https://github.com/facebook/react/issues/6895
-        error => dispatch(storageConfigCreateError(error));
+        error => dispatch(storageConfigCreateError(error))
     )
     .then(storageConfig =>
         // We can dispatch many times!
         // Here, we update the app state with the results of the API call.
-        dispatch(storageConfigCreateSuccess(storageConfig));
-    );
+        dispatch(storageConfigCreateSuccess(storageConfig))
+    ));
 }
 
-export const storageConfigFetch = (_id) = dispatch = {
+export const storageConfigFetch = (_id) => dispatch => {
     dispatch(storageConfigFetchRequest(_id));
-    fetchAwesomeOJWT(`/api/storage/get/`+_id)
+    return(fetchAwesomOJWT({url: '/api/storage/get/'+_id})
     .then( response => response.json(),
         // Do not use catch, because that will also catch
         // any errors in the dispatch and resulting render,
         // causing a loop of 'Unexpected batch number' errors.
         // https://github.com/facebook/react/issues/6895
-        error => dispatch(storageConfigFetchError(error));
+        error => dispatch(storageConfigFetchError(error))
     )
     .then(storageConfig =>
         // We can dispatch many times!
         // Here, we update the app state with the results of the API call.
-        dispatch(storageConfigFetchSuccess(storageConfig));
-    );
+        dispatch(storageConfigFetchSuccess(storageConfig))
+    ));
 }
 
-export const storageConfigSave = (storageConfig) = dispatch = {
+export const storageConfigSave = (storageConfig) => dispatch => {
     dispatch(storageConfigSaveRequest(storageConfig._id));
-    return(fetchAwesomOJWT('/api/storage/save', 
-        method='POST', 
-        headers={'Content-Type': 'application/json'},
-        body=action.storageConfig)
+    return(fetchAwesomOJWT({
+        url: '/api/storage/save', 
+        method: 'POST', 
+        body: storageConfig})
         .then(  response => response.json(),
-                error => store.dispatch(storageSaveError(error)) )
-        .then(json => store.dispatch(storageSaveSuccess(json.id))))
+                error => dispatch(storageConfigSaveError(error)) )
+        .then(json => dispatch(storageConfigSaveSuccess(json.id))));
 }
 
-export const storageConfigRemove = (_id,userId,projectId) = dispatch = {
+export const storageConfigRemove = (_id,userId,projectId) => dispatch => {
     dispatch(storageConfigRemoveRequest(_id));
-    return(fetchAwesomOJWT('/api/storage/remove',
-        method='POST',
-        headers={'Content-type': 'application/json'},
-        body={
+    return(fetchAwesomOJWT({
+        url: '/api/storage/remove',
+        method: 'POST',
+        body: {
             _id,
             userId,
-            projectId}) 
+            projectId}}) 
         .then(  response => response.json(),
-                error => store.dispatch(storageRemoveError(error)) )
-        .then(json => store.dispatch(storageRemoveSuccess(json._id))))
+                error => dispatch(storageConfigRemoveError(error)) )
+        .then(json => dispatch(storageConfigRemoveSuccess(json._id))));
 }
 
 /*
@@ -930,61 +994,61 @@ export const routeConfigCreateSuccess = (routeConfig) => ({
 export const ROUTE_CONFIG_FETCH_REQUEST = 'ROUTE_CONFIG_FETCH_REQUEST';
 export const routeConfigFetchRequest = (_id) => ({
     _id,
-    type: ROUTE_CONFIG_FETCH_REQUEST,
+    type: ROUTE_CONFIG_FETCH_REQUEST
 });
 
 export const ROUTE_CONFIG_FETCH_ERROR = 'ROUTE_CONFIG_FETCH_ERROR';
 export const routeConfigFetchError = (error) => ({
     type: ROUTE_CONFIG_FETCH_ERROR,
-    error,
+    error
 });
 
-export const ROUTE_CONFIG_REQUEST_SUCCESS = 'ROUTE_CONFIG_REQUEST_SUCCESS';
+export const ROUTE_CONFIG_FETCH_SUCCESS = 'ROUTE_CONFIG_FETCH_SUCCESS';
 export const routeConfigFetchSuccess = (routeConfig) => ({
-    type: ROUTE_CONFIG_REQUEST_SUCCESS,
-    routeConfig,
+    type: ROUTE_CONFIG_FETCH_SUCCESS,
+    routeConfig
 });
 
 export const ROUTE_CONFIG_SET_INTERPLATE_DELAY = 'ROUTE_CONFIG_SET_INTERPLATE_DELAY';
-export const routeConfigSetLoopDelay = (_id, seconds) => ({
+export const routeConfigSetInterplateDelay = (_id, seconds) => ({
     _id,
     type: ROUTE_CONFIG_SET_INTERPLATE_DELAY,
-    seconds,
+    seconds
 });
 
 export const ROUTE_CONFIG_SET_LOOP_DELAY = 'ROUTE_CONFIG_SET_LOOP_DELAY';
 export const routeConfigSetLoopDelay = (_id, seconds) => ({
     _id,
     type: ROUTE_CONFIG_SET_LOOP_DELAY,
-    seconds,
+    seconds
 });
 
 export const ROUTE_CONFIG_SET_STEPS_PER_CM_X = 'ROUTE_CONFIG_SET_STEPS_PER_CM_X';
 export const routeConfigSetStepsPerCmX = (_id, steps) => ({
     _id,
     type: ROUTE_CONFIG_SET_STEPS_PER_CM_X,
-    steps,
+    steps
 });
 
 export const ROUTE_CONFIG_SET_STEPS_PER_CM_Y = 'ROUTE_CONFIG_SET_STEPS_PER_CM_Y';
-export const routeConfigSetStepsPerCmX = (_id, steps) => ({
+export const routeConfigSetStepsPerCmY = (_id, steps) => ({
     _id,
     type: ROUTE_CONFIG_SET_STEPS_PER_CM_Y,
-    steps,
+    steps
 });
 
 export const ROUTE_CONFIG_SET_DISTANCE_X = 'ROUTE_CONFIG_SET_DISTANCE_X';
 export const routeConfigSetDistanceX = (_id, plateDistanceX) => ({
     _id,
     type: ROUTE_CONFIG_SET_DISTANCE_X,
-    plateDistanceX,
+    plateDistanceX
 });
 
 export const ROUTE_CONFIG_SET_DISTANCE_Y = 'ROUTE_CONFIG_SET_DISTANCE_Y';
-export const routeConfigSetDistanceX = (_id, plateDistanceY) => ({
+export const routeConfigSetDistanceY = (_id, plateDistanceY) => ({
     _id,
     type: ROUTE_CONFIG_SET_DISTANCE_Y,
-    plateDistanceY,
+    plateDistanceY
 });
 
 export const ROUTE_CONFIG_ADD_ROUTE = 'ROUTE_CONFIG_ADD_ROUTE';
@@ -1018,7 +1082,7 @@ export const routeConfigSaveError = (error) => ({
 export const ROUTE_CONFIG_SAVE_SUCCESS = 'ROUTE_CONFIG_SAVE_SUCCESS';
 export const routeConfigSaveSuccess = (_id) => ({
     _id,
-    type: ROUTE_CONFIG_SAVE_SUCESS
+    type: ROUTE_CONFIG_SAVE_SUCCESS
 });
 
 export const ROUTE_CONFIG_REMOVE_REQUEST = 'ROUTE_CONFIG_REMOVE_REQUEST';
@@ -1036,61 +1100,61 @@ export const routeConfigRemoveError = (error) => ({
 export const ROUTE_CONFIG_REMOVE_SUCCESS = 'ROUTE_CONFIG_REMOVE_SUCCESS';
 export const routeConfigRemoveSuccess = (_id) => ({
     _id,
-    type: ROUTE_CONFIG_REMOVE_SUCESS,
+    type: ROUTE_CONFIG_REMOVE_SUCCESS
 });
 
 /* Route thunks */
-export const routeConfigCreate => (userId, projectId, templateId=undefined) => dispatch = {
+export const routeConfigCreate = (userId, projectId, templateId=undefined) => dispatch => {
     dispatch(routeConfigCreateRequest());
-    return(fetchAwesomOJWT('/api/route/create',
-        method='POST',
-        headers={'Content-type': 'application/json'},
-        body={
+    return(fetchAwesomOJWT({
+        url: '/api/route/create',
+        method: 'POST',
+        body: {
             userId,
             projectId,
-            templateId})
+            templateId}})
         .then(  response => response.json(),
-                error => store.dispatch(routeConfigCreateError(error)) )
-        .then(routeConfig => store.dispatch(routeConfigCreateSuccess(routeConfig))));
+                error => dispatch(routeConfigCreateError(error)) )
+        .then(routeConfig => dispatch(routeConfigCreateSuccess(routeConfig))));
 }
 
-export const routeConfigFetch => (_id) => dispatch = {
+export const routeConfigFetch = (_id) => dispatch => {
     dispatch(routeConfigFetchRequest());
-    return(fetchAwesomeOJWT(`/api/route/get/`+_id)
+    return(fetchAwesomOJWT({url: '/api/route/get/'+_id})
         .then( response => response.json(),
             // Do not use catch, because that will also catch
             // any errors in the dispatch and resulting render,
             // causing a loop of 'Unexpected batch number' errors.
             // https://github.com/facebook/react/issues/6895
-            error => dispatch(routeConfigFetchError(error));
+            error => dispatch(routeConfigFetchError(error))
         )
         .then(routeConfig  =>
             // We can dispatch many times!
             // Here, we update the app state with the results of the API call.
-            dispatch(routeConfigFetchSuccess(routeConfig));
+            dispatch(routeConfigFetchSuccess(routeConfig))
     ));
 }
 
-export const routeConfigSave => (routeConfig) => dispatch = {
+export const routeConfigSave = (routeConfig) => dispatch => {
     dispatch(routeConfigSaveRequest());
-    return(fetchAwesomOJWT('/api/route/save',
-        method='POST',
-        headers={'Content-type': 'application/json'},
-        body=routeConfig)
+    return(fetchAwesomOJWT({
+        url: '/api/route/save',
+        method: 'POST',
+        body: routeConfig})
         .then(  response => response.json(),
-                error => store.dispatch(routeConfigSaveError(error)) )
-        .then(routeConfig => store.dispatch(routeConfigSaveSuccess(routeConfig))));
+                error => dispatch(routeConfigSaveError(error)) )
+        .then(routeConfig => dispatch(routeConfigSaveSuccess(routeConfig))));
 }
 
-export const routeConfigRemove => (_id, userId, projectId) => dispatch = {
+export const routeConfigRemove = (_id, userId, projectId) => dispatch => {
     dispatch(routeConfigRemoveRequest(_id));
-    return(fetchAwesomOJWT('/api/route/remove',
-        method='POST',
-        headers={'Content-type': 'application/json'},
-        body={
+    return(fetchAwesomOJWT({
+        url: '/api/route/remove',
+        method: 'POST',
+        body: {
             _id,
             userId,
-            projectId})
+            projectId}})
         .then(  response => response.json(),
                 error => dispatch(routeConfigRemoveError(error)) )
         .then(_id => dispatch(routeConfigRemoveSuccess(_id))));
@@ -1099,17 +1163,17 @@ export const routeConfigRemove => (_id, userId, projectId) => dispatch = {
 //Viewport receive current picture
 export const receiveCurrentPicture = (src) => ({
     type: "RECEIVE_CURRENT_PICTURE",
-    src,
+    src
 });
 
 //Controller state: Things like running, paused, stopped, and current location of camera arm (row, col)
 export const receiveControllerStateStatus = (status) => ({
     type: "RECEIVE_CONTROLLER_STATE_STATUS",
-    status: status,
+    status: status
 });
 
 export const receiveControllerStateLocation = (location) => ({
     type: "RECEIVE_CONTROLLER_STATE_LOCATION",
-    location: location,
+    location: location
 });
 

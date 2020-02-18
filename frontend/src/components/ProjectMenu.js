@@ -24,6 +24,7 @@ import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
+import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import AddCircleTwoToneIcon from '@material-ui/icons/AddCircleTwoTone';
@@ -96,7 +97,7 @@ function ProjectMenu() {
                     <ListItemIcon>
                       <AddCircleTwoToneIcon fontSize="large" />
                     </ListItemIcon>
-                    <ListItem button onClick={handleProjectNew}>
+                    <ListItem button >
                         <ListItemText primary="Add Project" />
                     </ListItem>
                   </StyledMenuItem>
@@ -104,7 +105,7 @@ function ProjectMenu() {
                     <ListItemIcon>
                       <FolderOpenTwoToneIcon fontSize="large" />
                     </ListItemIcon>
-                    <ListItem button onClick={handleProjectLoad}>
+                    <ListItem button >
                         <ListItemText primary="Load Saved Project" />
                     </ListItem>
                   </StyledMenuItem>
@@ -112,7 +113,7 @@ function ProjectMenu() {
                     <ListItemIcon>
                       <SaveTwoToneIcon fontSize="large" />
                     </ListItemIcon>
-                    <ListItem button onClick={handleProjectSave}>
+                    <ListItem button >
                         <ListItemText primary="Save Current Project" />
                     </ListItem>
                   </StyledMenuItem>

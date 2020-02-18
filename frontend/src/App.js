@@ -63,7 +63,7 @@ class App extends Component {
                 }
             })
             .then(res => {
-                if ((res.status == 401) && (res.statusText == "Unauthorized")) {
+                if ((res.status === 401) && (res.statusText === "Unauthorized")) {
                     this.setState( { loggedin: false } );
                 } else {
                     this.setState( { loggedin: true } );

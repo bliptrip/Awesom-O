@@ -19,38 +19,38 @@ You should have received a copy of the GNU Affero General Public License
 along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 import '../lib/fetch';
-export const fetchProjectsRequest = store;
+import * as projectC from '../actions';
 
-const project = (state = {}, action) => {
+export const project = (state = {}, action) => {
     let newstate = state;
     switch( action.type ) {
-        case PROJECT_CREATE_REQUEST:
+        case projectC.PROJECT_CREATE_REQUEST:
             newstate = { ...state,
                 isFetching: true,
                 statusError: undefined
             }
             break;
-        case PROJECT_CREATE_ERROR:
+        case projectC.PROJECT_CREATE_ERROR:
             newstate = { ...state,
                 isFetching: false,
                 statusError: action.error
             }
             break;
-        case PROJECT_FETCH_REQUEST:
+        case projectC.PROJECT_FETCH_REQUEST:
             newstate = { ...state,
                 isFetching: true,
                 statusError: undefined,
                 _id: action.id
             };
             break;
-        case PROJECT_FETCH_ERROR:
+        case projectC.PROJECT_FETCH_ERROR:
             newstate = { ...state,
                 isFetching: false,
-                statusError: error
+                statusError: action.error
             };
             break;
-        case PROJECT_CREATE_SUCCESS:
-        case PROJECT_FETCH_SUCCESS:
+        case projectC.PROJECT_CREATE_SUCCESS:
+        case projectC.PROJECT_FETCH_SUCCESS:
             newstate = { ...state,
                 isFetching: false,
                 _id: action.project._id, //TODO: Validate that ID returned is same as that requested
@@ -62,40 +62,45 @@ const project = (state = {}, action) => {
                 users: action.project.users
             };
             break;
-        case PROJECT_REMOVE_REQUEST:
+        case projectC.PROJECT_REMOVE_REQUEST:
             newstate = { ...state,
                 isFetching: true,
                 statusError: undefined,
                 _id: action.id
             };
             break;
-        case PROJECT_REMOVE_ERROR:
-            ewstate = { ...state,
+        case projectC.PROJECT_REMOVE_ERROR:
+            newstate = { ...state,
                 isFetching: false,
-                statusError: error
+                statusError: action.error
             };
             break;
-        case PROJECT_REMOVE_SUCCESS:
+        case projectC.PROJECT_REMOVE_SUCCESS:
             newstate = { ...state,
                 isFetching: false,
             };
             break;
-        case PROJECT_SAVE_REQUEST:
+        case projectC.PROJECT_SAVE_REQUEST:
             newstate = { ...state,
                 areSaving: true, //TODO: Check that we aren't already processing a save or fetching request
                 statusError: undefined,
                 _id: action.project._id
             };
             break;
-        case PROJECT_SAVE_ERROR:
+        case projectC.PROJECT_SAVE_ERROR:
             newstate = { ...state,
                 areSaving: false, //TODO: Check that we aren't already processing a save or fetching request
                 statusError: action.error
             };
             break;
-        case PROJECT_SAVE_SUCCESS:
+        case projectC.PROJECT_SAVE_SUCCESS:
             newstate = { ...state,
                 _id: action.id,
                 areSaving: false //TODO: Check that we aren't already processing a save or fetching request
             };
             break;
+        default:
+            break;
+    }
+    return(newstate);
+}

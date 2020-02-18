@@ -18,59 +18,58 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
-import '../lib/fetch';
-export const fetchProjectsRequest = store;
+import * as routeC from '../actions';
 
-const route = (state = {}, action) => {
+export const route = (state = {}, action) => {
     let newstate = state;
     switch( action.type ) {
-        case ROUTE_CONFIG_REMOVE_REQUEST:
+        case routeC.ROUTE_CONFIG_REMOVE_REQUEST:
             newstate = { ...state,
                 _id: action._id,
                 isFetching: true,
                 statusError: undefined,
             };
             break;
-        case ROUTE_CONFIG_REMOVE_ERROR:
+        case routeC.ROUTE_CONFIG_REMOVE_ERROR:
             newstate = { ...state,
                 isFetching: false,
-                statusError: error
+                statusError: action.error
             };
             break;
-        case ROUTE_CONFIG_REMOVE_SUCCESS:
+        case routeC.ROUTE_CONFIG_REMOVE_SUCCESS:
             newstate = { ...state,
                 _id: undefined,
                 isFetching: false,
                 statusError: undefined
             };
             break;
-        case ROUTE_CONFIG_CREATE_REQUEST:
+        case routeC.ROUTE_CONFIG_CREATE_REQUEST:
             newstate = { ...state,
                 isFetching: true,
                 statusError: undefined,
             };
             break;
-        case ROUTE_CONFIG_CREATE_ERROR:
+        case routeC.ROUTE_CONFIG_CREATE_ERROR:
             newstate = { ...state,
                 isFetching: false,
-                statusError: error
+                statusError: action.error
             };
             break;
-        case ROUTE_CONFIG_FETCH_REQUEST:
+        case routeC.ROUTE_CONFIG_FETCH_REQUEST:
             newstate = { ...state,
                 _id: action.id,
                 isFetching: true,
                 statusError: undefined
             };
             break;
-        case ROUTE_CONFIG_FETCH_ERROR:
+        case routeC.ROUTE_CONFIG_FETCH_ERROR:
             newstate = { ...state,
                 isFetching: false,
-                statusError: error
+                statusError: action.error
             };
             break;
-        case ROUTE_CONFIG_CREATE_SUCCESS:
-        case ROUTE_CONFIG_FETCH_SUCCESS:
+        case routeC.ROUTE_CONFIG_CREATE_SUCCESS:
+        case routeC.ROUTE_CONFIG_FETCH_SUCCESS:
             newstate = { ...state,
                 _id: action.routeConfig._id, //TODO: Validate that ID returned is same as that requested
                 isFetching: false,
@@ -87,69 +86,65 @@ const route = (state = {}, action) => {
                 projects: action.routeConfig.projects
             };
             break;
-        case ROUTE_CONFIG_SET_INTERPLATE_DELAY:
+        case routeC.ROUTE_CONFIG_SET_INTERPLATE_DELAY:
             newstate = { ...state,
                 _id: action.id,
                 interplateDelay: action.seconds
             };
             break;
-        case ROUTE_CONFIG_SET_LOOP_DELAY:
+        case routeC.ROUTE_CONFIG_SET_LOOP_DELAY:
             newstate = { ...state,
                 _id: action.id,
                 loopDelay: action.seconds
             };
             break;
-        case ROUTE_CONFIG_SET_STEPS_PER_CM_X:
+        case routeC.ROUTE_CONFIG_SET_STEPS_PER_CM_X:
             newstate = { ...state,
                 _id: action.id,
-                stepsPerCmX: steps
+                stepsPerCmX: action.steps
             };
             break;
-        case ROUTE_CONFIG_SET_STEPS_PER_CM_Y:
+        case routeC.ROUTE_CONFIG_SET_STEPS_PER_CM_Y:
             newstate = { ...state,
                 _id: action.id,
-                stepsPerCmY: steps
+                stepsPerCmY: action.steps
             };
             break;
-        case ROUTE_CONFIG_SET_DISTANCE_X:
+        case routeC.ROUTE_CONFIG_SET_DISTANCE_X:
             newstate = { ...state,
                 _id: action.id,
-                distanceX: plateDistanceX
+                distanceX: action.plateDistanceX
             };
             break;
-        case ROUTE_CONFIG_SET_DISTANCE_Y:
+        case routeC.ROUTE_CONFIG_SET_DISTANCE_Y:
             newstate = { ...state,
                 _id: action.id,
-                distanceY: plateDistanceY
+                distanceY: action.plateDistanceY
             };
             break;
-        case ROUTE_CONFIG_ADD_ROUTE:
+        case routeC.ROUTE_CONFIG_ADD_ROUTE:
             newstate = { ...state,
-                _id: routeConfig._id }; //TODO: validate id
-            newstate.route.push({row: action.row, col: action.col});
+                _id: action.routeConfig._id }; //TODO: validate id
+            newstate.route.push({row: action.routeConfig.row, col: action.routeConfig.col});
             break;
-        case ROUTE_CONFIG_REMOVE_ROUTE:
+        case routeC.ROUTE_CONFIG_REMOVE_ROUTE:
             newstate = { ...state,
-                _id: routeConfig._id }; //TODO: validate id
-            newstate.route = newstate.route.filter( (e) => ((e.row != action.row) && (e.col != action.col)) );
+                _id: action.routeConfig._id }; //TODO: validate id
+            newstate.route = newstate.route.filter( (e) => ((e.row !== action.row) && (e.col !== action.col)) );
             break;
-        case ROUTE_CONFIG_SAVE_REQUEST:
+        case routeC.ROUTE_CONFIG_SAVE_REQUEST:
             newstate = { ...state,
                 areSaving: true, //TODO: Check that we aren't already processing a save or fetching request
                 statusError: undefined,
                 _id: action.routeConfig._id
             };
-            fetchAwesomOJWT('/api/route/save/', method='POST', body=action.routeConfig)
-            .then(  response => response.json(),
-                    error => store.dispatch(routeConfigSaveError(error)) )
-            .then(json => store.dispatch(routeConfigSaveSuccess(json.id)))
             break;
-        case ROUTE_CONFIG_SAVE_ERROR:
+        case routeC.ROUTE_CONFIG_SAVE_ERROR:
             newstate = { ...state,
                 areSaving: false,
                 statusError: action.error };
             break;
-        case ROUTE_CONFIG_SAVE_SUCCESS:
+        case routeC.ROUTE_CONFIG_SAVE_SUCCESS:
             newstate = { ...state,
                 areSaving: false,
                 _id: action.id };

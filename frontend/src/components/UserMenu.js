@@ -20,12 +20,13 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 import React,{useState} from 'react';
 import { withStyles } from '@material-ui/core/styles';
-import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import FingerprintTwoToneIcon from '@material-ui/icons/FingerprintTwoTone';
 import FaceTwoToneIcon from '@material-ui/icons/FaceTwoTone';
 import LockOpenTwoToneIcon from '@material-ui/icons/LockOpenTwoTone';
+import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 
@@ -109,6 +110,3 @@ export default function AccountMenu({username}) {
               </div>
             );
 }
-
-
-import React, { useState } from 'react';

@@ -19,6 +19,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
+import React from 'react';
 import ReactDOM from 'react-dom';
 import rootReducer from './reducers';
 import {createStore} from 'redux';

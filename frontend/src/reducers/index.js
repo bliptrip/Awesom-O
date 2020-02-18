@@ -3,7 +3,7 @@ This file is part of Awesom-O, an image acquisition and analysis web application
 consisting of a frontend web interface and a backend database, camera, and motor access
 management framework.
 
-Copyright (C)  2019  Andrew F. Maule
+Copyright (C)  2020  Andrew F. Maule
 
 Awesom-O is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -19,16 +19,26 @@ You should have received a copy of the GNU Affero General Public License
 along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
-import controller, * as fromController from './controller';
-import cameraConfiguration, * as fromCameraConfiguration from './cameraConfiguration';
-import viewport, * as fromViewport from './viewport';
+import {cameraConfigReducer} from './CameraConfig';
+import * as fromCameraConfiguration from './CameraConfig';
+import {experiment} from './ExperimentConfig';
+import {project} from './Projects';
+import {route} from './RouteConfig';
+import {storage} from './StorageConfig';
+import controller, * as fromController from './Controller';
+import {user} from './Users';
+import viewport, * as fromViewport from './Viewport';
 import {combineReducers} from 'redux';
 
 const rootReducer = combineReducers({
     controller,
     viewport,
-    cameraConfiguration,
-    userConfiguration
+    user,
+    project,
+    camera: cameraConfigReducer,
+    experiment,
+    route,
+    storage
 });
 
 export default rootReducer;

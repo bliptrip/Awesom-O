@@ -3,7 +3,7 @@ This file is part of Awesom-O, an image acquisition and analysis web application
 consisting of a frontend web interface and a backend database, camera, and motor access
 management framework.
 
-Copyright (C)  2019  Andrew F. Maule
+Copyright (C)  2020  Andrew F. Maule
 
 Awesom-O is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -21,21 +21,23 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 
 import React from 'react';
 import Tooltip from '@material-ui/core/Tooltip';
+import SvgIcon from '@material-ui/core/SvgIcon';
+import {AWESOMO_RUNNING_STATUS_RUNNING, AWESOMO_RUNNING_STATUS_PAUSED, AWESOMO_RUNNING_STATUS_STOPPED} from '../actions/awesomeORunningStatus.js';
 
 class TrafficLightIcon extends React.Component {
-    const traffic_color_off = '#333333';
-    const traffic_color_none = {'red': traffic_color_off, 'yellow': traffic_color_off, 'green': traffic_color_off};
-    const traffic_color_map = {'red': '#ab2300', 'yellow': '#ffda44', 'green': '#91cc04'};
 
     constructor(props) {
         super(props);
+        this.traffic_color_off = '#333333';
+        this.traffic_color_none = {'red': this.traffic_color_off, 'yellow': this.traffic_color_off, 'green': this.traffic_color_off};
+        this.traffic_color_map = {'red': '#ab2300', 'yellow': '#ffda44', 'green': '#91cc04'};
         this.state = this.traffic_color_none;
         this.setTrafficLightColor(props.activeStatus);
     }
 
     setTrafficLightColor(activeStatus) {
         let activeColor;
-        var newState = {...traffic_color_none};
+        var newState = {...this.traffic_color_none};
         switch( activeStatus ) {
             case AWESOMO_RUNNING_STATUS_RUNNING:
                 activeColor = 'green';
@@ -50,7 +52,7 @@ class TrafficLightIcon extends React.Component {
                 activeColor = 'none';
                 break;
         }
-        newState[activeColor] = traffic_color_map[activeColor];
+        newState[activeColor] = this.traffic_color_map[activeColor];
         this.setState(newState);
     }
 
@@ -59,7 +61,7 @@ class TrafficLightIcon extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if( prevProps.activeStatus != this.props.activeStatus ) {
+        if( prevProps.activeStatus !== this.props.activeStatus ) {
             this.setTrafficLightColor(this.props.activeStatus);
         }
     }
@@ -98,7 +100,7 @@ class TrafficLightIcon extends React.Component {
 function StatusIndicator({activeUser, activeStatus}) {
     return(
         <React.Fragment>
-            <Tooltip title="Active user: "+activeUser+" State: "+activeStatus >
+            <Tooltip title="Active user: {activeUser}/State: {activeStatus}" >
                 <TrafficLightIcon activeStatus={activeStatus} />
             </Tooltip>
         </React.Fragment>

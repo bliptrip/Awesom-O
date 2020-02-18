@@ -19,21 +19,16 @@ You should have received a copy of the GNU Affero General Public License
 along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
-import React, { useState } from 'react';
+import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
-import Button from '@material-ui/core/Button';
-import IconButton from '@material-ui/core/IconButton';
-import MenuIcon from '@material-ui/icons/Menu';
 
-import UserMenu from './UserMenu';
+import AccountMenu from './UserMenu';
 import ProjectMenu from './ProjectMenu';
 import CameraMenu from './CameraMenu';
 import ExperimentMenu from './ExperimentMenu';
 import RouteMenu from './RouteMenu';
-import RouteMenu from './StorageMenu';
+import StorageMenu from './StorageMenu';
 import StatusIndicator from './StatusIndicator';
 
 const useStyles = makeStyles(theme => ({
@@ -58,7 +53,7 @@ function Toolbar(props) {
             </Typography>
             <nav class="level">
                 <div class="level-left level-item">
-                    <UserMenu />
+                    <AccountMenu />
                 </div>
                 <div class="level-item">
                     <ProjectMenu />

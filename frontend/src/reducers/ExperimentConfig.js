@@ -20,62 +20,58 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
 import '../lib/fetch';
-const uuidv4 = require('uuid/v4');
+import * as experimentC from '../actions';
 
-const experimentConfigReducer = (state, action) => {
+export const experiment = (state, action) => {
     let newstate = state;
     switch(action.type) {
-        case EXPERIMENT_CONFIG_CREATE_REQUEST:
+        case experimentC.EXPERIMENT_CONFIG_CREATE_REQUEST:
             newstate = {...state,
                 isFetching: true,
                 statusError: undefined
             }
             break;
-        case EXPERIMENT_CONFIG_CREATE_ERROR:
+        case experimentC.EXPERIMENT_CONFIG_CREATE_ERROR:
             newstate = {...state,
                 isFetching: false,
                 statusError: action.error
             };
             break;
-        case EXPERIMENT_CONFIG_REMOVE_REQUEST:
+        case experimentC.EXPERIMENT_CONFIG_REMOVE_REQUEST:
             newstate = {...state,
                 _id: action.id,
                 isFetching: true,
                 statusError: undefined
             }
             break;
-        case EXPERIMENT_CONFIG_REMOVE_ERROR:
+        case experimentC.EXPERIMENT_CONFIG_REMOVE_ERROR:
             newstate = {...state,
                 isFetching: false,
                 statusError: action.error
             };
             break;
-        case EXPERIMENT_CONFIG_REMOVE_SUCCESS:
+        case experimentC.EXPERIMENT_CONFIG_REMOVE_SUCCESS:
             newstate = {...state,
                 _id: undefined,
                 isFetching: false,
                 statusError: undefined
             };
             break;
-        case EXPERIMENT_CONFIG_FETCH_REQUEST:
+        case experimentC.EXPERIMENT_CONFIG_FETCH_REQUEST:
             newstate = {...state,
                 isFetching: true,
                 statusError: undefined,
                 _id: action._id
             };
-            fetchAwesomOJWT('/api/experiment/get/'+action.id)
-            .then(response => response.json(),
-                  error => store.dispatch(experimentConfigError(error)))
-            .then( json => store.dispatch(experimentConfigSuccess(json));
             break;
-        case EXPERIMENT_CONFIG_FETCH_ERROR:
+        case experimentC.EXPERIMENT_CONFIG_FETCH_ERROR:
             newstate = {...state,
                 isFetching: false,
                 statusError: action.error,
             };
             break;
-        case EXPERIMENT_CONFIG_CREATE_SUCCESS:
-        case EXPERIMENT_CONFIG_FETCH_SUCCESS:
+        case experimentC.EXPERIMENT_CONFIG_CREATE_SUCCESS:
+        case experimentC.EXPERIMENT_CONFIG_FETCH_SUCCESS:
             newstate = {...state,
                 isFetching: false,
                 _id: action.experimentConfig._id, //TODO - check if _id matches request
@@ -88,31 +84,31 @@ const experimentConfigReducer = (state, action) => {
                 projects: action.experimentConfig.projects
             };
             break;
-        case EXPERIMENT_CONFIG_SET_DATETIME:
+        case experimentC.EXPERIMENT_CONFIG_SET_DATETIME:
             newstate = {...state,
                 _id: action.id,
                 datetime: action.datetime
             };
             break;
-        case EXPERIMENT_CONFIG_SET_RENAME:
+        case experimentC.EXPERIMENT_CONFIG_SET_RENAME:
             newstate = {...state,
                 _id: action.id,
                 rename: action.rename
             };
             break;
-        case EXPERIMENT_CONFIG_SET_IMAGE_META:
+        case experimentC.EXPERIMENT_CONFIG_SET_IMAGE_META:
             newstate = {...state,
                 _id: action.id,
                 imageMeta: action.imageMeta
             };
             break;
-        case EXPERIMENT_CONFIG_SET_FILENAME_FIELDS:
+        case experimentC.EXPERIMENT_CONFIG_SET_FILENAME_FIELDS:
             newstate = {...state,
                 _id: action.id,
                 filenameFields: action.filenameFields
             };
             break;
-        case EXPERIMENT_CONFIG_ADD_PLATE:
+        case experimentC.EXPERIMENT_CONFIG_ADD_PLATE:
             newstate = {...state,
                 _id: action.id,
             };
@@ -122,25 +118,25 @@ const experimentConfigReducer = (state, action) => {
                 meta: action.meta
             });
             break;
-        case EXPERIMENT_CONFIG_REMOVE_PLATE:
+        case experimentC.EXPERIMENT_CONFIG_REMOVE_PLATE:
             newstate = {...state,
                 _id: action.id
             };
-            newstate.plateMeta = newstate.plateMeta.filter((e) => ((e.row != action.row) && (e.col != action.col))); //Remove by exclusion -- could be optimized
+            newstate.plateMeta = newstate.plateMeta.filter((e) => ((e.row !== action.row) && (e.col !== action.col))); //Remove by exclusion -- could be optimized
             break;
-        case EXPERIMENT_CONFIG_SAVE_REQUEST:
+        case experimentC.EXPERIMENT_CONFIG_SAVE_REQUEST:
             newstate = { ...state,
                 areSaving: true, //TODO: Check that we aren't already processing a save or fetching request
                 statusError: undefined,
                 _id: action._id
             };
             break;
-        case EXPERIMENT_CONFIG_SAVE_ERROR:
+        case experimentC.EXPERIMENT_CONFIG_SAVE_ERROR:
             newstate = { ...state,
                 areSaving: false,
                 statusError: action.error };
             break;
-        case EXPERIMENT_CONFIG_SAVE_SUCCESS:
+        case experimentC.EXPERIMENT_CONFIG_SAVE_SUCCESS:
             newstate = { ...state,
                 areSaving: false,
                 _id: action._id };

@@ -19,58 +19,58 @@ You should have received a copy of the GNU Affero General Public License
 along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 import '../lib/fetch';
-export const fetchProjectsRequest = store;
+import * as storageC from '../actions';
 
 export const storage = (state = {}, action) => {
     let newstate = state;
     switch( action.type ) {
-        case STORAGE_CONFIG_CREATE_REQUEST:
+        case storageC.STORAGE_CONFIG_CREATE_REQUEST:
             newstate = { ...state,
                 isFetching: true,
                 statusError: undefined
             };
             break;
-        case STORAGE_CONFIG_CREATE_ERROR:
+        case storageC.STORAGE_CONFIG_CREATE_ERROR:
             newstate = { ...state,
                 isFetching: false,
-                statusError: error
+                statusError: action.error
             };
             break;
-        case STORAGE_CONFIG_REMOVE_REQUEST:
+        case storageC.STORAGE_CONFIG_REMOVE_REQUEST:
             newstate = {...state,
                 _id: action.id,
                 isFetching: true,
                 statusError: undefined
             }
             break;
-        case STORAGE_CONFIG_REMOVE_ERROR:
+        case storageC.STORAGE_CONFIG_REMOVE_ERROR:
             newstate = {...state,
                 isFetching: false,
                 statusError: action.error
             };
             break;
-        case STORAGE_CONFIG_REMOVE_SUCCESS:
+        case storageC.STORAGE_CONFIG_REMOVE_SUCCESS:
             newstate = {...state,
                 _id: undefined,
                 isFetching: false,
                 statusError: undefined
             };
             break;
-        case STORAGE_CONFIG_FETCH_REQUEST:
+        case storageC.STORAGE_CONFIG_FETCH_REQUEST:
             newstate = { ...state,
                 isFetching: true,
                 statusError: undefined,
                 _id: action.id
             };
             break;
-        case STORAGE_CONFIG_FETCH_ERROR:
+        case storageC.STORAGE_CONFIG_FETCH_ERROR:
             newstate = { ...state,
                 isFetching: false,
-                statusError: error
+                statusError: action.error
             };
             break;
-        case STORAGE_CONFIG_CREATE_SUCCESS:
-        case STORAGE_CONFIG_FETCH_SUCCESS:
+        case storageC.STORAGE_CONFIG_CREATE_SUCCESS:
+        case storageC.STORAGE_CONFIG_FETCH_SUCCESS:
             newstate = { ...state,
                 isFetching: false,
                 _id: action.storageConfig._id, //TODO: Validate that ID returned is same as that requested
@@ -80,29 +80,29 @@ export const storage = (state = {}, action) => {
                 projects: action.storageConfig.projects
             };
             break;
-        case STORAGE_CONFIG_SAVE_REQUEST:
+        case storageC.STORAGE_CONFIG_SAVE_REQUEST:
             newstate = { ...state,
                 _id: action._id,
                 areSaving: true, //TODO: Check that we aren't already processing a save or fetching request
                 statusError: undefined,
             };
             break;
-        case STORAGE_CONFIG_SAVE_ERROR:
+        case storageC.STORAGE_CONFIG_SAVE_ERROR:
             newstate = { ...state,
                 areSaving: false,
                 statusError: action.error };
             break;
-        case STORAGE_CONFIG_SAVE_SUCCESS:
+        case storageC.STORAGE_CONFIG_SAVE_SUCCESS:
             newstate = { ...state,
                 areSaving: false,
                 _id: action.id };
             break;
-        case STORAGE_CONFIG_SET_TYPE:
+        case storageC.STORAGE_CONFIG_SET_TYPE:
             newstate = { ...state,
                 _id: action.id, //TODO - validate id is current id
                 type: action.type };
             break;
-        case STORAGE_CONFIG_SET_PARAMS:
+        case storageC.STORAGE_CONFIG_SET_PARAMS:
             newstate = { ...state,
                 _id: action.id, //TODO - validate id is current id
                 params: action.params };
