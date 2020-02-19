@@ -19,6 +19,8 @@ You should have received a copy of the GNU Affero General Public License
 along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 import React,{useState} from 'react';
+import {connect} from 'react-redux';
+import * as actions from '../actions';
 import { withStyles } from '@material-ui/core/styles';
 import IconButton from '@material-ui/core/IconButton';
 import Menu from '@material-ui/core/Menu';
@@ -29,6 +31,7 @@ import LockOpenTwoToneIcon from '@material-ui/icons/LockOpenTwoTone';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
+import {Tooltip} from '@material-ui/core/';
 
 const StyledMenu = withStyles({
       paper: {
@@ -61,7 +64,7 @@ const StyledMenuItem = withStyles(theme => ({
             },
 }))(MenuItem);
 
-export default function AccountMenu({username}) {
+function AccountMenu({username,email,userLogout}) {
       const [anchorEl, setAnchorEl] = useState(null);
 
       const handleClick = event => {
@@ -74,15 +77,17 @@ export default function AccountMenu({username}) {
 
       return (
               <div>
-                <IconButton
-                  aria-controls="account-menu"
-                  aria-haspopup="true"
-                  variant="contained"
-                  color="primary"
-                  onClick={handleClick}
-                >
-                    <FingerprintTwoToneIcon fontSize='large' />
-                </IconButton>
+                <Tooltip title="Account Info">
+                    <IconButton
+                    aria-controls="account-menu"
+                    aria-haspopup="true"
+                    variant="contained"
+                    color="primary"
+                    onClick={handleClick}
+                    >
+                        <FingerprintTwoToneIcon fontSize='large' />
+                    </IconButton>
+                </Tooltip>
                 <StyledMenu
                   id="account-menu"
                   anchorEl={anchorEl}
@@ -95,14 +100,14 @@ export default function AccountMenu({username}) {
                       <FaceTwoToneIcon fontSize="large" />
                     </ListItemIcon>
                     <ListItem button component="a" href="/profile">
-                        <ListItemText primary="Profile" />
+                        <ListItemText primary={username + " Profile"}/>
                     </ListItem>
                   </StyledMenuItem>
                   <StyledMenuItem>
                     <ListItemIcon>
                       <LockOpenTwoToneIcon fontSize="large" />
                     </ListItemIcon>
-                    <ListItem button component="a" href="/logout">
+                    <ListItem button component="a" onClick={userLogout}>
                         <ListItemText primary="Logout" />
                     </ListItem>
                   </StyledMenuItem>
@@ -110,3 +115,15 @@ export default function AccountMenu({username}) {
               </div>
             );
 }
+
+const mapStateToProps = (state) => ({
+    _id: state.user._id,
+    username: state.user.username,
+    email: state.user.email
+});
+
+const mapDispatchToProps = (dispatch) => ({
+    userLogout: () => dispatch(actions.userLogout())
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(AccountMenu);

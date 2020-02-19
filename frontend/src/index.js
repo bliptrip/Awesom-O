@@ -23,9 +23,10 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import rootReducer from './reducers';
 import {createStore, applyMiddleware} from 'redux';
+import {connect, Provider} from 'react-redux';
 import thunkMiddleware from 'redux-thunk'; //Needed to dispatch thunk actions
-import {Provider} from 'react-redux';
 import * as serviceWorker from './serviceWorker';
+import {userCheckCurrent} from './actions';
 import {Route, Router} from 'react-router';
 import {createBrowserHistory} from 'history';
 import App from './App';
@@ -36,16 +37,29 @@ const store = createStore( rootReducer,
                            applyMiddleware(thunkMiddleware) );
 const browserHistory = createBrowserHistory();
 
+function ProviderWrapper({checkLogState}) {
+    checkLogState(); //Dispatch a request to check current login state
+    return (
+        <Router history={browserHistory}>
+            <div>
+                <Route path="/signup" component={SignUp}/>
+                <Route path="/login" component={SignIn}/>
+                <Route exact path="/" component={App}/>
+            </div>
+        </Router>
+    );
+}
+
+const mapDispatchToProps = (dispatch) => ({
+    checkLogState: () => dispatch(userCheckCurrent())
+});
+
+const VisibleProviderWrapper = connect(null, mapDispatchToProps)(ProviderWrapper);
+
 export default function Root() {
     return (
         <Provider store={store}>
-            <Router history={browserHistory}>
-                <div>
-                    <Route path="/signup" component={SignUp}/>
-                    <Route path="/login" component={SignIn}/>
-                    <Route exact path="/" component={App}/>
-                </div>
-            </Router>
+            <VisibleProviderWrapper />
         </Provider>
     );
 }

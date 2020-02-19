@@ -22,9 +22,20 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 import '../lib/fetch';
 import * as userC from '../actions';
 
-export const user = (state={}, action) => {
+export const user = (state={loggedin: false,
+                            _id: undefined,
+                            username: undefined,
+                            isFetching: false,
+                            statusError: undefined,
+                            email: undefined
+                            }, action) => {
     let newstate = state;
     switch(action.type) {
+        case userC.USER_SET_LOGSTATE: //Consider making this a separate state -- not directly stored in user state
+            newstate = { ...state,
+                loggedin: action.loggedin
+            };
+            break;
         case userC.USER_LOGIN_REQUEST: //Consider making this a separate state -- not directly stored in user state
             newstate = { ...state,
                 _id: undefined,
@@ -46,8 +57,7 @@ export const user = (state={}, action) => {
                 statusError: undefined,
                 _id: action.user._id,
                 username: action.user.username,
-                email: action.user.email,
-                token: action.user.token,
+                email: action.user.email
             };
             break;
         case userC.USER_CREATE_REQUEST: //Consider making this a separate state -- not directly stored in user state

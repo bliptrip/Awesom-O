@@ -24,7 +24,7 @@ import React, { Component } from 'react';
 import {connect} from 'react-redux';
 import {Redirect} from 'react-router-dom/Redirect';
 import cookie from 'react-cookies';
-import Toolbar from './components/Toolbar';
+import Mainview from './components/Mainview';
 import fetch from 'cross-fetch'; //Backwards-compatibility if fetch not supported by browser
 //import VisibleViewport from './Viewport/Viewport';
 //import ConfigurationPanel from './ConfigurationPanel/ConfigurationPanel';
@@ -34,57 +34,24 @@ import SignIn from './SignIn';
 class App extends Component {
     constructor(props) {
         super(props);
-
-        this.state = {
-            loggedin: false,
-            email: cookie.load('email'),
-            token: cookie.load('token')
-        }
     };
-
-    handleTokenChange(token) {
-        cookie.save('token', token, { path: '/' });
-        this.setState({token});
-    };
-
-    handleEmailChange(email) {
-        cookie.save('email', email, { path: '/' });
-        this.setState({email});
-    };
-
-    async checkLogin() {
-        await fetch("/api/users/current", {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Token " + this.state.token,
-                }
-            })
-            .then(res => {
-                if ((res.status === 401) && (res.statusText === "Unauthorized")) {
-                    this.setState( { loggedin: false } );
-                } else {
-                    this.setState( { loggedin: true } );
-                }
-                console.log(res);
-            });
-    }
 
     render() {
-        return(<SignIn />)
-        if(this.state.loggedin !== true) {
-            return(<SignIn />)
+        if(this.props.loggedin !== true) {
+            return(<SignIn />);
         } else {
             return(
-                <React.fragment>
+                <div>
                     <ConnectedWsEventHandler />
-                    <div class="container">
-                        <Toolbar />
-                    </div>
-                </React.fragment>
+                    <Mainview />
+                </div>
             );
         }
     }
 }
 
-export default connect()(App);
+export const mapStateToProps = (state) => ({
+    loggedin: state.user.loggedin
+});
+
+export default connect(mapStateToProps)(App);

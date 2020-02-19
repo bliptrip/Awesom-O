@@ -21,17 +21,17 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 
 import React, {useState} from 'react';
 import { withStyles } from '@material-ui/core/styles';
-import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
+import AccountTreeTwoToneIcon from '@material-ui/icons/AccountTreeTwoTone';
 import AddCircleTwoToneIcon from '@material-ui/icons/AddCircleTwoTone';
 import FolderOpenTwoToneIcon from '@material-ui/icons/FolderOpenTwoTone';
 import SaveTwoToneIcon from '@material-ui/icons/SaveTwoTone';
-
-
+import {Tooltip} from '@material-ui/core/';
 
 const StyledMenu = withStyles({
       paper: {
@@ -77,15 +77,17 @@ function ProjectMenu() {
 
       return (
               <div>
-                <Button
-                  aria-controls="project-menu"
-                  aria-haspopup="true"
-                  variant="contained"
-                  color="primary"
-                  onClick={handleClick}
-                >
-                    Projects 
-                </Button>
+                <Tooltip title="Project Settings">
+                    <IconButton
+                        aria-controls="project-menu"
+                        aria-haspopup="true"
+                        variant="contained"
+                        color="primary"
+                        onClick={handleClick}
+                    >
+                        <AccountTreeTwoToneIcon fontSize='large' />
+                    </IconButton>
+                </Tooltip>
                 <StyledMenu
                   id="project-menu"
                   anchorEl={anchorEl}

@@ -19,7 +19,7 @@ import { makeStyles } from '@material-ui/core/styles';
 function Copyright() {
   return (
     <Typography variant="body2" color="textSecondary" align="center">
-      <Link color="inherit" href="https://material-ui.com/">
+      <Link color="inherit" href="https://astrobiology.botany.wisc.edu/">
         Awesom-O Phenotyping Robot Portal
       </Link>
     </Typography>
@@ -31,11 +31,11 @@ const useStyles = makeStyles(theme => ({
     height: '100vh',
   },
   image: {
-    backgroundImage: 'url(https://source.unsplash.com/random)',
+    backgroundImage: 'url(/plant-petri.svg)',
     backgroundRepeat: 'no-repeat',
     backgroundColor:
       theme.palette.type === 'dark' ? theme.palette.grey[900] : theme.palette.grey[50],
-    backgroundSize: 'cover',
+    backgroundSize: 'fit',
     backgroundPosition: 'center',
   },
   paper: {

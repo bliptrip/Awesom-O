@@ -32,7 +32,7 @@ import AddCircleTwoToneIcon from '@material-ui/icons/AddCircleTwoTone';
 import FolderOpenTwoToneIcon from '@material-ui/icons/FolderOpenTwoTone';
 import SettingsApplicationsTwoToneIcon from '@material-ui/icons/SettingsApplicationsTwoTone';
 import SaveTwoToneIcon from '@material-ui/icons/SaveTwoTone';
-
+import {Tooltip} from '@material-ui/core/';
 
 
 const StyledMenu = withStyles({
@@ -79,15 +79,17 @@ function CameraMenu() {
 
       return (
               <div>
-                <IconButton
-                  aria-controls="camera-menu"
-                  aria-haspopup="true"
-                  variant="contained"
-                  color="primary"
-                  onClick={handleClick}
-                >
-                    <CameraAltTwoToneIcon fontSize='large' />
-                </IconButton>
+                <Tooltip title="Camera">
+                    <IconButton
+                    aria-controls="camera-menu"
+                    aria-haspopup="true"
+                    variant="contained"
+                    color="primary"
+                    onClick={handleClick}
+                    >
+                        <CameraAltTwoToneIcon fontSize='large' />
+                    </IconButton>
+                </Tooltip>
                 <StyledMenu
                   id="camera-menu"
                   anchorEl={anchorEl}

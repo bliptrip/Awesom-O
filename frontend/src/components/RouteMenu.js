@@ -32,6 +32,7 @@ import AddCircleTwoToneIcon from '@material-ui/icons/AddCircleTwoTone';
 import FolderOpenTwoToneIcon from '@material-ui/icons/FolderOpenTwoTone';
 import SettingsApplicationsTwoToneIcon from '@material-ui/icons/SettingsApplicationsTwoTone';
 import SaveTwoToneIcon from '@material-ui/icons/SaveTwoTone';
+import {Tooltip} from '@material-ui/core/';
 
 
 
@@ -79,15 +80,17 @@ function RouteMenu() {
 
       return (
               <div>
-                <IconButton
-                  aria-controls="route-menu"
-                  aria-haspopup="true"
-                  variant="contained"
-                  color="primary"
-                  onClick={handleClick}
-                >
-                    <MapTwoToneIcon fontSize='large' />
-                </IconButton>
+                <Tooltip title="Route Settings">
+                    <IconButton
+                    aria-controls="route-menu"
+                    aria-haspopup="true"
+                    variant="contained"
+                    color="primary"
+                    onClick={handleClick}
+                    >
+                        <MapTwoToneIcon fontSize='large' />
+                    </IconButton>
+                </Tooltip>
                 <StyledMenu
                   id="route-menu"
                   anchorEl={anchorEl}

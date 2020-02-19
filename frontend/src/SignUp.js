@@ -31,11 +31,11 @@ const useStyles = makeStyles(theme => ({
     height: '100vh',
   },
   image: {
-    backgroundImage: 'url(https://source.unsplash.com/random)',
+    backgroundImage: 'url(/flower.svg)',
     backgroundRepeat: 'no-repeat',
     backgroundColor:
       theme.palette.type === 'dark' ? theme.palette.grey[900] : theme.palette.grey[50],
-    backgroundSize: 'cover',
+    backgroundSize: 'fit',
     backgroundPosition: 'center',
   },
   paper: {

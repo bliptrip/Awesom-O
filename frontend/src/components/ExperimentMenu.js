@@ -32,8 +32,7 @@ import AddCircleTwoToneIcon from '@material-ui/icons/AddCircleTwoTone';
 import FolderOpenTwoToneIcon from '@material-ui/icons/FolderOpenTwoTone';
 import SettingsApplicationsTwoToneIcon from '@material-ui/icons/SettingsApplicationsTwoTone';
 import SaveTwoToneIcon from '@material-ui/icons/SaveTwoTone';
-
-
+import {Tooltip} from '@material-ui/core/';
 
 const StyledMenu = withStyles({
       paper: {
@@ -79,15 +78,17 @@ function ExperimentMenu() {
 
       return (
               <div>
-                <IconButton
-                  aria-controls="experiment-menu"
-                  aria-haspopup="true"
-                  variant="contained"
-                  color="primary"
-                  onClick={handleClick}
-                >
-                    <EmojiObjectsTwoToneIcon fontSize='large' />
-                </IconButton>
+                <Tooltip title="Experiment Metadata">
+                    <IconButton
+                    aria-controls="experiment-menu"
+                    aria-haspopup="true"
+                    variant="contained"
+                    color="primary"
+                    onClick={handleClick}
+                    >
+                        <EmojiObjectsTwoToneIcon fontSize='large' />
+                    </IconButton>
+                </Tooltip>
                 <StyledMenu
                   id="experiment-menu"
                   anchorEl={anchorEl}

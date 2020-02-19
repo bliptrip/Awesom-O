@@ -68,7 +68,7 @@ class TrafficLightIcon extends React.Component {
 
     render() {
         return(
-            <SvgIcon fontSize="large">
+            <SvgIcon viewBox="0 0 220 500" fontSize='large' {...this.props}>
                 <g id="Traffic_light" data-name="Traffic light">
                     <rect fill="#57565c" height="400" rx="32" width="160" x="176" y="16"/>
                     <circle cx="256" cy="96" fill={this.state['red']} r="48"/>
@@ -99,11 +99,9 @@ class TrafficLightIcon extends React.Component {
 
 function StatusIndicator({activeUser, activeStatus}) {
     return(
-        <React.Fragment>
-            <Tooltip title="Active user: {activeUser}/State: {activeStatus}" >
-                <TrafficLightIcon activeStatus={activeStatus} />
-            </Tooltip>
-        </React.Fragment>
+        <Tooltip title="Active user: {activeUser}/State: {activeStatus}" >
+            <TrafficLightIcon activeStatus={activeStatus} />
+        </Tooltip>
     );
 };
 

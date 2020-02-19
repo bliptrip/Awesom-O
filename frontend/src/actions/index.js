@@ -21,6 +21,11 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 import {fetchAwesomO} from '../lib/fetch'; //Backwards-compatibility if fetch not supported by browser
 
 /* Define our action creators here */
+export const USER_SET_LOGSTATE = 'USER_SET_LOGSTATE';
+export const userSetLogState = (loggedin)  => ({
+    type: USER_SET_LOGSTATE,
+    loggedin
+});
 
 export const USER_SET_USERNAME = 'USER_SET_USERNAME';
 export const userSetUsername = (username) => ({
@@ -147,6 +152,17 @@ export const userFetchSuccess = (user) => ({
 });
 
 /* User-action thunks */
+export const userCheckCurrent = () => dispatch => {
+    return(fetchAwesomO({url: '/api/users/current'})
+    .then( response => response.json(),
+        error => dispatch(userSetLogState(false))
+    )
+    .then( (user) => {
+        dispatch(userSetLogState(true));
+        dispatch(userFetchSuccess(user)); }
+    ));
+}
+
 export const userLogin = (username,password) => dispatch =>  {
     dispatch(userLoginRequest(username))
     return(fetchAwesomO({
@@ -251,6 +267,14 @@ export const userChangePassword = (_id, oldpassword, password) => dispatch =>  {
         // We can dispatch many times!
         // Here, we update the app state with the results of the API call.
         dispatch(userChangePasswordSuccess(_id))
+    ));
+};
+
+export const userLogout = () => dispatch =>  {
+    return(fetchAwesomO({url: '/api/users/logout'})
+    .then(response => response.json())
+    .then(_id =>
+        dispatch(userSetLogState(false))
     ));
 };
 
