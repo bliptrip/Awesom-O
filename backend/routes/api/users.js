@@ -77,12 +77,14 @@ router.post('/create', (req, res, next) => {
 
 //POST login route (optional, everyone has access)
 router.post('/login', auth.req, (req, res, next) => {
-    return(res.json(stripUser(req.user)));
+    //return(res.json(stripUser(req.user)));
+    return(res.redirect('/'));
 });
 
 router.get('/logout', auth.sess, (req, res, next) => {
+    _id = req.user._id;
     req.logout();
-    return(res.send('Logged out'));
+    return(res.json({_id}));
 });
 
 router.get('/get/:username', auth.sess, (req, res, next) => {

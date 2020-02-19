@@ -59,7 +59,7 @@ const init = (app) => {
 
 /* auth is explicitly specified if either required or session-based authorization are needed. */
 const auth = {
-    req: passport.authenticate('local'),
+    req: passport.authenticate('local', {failureRedirect: '/login'}),
     sess: (req,res,next) => {
         if( !req.user ) {
             return(res.status(401).send("unauthorized"));

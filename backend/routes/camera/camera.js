@@ -24,7 +24,7 @@ const mongoose       = require('mongoose');
 const passport       = require('passport');
 const postal         = require('postal'); //Sending/receiving messages across different backend modules
 const router         = require('express').Router();
-const auth           = require('../auth');
+const {auth}         = require('../../config/passport');
 const fs             = require('fs');
 const gphoto2        = require('gphoto2');
 
@@ -69,7 +69,7 @@ const setWebsocketServer = (socket) => {
 
 
 //Retrieve/refresh cameras
-router.get('/list', auth.required, (req, res, next) => {
+router.get('/list', auth.req, (req, res, next) => {
     camera = null;
     gphoto.list( (list) => {
         camera_list = list;
@@ -81,7 +81,7 @@ router.get('/list', auth.required, (req, res, next) => {
 });
 
 //Set camera to a particular camera
-router.put('/set/:index', auth.required, (req, res, next) => {
+router.put('/set/:index', auth.req, (req, res, next) => {
     let index = req.params.index;
     if( index < list.length ) {
         camera = list[index];
@@ -92,7 +92,7 @@ router.put('/set/:index', auth.required, (req, res, next) => {
 });
 
 //Get settings retrieves the current settings for a camera
-router.get('/settings', auth.required, (req, res, next) => {
+router.get('/settings', auth.req, (req, res, next) => {
     camera.getConfig( (err, settings) => {
         if( err ) {
             res.sendStatus(400);
@@ -103,7 +103,7 @@ router.get('/settings', auth.required, (req, res, next) => {
 });
 
 //Put saves settings to camera
-router.put('/settings', auth.required, (req, res, next) => {
+router.put('/settings', auth.req, (req, res, next) => {
     camera.setConfigValue(req.body.name, req.body.value, (err) => 
         {
             if(err) {
@@ -116,7 +116,7 @@ router.put('/settings', auth.required, (req, res, next) => {
 });
 
 //Take a picture from camera and download image
-router.get('/capture', auth.required, (req, res, next) => {
+router.get('/capture', auth.req, (req, res, next) => {
     // Take picture and keep image on camera
     if( process.env.NODE_CAPTURE === "fs" ) {
         path = process.env.NODE_CAPTURE_PATH;
@@ -155,7 +155,7 @@ router.get('/capture', auth.required, (req, res, next) => {
 });
 
 //Preview
-router.get('/preview', auth.required, (req, res, next) => {
+router.get('/preview', auth.req, (req, res, next) => {
     // Take picture and keep image on camera
     camera.takePicture({
         preview: true,
