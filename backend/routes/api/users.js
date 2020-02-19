@@ -22,111 +22,145 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 const mongoose = require('mongoose');
 const passport = require('passport');
 const router = require('express').Router();
-const auth = require('../auth');
 const Users = mongoose.model('Users');
 const jwt = require('jsonwebtoken');
 const uuid = require('uuid/v1');
+const auth = require('../../config/passport').auth;
 
-//POST new user route (optional, everyone has access)
-router.post('/', auth.optional, (req, res, next) => {
-    console.log(req.body)
-    const { body: { user } } = req;
+const stripUser = (user) => {
+    let {_id, username, email} = user;
+    let newuser = {_id, username, email};
+    return(newuser);
+}
 
-    if(!user.email) {
+//Create a new user -- NOTE: Eventually will want an admin to approve this
+//No auth required (session or local)
+router.post('/create', (req, res, next) => {
+    let user;
+    const { username, email, password } = req.body;
+
+    console.log(req.body);
+
+    if(!username) {
         return res.status(422).json({
             errors: {
-                email: 'is required',
-            },
+                username: 'is required'
+            }
         });
     }
 
-    if(!user.password) {
+    if(!email) {
         return res.status(422).json({
             errors: {
-                password: 'is required',
-            },
+                email: 'is required'
+            }
         });
     }
+
+    if(!password) {
+        return res.status(422).json({
+            errors: {
+                password: 'is required'
+            }
+        });
+    }
+
+    user = {version: 1.0,
+            username,
+            email};
 
     const finalUser = new Users(user);
-    const jti = uuid();
 
-    //Add as valid token to list of tokens
-    finalUser.tokenIds.push(jti);
-
-    finalUser.setPassword(user.password);
+    finalUser.setPassword(password);
 
     return finalUser.save()
-        .then(() => res.json({ user: finalUser.toAuthJSON() }));
+        .then(() => res.send('success'));
 });
 
 //POST login route (optional, everyone has access)
-router.post('/login', auth.optional, (req, res, next) => {
-    const { body: { user } } = req;
+router.post('/login', auth.req, (req, res, next) => {
+    return(res.json(stripUser(req.user)));
+});
 
-    if(!user.email) {
+router.get('/logout', auth.sess, (req, res, next) => {
+    req.logout();
+    return(res.send('Logged out'));
+});
+
+router.get('/get/:username', auth.sess, (req, res, next) => {
+    console.log(req.payload)
+    const { username } = req.params;
+
+    if(!username) {
         return res.status(422).json({
             errors: {
-                email: 'is required',
-            },
-       });
-    }
-
-    if(!user.password) {
-        return res.status(422).json({
-            errors: {
-                password: 'is required',
-            },
+                username: 'is required'
+            }
         });
     }
 
-    return passport.authenticate('local', { session: false }, (err, passportUser, info) => {
-        if(err) {
-            console.log("Passport authentication error: " + err.status);
-            return next(err);
+    return Users.findOne({username: username}, (err, user) => {
+        if( err ) {
+            return res.status(422).json({
+                errors: err
+            });
         }
-
-        if(passportUser) {
-            const user     = passportUser;
-            const jti = uuid();
-
-            //Add as valid token to list of tokens
-            user.tokenIds.push(jti);
-            user.save();
-
-            return res.json(user.toAuthJSON(jti));
-        }
-
-        return status(400).info;
-    })(req, res, next);
-});
-
-router.get('/logout', auth.required, (req, res, next) => {
-    const { payload: { id, jti } } = req;
-
-    return Users.findById(id)
-    .then((user) => {
         if(!user) {
-            return res.sendStatus(400);
+            return res.status(422).json({
+                errors: {
+                    message: "User '" + username + "' not found."
+                }
+            });
         }
-
-        user.tokenIds.pull(jti); //Remove the token from the database
-        user.save();
-        return res.sendStatus(200);
+        //Strip off the parts of the user that we don't want to share
+        return res.json(stripUser(user));
     });
 });
 
-//GET current route (required, only authenticated users have access)
-router.get('/current', auth.required, (req, res, next) => {
-    const { payload: { id, jti } } = req;
+router.get('/remove/:_id', auth.sess, (req, res, next) => {
+    const { _id } = req.params;
 
-    return Users.findById(id)
-    .then((user) => {
+    if(!_id) {
+        return res.status(422).json({
+            errors: {
+                _id: 'is required'
+            }
+        });
+    }
+
+    return Users.deleteOne({_id: _id}, (err, user) => {
+        if( err ) {
+            return res.status(422).json({
+                errors: err
+            });
+        }
         if(!user) {
-            return res.sendStatus(400);
+            return res.status(422).json({
+                errors: {
+                    message: "User " + username + " not found in DB."
+                }
+            });
+        }
+        req.logout(); //passport logout
+        return res.send("Removed user with id '"+_id+"'");
+    });
+});
+
+
+//GET current route (required, only authenticated users have access)
+router.get('/current', auth.sess, (req, res, next) => {
+    const { _id } = req.user._id;
+
+    return Users.findById(_id, (err,user) => {
+        if(!user) {
+            return res.status(422).json({
+                errors: {
+                    message: "User id " + _id + " not found in DB."
+                }
+            });
         }
         
-        return res.json({ user: user.toAuthJSON(jti) });
+        return res.json(stripUser(user));
     });
 });
 

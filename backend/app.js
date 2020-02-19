@@ -24,11 +24,13 @@ const BACKEND_PORT = 3001;
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
+const session = require('express-session'); //Needed for passport sessions
 const cors = require('cors');
 const mongoose = require('mongoose');
 const errorHandler = require('errorhandler');
 const http = require('http'); //Simple http server
 const WebSocket      = require('ws');
+const localpassport = require('./config/passport');
 
 //Configure mongoose's promise to global promise
 mongoose.promise = global.Promise;
@@ -68,16 +70,14 @@ wss.on('connection', function connection(ws) {
 //Configure our app
 app.use(cors());
 app.use(require('morgan')('dev'));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(session({ secret: 'keyboard squirrel' })); //Needed for passport to work, but must be called before passport init
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public')));
 
-if(!isProduction) {
-      app.use(errorHandler());
-}
 
 //Configure Mongoose
-mongoose.connect('mongodb://localhost/Awesome-O', {useNewUrlParser: true});
+mongoose.connect('mongodb://localhost/AwesomO', {useNewUrlParser: true});
 mongoose.set('debug', true);
 
 //Models and Configuration
@@ -87,37 +87,17 @@ require('./models/Projects');
 require('./models/RouteConfig');
 require('./models/StorageConfig');
 require('./models/Users');
-require('./config/passport');
+
+//Finish setting up passport
+localpassport.init(app); //Initialize my passport strategy and session
 
 //Routes
 app.use(require('./routes'));
 
 //Error handlers & middlewares
 if(!isProduction) {
-    app.use((err, req, res, next) => {
-            res.status(err.status || 500);
-
-            res.json({
-                errors: {
-                    message: err.message,
-                    error: err,
-                },
-            });
-            next(err)
-    });
+    app.use(errorHandler());
 }
-
-app.use((err, req, res, next) => {
-    res.status(err.status || 500);
-
-    res.json({
-        errors: {
-            message: err.message,
-            error: {},
-        },
-    });
-    next(err)
-});
 
 //Tell submodules the websocket server reference
 const camSetWss = require('./routes/camera/camera').setWss;

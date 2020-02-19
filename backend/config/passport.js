@@ -3,7 +3,7 @@ This file is part of Awesom-O, an image acquisition and analysis web application
 consisting of a frontend web interface and a backend database, camera, and motor access
 management framework.
 
-Copyright (C)  2019  Andrew F. Maule
+Copyright (C)  2020  Andrew F. Maule
 
 Awesom-O is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -19,22 +19,53 @@ You should have received a copy of the GNU Affero General Public License
 along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
-const mongoose = require('mongoose');
 const passport = require('passport');
-const LocalStrategy = require('passport-local');
 
-const Users = mongoose.model('Users');
+const init = (app) => {
+    const LocalStrategy = require('passport-local');
+    const mongoose = require('mongoose');
+    const Users = mongoose.model('Users');
 
-passport.use(new LocalStrategy({
-    usernameField: 'user[email]',
-    passwordField: 'user[password]',
-}, (email, password, done) => {
-    Users.findOne({ email })
-    .then((user) => {
-        if(!user || !user.validatePassword(password)) {
-            return done(null, false, { errors: { 'email or password': 'is invalid' } });
+    passport.use(new LocalStrategy(
+        function(username, password, done) {
+            Users.findOne({$or: [{username: username},{email: username}]}, function (err, user) {
+                if (err) { 
+                    return done(err); 
+                }
+                if (!user) {
+                    return done(null, false, { message: 'Incorrect username or email.' });
+                }
+                if (!user.validatePassword(password)) {
+                    return done(null, false, { message: 'Incorrect password.' });
+                }
+                return done(null, user);
+            });
         }
+    ));
 
-        return done(null, user);
-    }).catch(done);
-}));
+    passport.serializeUser(function(user, done) {
+        done(null, user._id);
+    });
+
+    passport.deserializeUser(function(_id, done) {
+        Users.findById(_id, function(err, user) {
+            done(err, user);
+        });
+    });
+
+    app.use(passport.initialize());
+    app.use(passport.session());
+};
+
+/* auth is explicitly specified if either required or session-based authorization are needed. */
+const auth = {
+    req: passport.authenticate('local'),
+    sess: (req,res,next) => {
+        if( !req.user ) {
+            return(res.status(401).send("unauthorized"));
+        }
+        next();
+    }
+};
+
+module.exports = {init, auth};
