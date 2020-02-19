@@ -22,7 +22,18 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 import '../lib/fetch';
 import * as experimentC from '../actions';
 
-export const experiment = (state, action) => {
+export const experiment = (state = { 
+        _id: undefined,
+        isFetching: false,
+        statusError: undefined,
+        datetime: undefined,
+        rename: false,
+        imageMeta: undefined,
+        filenameFields: undefined,
+        plateMeta: undefined,
+        users: [],
+        projects: []
+    }, action) => {
     let newstate = state;
     switch(action.type) {
         case experimentC.EXPERIMENT_CONFIG_CREATE_REQUEST:

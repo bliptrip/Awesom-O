@@ -3,7 +3,7 @@ This file is part of Awesom-O, an image acquisition and analysis web application
 consisting of a frontend web interface and a backend database, camera, and motor access
 management framework.
 
-Copyright (C)  2019  Andrew F. Maule
+Copyright (C)  2020  Andrew F. Maule
 
 Awesom-O is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,19 @@ import * as cameraC from '../actions';
 
 const uuidv4 = require('uuid/v4');
 
-export const cameraConfigReducer = (state, action) => {
+export const cameraConfigReducer = (state = {
+        _id: undefined,
+        isFetching: false,
+        statusError: undefined,
+        description: "",
+        manufacturer: "",
+        model: "",
+        deviceVersion: "",
+        sn: "",
+        gphoto2Config: "",
+        users: [],
+        projects: []
+    }, action) => {
     let newstate = state;
     switch(action.type) {
         case cameraC.CAMERA_CONFIG_CREATE_REQUEST:

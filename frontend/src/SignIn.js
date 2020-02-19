@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {connect} from 'react-redux';
-import {userLogin, userCreate} from './actions';
+import {userLoginRequest,userLogin} from './actions';
 import cookie from 'react-cookies';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
@@ -57,12 +57,10 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function SignInSide({store}) {
+function SignIn({dispatch}) {
     const classes = useStyles();
     const [username,setUsername] = useState(undefined);
-    const [email, setEmail] = useState(undefined);
     const [password, setPassword] = useState(undefined);
-    const [cpassword, setCPassword] = useState(undefined);
 
     const updateUsername = (e) => {
         cookie.save('username', e.target.value, { path: '/' });
@@ -73,17 +71,8 @@ export default function SignInSide({store}) {
         setPassword(e.target.value);
     }
 
-    const updateEmail = (e) => {
-        cookie.save('email', e.target.value, { path: '/' });
-        setEmail(e.target.value);
-    }
-
     const handleSubmitLogin = () => {
-        store.dispatch(userLogin(username, password));
-    }
-
-    const createLogin = () => {
-        store.dispatch(userCreate(username, email, password));
+        return
     }
 
   return (
@@ -98,17 +87,17 @@ export default function SignInSide({store}) {
                   <Typography component="h1" variant="h5">
                       Sign In
                   </Typography>
-                  <form className={classes.form} noValidate>
+                  <form className={classes.form} action='/api/users/login' method='POST' noValidate>
                       <TextField
                           variant="outlined"
                           margin="normal"
                           required
                           fullWidth
-                          id="email"
-                          label="Email Address"
-                          name="email"
+                          id="username"
+                          label="Username or Email"
+                          name="username"
                           autoComplete="email"
-                          onChange={updateEmail}
+                          onChange={updateUsername}
                           autoFocus
                       />
                       <TextField
@@ -139,12 +128,11 @@ export default function SignInSide({store}) {
                       </Button>
                       <Grid container>
                         <Grid item xs>
-                          <Link href="#" variant="body2">
-                            Forgot password?
+                          <Link href="#" variant="body2"> Forgot password?
                           </Link>
                         </Grid>
                         <Grid item>
-                          <Link href="#" variant="body2">
+                          <Link href="/signup" variant="body2">
                             {"Don't have an account? Sign Up"}
                           </Link>
                         </Grid>
@@ -159,4 +147,4 @@ export default function SignInSide({store}) {
   );
 }
 
-connect()(SignInSide);
+export default connect()(SignIn);

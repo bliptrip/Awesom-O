@@ -18,7 +18,7 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
-import {fetchAwesomO, fetchAwesomOJWT} from '../lib/fetch'; //Backwards-compatibility if fetch not supported by browser
+import {fetchAwesomO} from '../lib/fetch'; //Backwards-compatibility if fetch not supported by browser
 
 /* Define our action creators here */
 
@@ -197,7 +197,7 @@ export const userRemove = (_id) => dispatch =>  {
 /* Not sure if userFetch logic is necessary, but it's implemented just in case */
 export const userFetch = username => dispatch =>  {
     dispatch(userFetchRequest(username))
-    return(fetchAwesomOJWT({url: '/api/users/get/'+username})
+    return(fetchAwesomO({url: '/api/users/get/'+username})
     .then( response => response.json(),
         // Do not use catch, because that will also catch
         // any errors in the dispatch and resulting render,
@@ -214,7 +214,7 @@ export const userFetch = username => dispatch =>  {
 
 export const userSave = user => dispatch =>  {
     dispatch(userSaveRequest(user))
-    return(fetchAwesomOJWT({
+    return(fetchAwesomO({
         url: '/api/users/save',
         method: 'POST',
         body: user})
@@ -234,7 +234,7 @@ export const userSave = user => dispatch =>  {
 
 export const userChangePassword = (_id, oldpassword, password) => dispatch =>  {
     dispatch(userChangePasswordRequest(_id));
-    return(fetchAwesomOJWT({
+    return(fetchAwesomO({
         url: '/api/users/changepassword',
         method: 'POST',
         body: {_id: _id,
@@ -380,7 +380,7 @@ export const projectCreate = (userId,templateId=undefined) => dispatch => {
     let fetchURL;
     dispatch(projectCreateRequest(userId,templateId));
     fetchURL = '/api/project/create/';
-    return(fetchAwesomOJWT({
+    return(fetchAwesomO({
             url: fetchURL,
             method: 'POST',
             headers:{'Content-Type': 'application/json'},
@@ -402,7 +402,7 @@ export const projectCreate = (userId,templateId=undefined) => dispatch => {
 
 export const projectRemove = (_id, userId) => dispatch => {
     dispatch(projectRemoveRequest(_id));
-    return(fetchAwesomOJWT({
+    return(fetchAwesomO({
         url: '/api/project/remove/',
         method: 'POST',
         headers:{'Content-type': 'application/json'},
@@ -423,7 +423,7 @@ export const projectRemove = (_id, userId) => dispatch => {
 
 export const projectFetch = _id => dispatch => {
     dispatch(projectFetchRequest(_id));
-    return(fetchAwesomOJWT({url: '/api/project/get/'+_id})
+    return(fetchAwesomO({url: '/api/project/get/'+_id})
     .then( response => response.json(),
         // Do not use catch, because that will also catch
         // any errors in the dispatch and resulting render,
@@ -440,7 +440,7 @@ export const projectFetch = _id => dispatch => {
 
 export const projectSave = project => dispatch => {
     dispatch(projectSaveRequest(project));
-    return(fetchAwesomOJWT({
+    return(fetchAwesomO({
         url: '/api/project/save/', 
         method: 'POST', 
         body: project})
@@ -567,7 +567,7 @@ export const cameraConfigSaveSuccess = (_id) => ({
 /* CameraConfig thunks */
 export const cameraConfigCreate = (userId, projectId, templateId=undefined) => dispatch => {
     dispatch(cameraConfigCreateRequest());
-    return(fetchAwesomOJWT({
+    return(fetchAwesomO({
         url: '/api/camera/create',
         method: 'POST',
         body: {userId: userId,
@@ -580,7 +580,7 @@ export const cameraConfigCreate = (userId, projectId, templateId=undefined) => d
 
 export const cameraConfigFetch = _id => dispatch => {
     dispatch(cameraConfigFetchRequest(_id));
-    return(fetchAwesomOJWT({url: '/api/camera/get/'+_id})
+    return(fetchAwesomO({url: '/api/camera/get/'+_id})
     .then(response => response.json(),
           error => dispatch(cameraConfigFetchError(error)))
     .then( cameraConfig => dispatch(cameraConfigFetchSuccess(cameraConfig))));
@@ -588,7 +588,7 @@ export const cameraConfigFetch = _id => dispatch => {
 
 export const cameraConfigSave = (cameraConfig) => dispatch => {
     dispatch(cameraConfigSaveRequest());
-    return(fetchAwesomOJWT({
+    return(fetchAwesomO({
         url: '/api/camera/save',
         method: 'POST',
         body: cameraConfig})
@@ -599,7 +599,7 @@ export const cameraConfigSave = (cameraConfig) => dispatch => {
 
 export const cameraConfigRemove = (_id, userId, projectId) => dispatch => {
     dispatch(cameraConfigRemoveRequest(_id));
-    return(fetchAwesomOJWT({
+    return(fetchAwesomO({
         url: '/api/camera/remove',
         method: 'POST',
         body: {
@@ -733,7 +733,7 @@ export const experimentConfigCreate = (userId, projectId, templateId=undefined) 
     let fetchURL;
     dispatch(experimentConfigCreate);
     fetchURL = '/api/experiment/create';
-    return(fetchAwesomOJWT({
+    return(fetchAwesomO({
             url: fetchURL,
             method: 'POST',
             headers:{'Content-Type': 'application/json'},
@@ -759,7 +759,7 @@ export const experimentConfigFetch = (_id) => dispatch => {
     let fetchURL;
     dispatch(experimentConfigFetchRequest(_id));
     fetchURL = '/api/experiment/get/' + _id;
-    return(fetchAwesomOJWT({url: fetchURL})
+    return(fetchAwesomO({url: fetchURL})
     .then( response => response.json(),
         // Do not use catch, because that will also catch
         // any errors in the dispatch and resulting render,
@@ -777,7 +777,7 @@ export const experimentConfigFetch = (_id) => dispatch => {
 
 export const experimentConfigSave = (experimentConfig) => dispatch => {
     dispatch(experimentConfigSaveRequest(experimentConfig._id));
-    return(fetchAwesomOJWT({
+    return(fetchAwesomO({
         url: '/api/experiment/save/', 
         method: 'POST', 
         body: experimentConfig})
@@ -788,7 +788,7 @@ export const experimentConfigSave = (experimentConfig) => dispatch => {
 
 export const experimentConfigRemove = (_id, userId, projectId) => dispatch => {
     dispatch(experimentConfigRemoveRequest(_id));
-    return(fetchAwesomOJWT({
+    return(fetchAwesomO({
         url: '/api/experiment/remove/',
         method: 'POST',
         body: {
@@ -908,7 +908,7 @@ export const storageTypeFetchSuccess = (storageType) => ({
 /* StorageConfig Thunks */
 export const storageConfigCreate = (userId, projectId, templateId = undefined) => dispatch => {
     dispatch(storageConfigCreateRequest());
-    return(fetchAwesomOJWT({
+    return(fetchAwesomO({
         url:'/api/storage/create/',
         method: 'POST',
         headers:{'Content-Type': 'application/json'},
@@ -931,7 +931,7 @@ export const storageConfigCreate = (userId, projectId, templateId = undefined) =
 
 export const storageConfigFetch = (_id) => dispatch => {
     dispatch(storageConfigFetchRequest(_id));
-    return(fetchAwesomOJWT({url: '/api/storage/get/'+_id})
+    return(fetchAwesomO({url: '/api/storage/get/'+_id})
     .then( response => response.json(),
         // Do not use catch, because that will also catch
         // any errors in the dispatch and resulting render,
@@ -948,7 +948,7 @@ export const storageConfigFetch = (_id) => dispatch => {
 
 export const storageConfigSave = (storageConfig) => dispatch => {
     dispatch(storageConfigSaveRequest(storageConfig._id));
-    return(fetchAwesomOJWT({
+    return(fetchAwesomO({
         url: '/api/storage/save', 
         method: 'POST', 
         body: storageConfig})
@@ -959,7 +959,7 @@ export const storageConfigSave = (storageConfig) => dispatch => {
 
 export const storageConfigRemove = (_id,userId,projectId) => dispatch => {
     dispatch(storageConfigRemoveRequest(_id));
-    return(fetchAwesomOJWT({
+    return(fetchAwesomO({
         url: '/api/storage/remove',
         method: 'POST',
         body: {
@@ -1106,7 +1106,7 @@ export const routeConfigRemoveSuccess = (_id) => ({
 /* Route thunks */
 export const routeConfigCreate = (userId, projectId, templateId=undefined) => dispatch => {
     dispatch(routeConfigCreateRequest());
-    return(fetchAwesomOJWT({
+    return(fetchAwesomO({
         url: '/api/route/create',
         method: 'POST',
         body: {
@@ -1120,7 +1120,7 @@ export const routeConfigCreate = (userId, projectId, templateId=undefined) => di
 
 export const routeConfigFetch = (_id) => dispatch => {
     dispatch(routeConfigFetchRequest());
-    return(fetchAwesomOJWT({url: '/api/route/get/'+_id})
+    return(fetchAwesomO({url: '/api/route/get/'+_id})
         .then( response => response.json(),
             // Do not use catch, because that will also catch
             // any errors in the dispatch and resulting render,
@@ -1137,7 +1137,7 @@ export const routeConfigFetch = (_id) => dispatch => {
 
 export const routeConfigSave = (routeConfig) => dispatch => {
     dispatch(routeConfigSaveRequest());
-    return(fetchAwesomOJWT({
+    return(fetchAwesomO({
         url: '/api/route/save',
         method: 'POST',
         body: routeConfig})
@@ -1148,7 +1148,7 @@ export const routeConfigSave = (routeConfig) => dispatch => {
 
 export const routeConfigRemove = (_id, userId, projectId) => dispatch => {
     dispatch(routeConfigRemoveRequest(_id));
-    return(fetchAwesomOJWT({
+    return(fetchAwesomO({
         url: '/api/route/remove',
         method: 'POST',
         body: {

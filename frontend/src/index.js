@@ -22,17 +22,30 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 import React from 'react';
 import ReactDOM from 'react-dom';
 import rootReducer from './reducers';
-import {createStore} from 'redux';
+import {createStore, applyMiddleware} from 'redux';
+import thunkMiddleware from 'redux-thunk'; //Needed to dispatch thunk actions
 import {Provider} from 'react-redux';
 import * as serviceWorker from './serviceWorker';
-import {renderRoutes} from './routes';
+import {Route, Router} from 'react-router';
+import {createBrowserHistory} from 'history';
+import App from './App';
+import SignIn from './SignIn';
+import SignUp from './SignUp';
 
-const store = createStore(rootReducer);
+const store = createStore( rootReducer,
+                           applyMiddleware(thunkMiddleware) );
+const browserHistory = createBrowserHistory();
 
 export default function Root() {
     return (
         <Provider store={store}>
-            {renderRoutes()}
+            <Router history={browserHistory}>
+                <div>
+                    <Route path="/signup" component={SignUp}/>
+                    <Route path="/login" component={SignIn}/>
+                    <Route exact path="/" component={App}/>
+                </div>
+            </Router>
         </Provider>
     );
 }

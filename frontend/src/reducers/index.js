@@ -36,7 +36,6 @@ const rootReducer = combineReducers({
     user,
     project,
     camera: cameraConfigReducer,
-    experiment,
     route,
     storage
 });

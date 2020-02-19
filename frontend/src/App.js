@@ -19,7 +19,9 @@ You should have received a copy of the GNU Affero General Public License
 along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
+import 'babel-polyfill';
 import React, { Component } from 'react';
+import {connect} from 'react-redux';
 import {Redirect} from 'react-router-dom/Redirect';
 import cookie from 'react-cookies';
 import Toolbar from './components/Toolbar';
@@ -27,6 +29,7 @@ import fetch from 'cross-fetch'; //Backwards-compatibility if fetch not supporte
 //import VisibleViewport from './Viewport/Viewport';
 //import ConfigurationPanel from './ConfigurationPanel/ConfigurationPanel';
 import ConnectedWsEventHandler from './WsEventHandler/WsEventHandler';
+import SignIn from './SignIn';
 
 class App extends Component {
     constructor(props) {
@@ -37,7 +40,6 @@ class App extends Component {
             email: cookie.load('email'),
             token: cookie.load('token')
         }
-        this.handleSubmitLogin = this.handleSubmitLogin.bind(this);
     };
 
     handleTokenChange(token) {
@@ -50,12 +52,8 @@ class App extends Component {
         this.setState({email});
     };
 
-    componentDidMount() {
-        this.checkLogin();
-    }
-
-    checkLogin() {
-        var fetchp = fetch("/api/users/current", {
+    async checkLogin() {
+        await fetch("/api/users/current", {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -70,25 +68,23 @@ class App extends Component {
                 }
                 console.log(res);
             });
-        return(fetchp);
-    }
-
-    renderLogin() {
-        if(!this.state.loggedin)
-            return <Redirect url='/login' />
     }
 
     render() {
-        return (
-            <div>
-                <ConnectedWsEventHandler />
-                {this.renderLogin()}
-                <div class="container">
-                    <Toolbar />
-                </div>
-            </div>
-        );
+        return(<SignIn />)
+        if(this.state.loggedin !== true) {
+            return(<SignIn />)
+        } else {
+            return(
+                <React.fragment>
+                    <ConnectedWsEventHandler />
+                    <div class="container">
+                        <Toolbar />
+                    </div>
+                </React.fragment>
+            );
+        }
     }
 }
 
-export default App;
+export default connect()(App);
