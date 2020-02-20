@@ -77,7 +77,6 @@ router.post('/create', (req, res, next) => {
 
 //POST login route (optional, everyone has access)
 router.post('/login', auth.req, (req, res, next) => {
-    //return(res.json(stripUser(req.user)));
     return(res.redirect('/'));
 });
 

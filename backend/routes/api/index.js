@@ -23,5 +23,11 @@ const express = require('express');
 const router = express.Router();
 
 router.use('/users', require('./users'));
+router.use('/project', require('./project'));
+router.use('/camera', require('./camera'));
+router.use('/camera', require('./camera'));
+router.use('/experiment', require('./experiment'));
+router.use('/route', require('./route'));
+router.use('/storage', require('./storage'));
 
 module.exports = router;
