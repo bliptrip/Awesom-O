@@ -3,7 +3,7 @@ This file is part of Awesom-O, an image acquisition and analysis web application
 consisting of a frontend web interface and a backend database, camera, and motor access
 management framework.
 
-Copyright (C)  2019  Andrew F. Maule
+Copyright (C)  2020  Andrew F. Maule
 
 Awesom-O is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -23,7 +23,7 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const router = require('express').Router();
 const Users = mongoose.model('Users');
-const auth = require('../../config/passport').auth;
+const auth = require('../../lib/passport').auth;
 
 const stripUser = (user) => {
     let {_id, username, email} = user;

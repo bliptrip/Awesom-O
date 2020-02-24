@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "description": "The backend express.js node server application that manages current state of the system (current camera preview, last pictures taken, current location of camera on x-y plane, project-specific settings, database access, etc.)",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node -r esm app.js"
   },
   "repository": {
     "type": "git",
@@ -28,6 +30,7 @@
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "errorhandler": "^1.5.0",
+    "esm": "^3.2.25",
     "express": "^4.16.4",
     "express-session": "^1.15.6",
     "express-ws": "^4.0.0",

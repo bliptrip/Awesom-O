@@ -24,7 +24,6 @@ const mongoose       = require('mongoose');
 const passport       = require('passport');
 const postal         = require('postal'); //Sending/receiving messages across different backend modules
 const router         = require('express').Router();
-const {auth}         = require('../../config/passport');
 const fs             = require('fs');
 const gphoto2        = require('gphoto2');
 

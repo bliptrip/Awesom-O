@@ -24,10 +24,15 @@ import clsx from 'clsx';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
+import ButtonGroup from '@material-ui/core/ButtonGroup';
 import IconButton from '@material-ui/core/IconButton';
 import SvgIcon from '@material-ui/core/SvgIcon';
-import Divider from '@material-ui/core/Divider';
 import Container from '@material-ui/core/Container';
+import HomeIcon from '@material-ui/icons/Home';
+import PlayCircleOutlineIcon from '@material-ui/icons/PlayCircleOutline';
+import PauseCircleOutlineIcon from '@material-ui/icons/PauseCircleOutline';
+import StopIcon from '@material-ui/icons/Stop';
+import {Tooltip} from '@material-ui/core/';
 
 import AccountMenu from './UserMenu';
 import ProjectMenu from './ProjectMenu';
@@ -35,8 +40,23 @@ import CameraMenu from './CameraMenu';
 import ExperimentMenu from './ExperimentMenu';
 import RouteMenu from './RouteMenu';
 import StorageMenu from './StorageMenu';
+import StatusIndicator from './StatusIndicator';
+
+import {CONTROLLER_RUNNING_STATUS_STOPPED} from '../actions';
 
 function Navbar({classes, openDrawer, closeDrawer, openState}) {
+    const handleRouteHome = () => {
+    };
+
+    const handleRoutePlay = () => {
+    };
+
+    const handleRoutePause = () => {
+    };
+
+    const handleRouteStop = () => {
+    };
+
     return (
             <AppBar 
                 color="transparent"
@@ -67,6 +87,43 @@ function Navbar({classes, openDrawer, closeDrawer, openState}) {
                     <Typography variant="h6" className={classes.title}>
                         AwesomO  
                     </Typography>
+                    <StatusIndicator className={classes.menuButton} activeUser='bliptrip' activeStatus={CONTROLLER_RUNNING_STATUS_STOPPED} />
+                    <Container />
+                    <ButtonGroup>
+                        <Tooltip title="Send Camera Home">
+                            <IconButton
+                                aria-controls="route-home"
+                                aria-haspopup="true"
+                                variant="contained"
+                                color="primary"
+                                onClick={handleRouteHome}
+                            >
+                                <HomeIcon fontSize='large' />
+                            </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Start Timelapse Capture Loop">
+                            <IconButton
+                                aria-controls="route-play"
+                                aria-haspopup="true"
+                                variant="contained"
+                                color="primary"
+                                onClick={handleRoutePlay}
+                            >
+                                <PlayCircleOutlineIcon fontSize='large' />
+                            </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Stop Timelapse Capture Loop">
+                            <IconButton
+                                aria-controls="route-stop"
+                                aria-haspopup="true"
+                                variant="contained"
+                                color="primary"
+                                onClick={handleRouteStop}
+                            >
+                                <StopIcon fontSize='large' />
+                            </IconButton>
+                        </Tooltip>
+                    </ButtonGroup>
                     <Container />
                     <AccountMenu />
                     <ProjectMenu />

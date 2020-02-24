@@ -19,30 +19,33 @@ You should have received a copy of the GNU Affero General Public License
 along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
-//Taken from https://medium.freecodecamp.org/learn-how-to-handle-authentication-with-node-using-passport-js-4a56ed18e81e
-//NOTE: See if can optimize to use asynchronous crypto.pbkdf2Sync() calls?
-const mongoose = require('mongoose');
-const crypto = require('crypto');
+const WebSocket      = require('ws');
 
-const { Schema } = mongoose;
+var wss = undefined;
 
-const UsersSchema = new Schema({
-    version: Number, 
-    username: String,
-    email: String,
-    hash: String,
-    salt: String,
-    recents: [{type: Schema.Types.ObjectId, ref: 'Projects'}]
-});
+const init = (server) => {
+    //Initialize WebSocket server instance
+    const wss = new WebSocket.Server({server: server});
 
-UsersSchema.methods.setPassword = function(password) {
-    this.salt = crypto.randomBytes(16).toString('hex');
-    this.hash = crypto.pbkdf2Sync(password, this.salt, 10000, 512, 'sha512').toString('hex');
+    // Broadcast preview image to all connected clients.
+    wss.broadcast = function broadcast(data) {
+        wss.clients.forEach(function each(client) {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(data);
+            }
+        });
+    };
+
+    wss.on('connection', function connection(ws) {
+        ws.on('message', function incoming(data) {
+            // Broadcast to everyone else.
+            wss.clients.forEach(function each(client) {
+                if (client !== ws && client.readyState === WebSocket.OPEN) {
+                    client.send(data);
+                }
+            });
+        });
+    });
 };
 
-UsersSchema.methods.validatePassword = function(password) {
-    const hash = crypto.pbkdf2Sync(password, this.salt, 10000, 512, 'sha512').toString('hex');
-    return this.hash === hash;
-};
-
-mongoose.model('Users', UsersSchema);
+module.exports = {init, wss};

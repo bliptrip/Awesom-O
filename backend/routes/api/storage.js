@@ -22,15 +22,15 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 const mongoose = require('mongoose');
 const passport = require('passport');
 const router = require('express').Router();
-const Projects = mongoose.model('Projects');
+const StorageConfig = mongoose.model('StorageConfig');
 
 const auth = require('../../lib/passport').auth;
 
 //Create a new user -- NOTE: Eventually will want an admin to approve this
 //No auth required (session or local)
 router.post('/create', auth.sess, (req, res, next) => {
-    let project;
-    const { userId, templateId } = req.body;
+    let storageConfig;
+    const { userId, projectId, templateId } = req.body;
 
     if(!userId) {
         return res.status(422).json({
@@ -40,52 +40,48 @@ router.post('/create', auth.sess, (req, res, next) => {
         });
     }
 
+    if(!projectId) {
+        return res.status(422).json({
+            errors: {
+                projectId: 'is required'
+            }
+        });
+    }
+
     if(templateId) {
-        Projects.findById(templateId), (tproject, err) => {
-            if(!tproject) {
+        StorageConfig.findById(templateId), (tStorageConfig, err) => {
+            if(!tStorageConfig) {
                 return res.status(422).json({
                     errors: {
-                        message: "Template project " + _id + " not found in DB."
+                        message: "Template storageConfig " + _id + " not found in DB."
                     }
                 });
             } else {
-                project = tproject.clone()
-                project.populate('cameraConfig')
-                project.populate('experimentConfig')
-                project.populate('storageConfigs')
-                project.populate('routeConfig');
-                project.users                = [userId];
-                project.cameraConfig.users    = [userId];
-                project.cameraConfig.projects = [project._id];
-                project.experimentConfig.users    = [userId];
-                project.experimentConfig.projects = [project._id];
-                project.storageConfigs.forEach( (s) => {
-                                                    s.users = [userId]; 
-                                                    s.projects = [project._id]
-                });
-                project.routeConfig.users    = [userId];
-                project.routeConfig.projects = [project._id];
-                return project.save()
-                    .then(() => res.json(project));
+                storageConfig = tStorageConfig.clone()
+                storageConfig.users    = [userId];
+                storageConfig.projects = [projectId];
+                return storageConfig.save()
+                    .then(() => res.json(storageConfig));
             }
         }
     } else {
-        project = new Projects({ version: 1.0,
-                                description: ""
-                             });
-        project.users   = [userId];
-        return project.save()
-            .then(() => res.json(project));
+        storageConfig = new StorageConfig({ 
+            version: 1.0,
+            params: {},
+            users: [userId],
+            projects: [projectId]});
+        return storageConfig.save()
+            .then(() => res.json(storageConfig));
     }
 });
 
 router.post('/save', auth.sess, (req, res, next) => {
-    let projectJSON  = req.body;
-    Project.update({_id: projectJSON._id}, projectJSON, {upsert: false}, function(err, resp) {
+    let storageConfigJSON  = req.body;
+    StorageConfig.update({_id: storageConfigJSON._id}, storageConfigJSON, {upsert: false}, function(err, resp) {
         if( err ) {
             return(res.status(422).json({ errors: resp }));
         } else {
-            return(res.json({_id: projectJSON._id}));
+            return(res.json({_id: storageConfigJSON._id}));
         }
     });
 });
@@ -101,21 +97,21 @@ router.get('/get/:_id', auth.sess, (req, res, next) => {
         });
     }
 
-    return Project.findById({_id: _id}, (err, project) => {
+    return StorageConfig.findById({_id: _id}, (err, storage) => {
         if( err ) {
             return res.status(422).json({
                 errors: err
             });
         }
-        if(!project) {
+        if(!storage) {
             return res.status(422).json({
                 errors: {
-                    message: "Project '" + _id + "' not found."
+                    message: "StorageConfig '" + _id + "' not found."
                 }
             });
         }
         //Strip off the parts of the user that we don't want to share
-        return res.json(project);
+        return res.json(storage);
     });
 });
 

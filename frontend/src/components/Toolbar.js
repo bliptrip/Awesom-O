@@ -30,7 +30,7 @@ import ExperimentMenu from './ExperimentMenu';
 import RouteMenu from './RouteMenu';
 import StorageMenu from './StorageMenu';
 import StatusIndicator from './StatusIndicator';
-import {AWESOMO_RUNNING_STATUS_STOPPED} from '../actions/awesomeORunningStatus.js';
+import {CONTROLLER_RUNNING_STATUS_STOPPED} from '../actions/awesomeORunningStatus.js';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -72,7 +72,7 @@ function Toolbar(props) {
                     <StorageMenu />
                 </div>
                 <div class="level-item">
-                    <StatusIndicator activeUser='bliptrip' activeStatus={AWESOMO_RUNNING_STATUS_STOPPED} />
+                    <StatusIndicator activeUser='bliptrip' activeStatus={CONTROLLER_RUNNING_STATUS_STOPPED} />
                 </div>
             </nav>
         </div>

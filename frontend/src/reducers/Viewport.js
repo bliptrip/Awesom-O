@@ -20,11 +20,11 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
 const viewport = (state = {}, action) => {
-    let newState = {}
+    let newstate = {...state};
     switch( action.type ) {
         case "RECEIVE_CURRENT_PICTURE":
-            newState.src = action.src;
-            return newState;
+            newstate.src = action.src;
+            return newstate;
         default:
             return state;
     }
@@ -32,6 +32,6 @@ const viewport = (state = {}, action) => {
 
 export default viewport;
 
-export const getViewportImage = state => {
+export const getViewportImage = (state) => {
     return state.src;
 }
