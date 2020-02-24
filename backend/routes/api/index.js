@@ -3,7 +3,7 @@ This file is part of Awesom-O, an image acquisition and analysis web application
 consisting of a frontend web interface and a backend database, camera, and motor access
 management framework.
 
-Copyright (C)  2019  Andrew F. Maule
+Copyright (C)  2020  Andrew F. Maule
 
 Awesom-O is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -24,10 +24,10 @@ const router = express.Router();
 
 router.use('/users', require('./users'));
 router.use('/project', require('./project'));
-router.use('/camera', require('./camera'));
-router.use('/camera', require('./camera'));
+router.use('/camera', require('./camera').router);
 router.use('/experiment', require('./experiment'));
 router.use('/route', require('./route'));
 router.use('/storage', require('./storage'));
+router.use('/controller', require('./controller'));
 
 module.exports = router;

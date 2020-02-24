@@ -100,7 +100,7 @@ if(!isProduction) {
 }
 
 //Tell submodules the websocket server reference
-const camSetWss = require('./routes/camera/camera').setWss;
+const camSetWss = require('./routes/api/camera').setWss;
 camSetWss(wss);
 
 //Listen

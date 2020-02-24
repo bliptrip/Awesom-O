@@ -37,7 +37,7 @@ const rootReducer = combineReducers({
     project,
     camera: cameraConfigReducer,
     route,
-    storage
+    storage,
 });
 
 export default rootReducer;

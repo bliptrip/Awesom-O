@@ -31,7 +31,8 @@ const UsersSchema = new Schema({
     username: String,
     email: String,
     hash: String,
-    salt: String
+    salt: String,
+    recents: [{type: Schema.Types.ObjectId, ref: 'Projects'}]
 });
 
 UsersSchema.methods.setPassword = function(password) {

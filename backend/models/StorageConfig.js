@@ -19,14 +19,18 @@ You should have received a copy of the GNU Affero General Public License
 along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
+const fs       = require('fs');
 const mongoose = require('mongoose');
-
 const {Schema} = mongoose;
+
+//Right now only support local paths
+const supported_types = [ 'fs' ];
+const supported_params = { 'fs': ['path'] }
 
 const StorageTypeSchema = new Schema({
     version: Number, //Table Version ID
     description: String, //Description
-    type: String, //Storage type -- local, box.com, dropbox.com, google drive, etc.
+    type: String, //Storage type -- fs , box.com, dropbox.com, google drive, etc.
 });
 
 const StorageConfigSchema = new Schema({
@@ -36,6 +40,17 @@ const StorageConfigSchema = new Schema({
     users: [{type: Schema.Types.ObjectId, ref: 'Users'}], //Users with access to this StorageConfig
     projects: [{type: Schema.Types.ObjectId, ref: 'Projects'}] //Projects with access to this StorageConfig
 });
+
+StorageConfigSchema.methods.saveFile = (filename, data) => {
+    switch( this.type ) {
+        case 'fs':
+            fs.writeFileSync(this.params['path'] + '/' + filename, data);
+            break;
+        default:
+            break;
+    }
+    return;
+}
 
 mongoose.model('StorageType', StorageTypeSchema);
 mongoose.model('StorageConfig', StorageConfigSchema);

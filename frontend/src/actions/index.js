@@ -1185,8 +1185,8 @@ export const routeConfigRemove = (_id, userId, projectId) => dispatch => {
 }
 
 //Viewport receive current picture
-export const receiveCurrentPicture = (src) => ({
-    type: "RECEIVE_CURRENT_PICTURE",
+export const viewportSetCurrentPicture = (src) => ({
+    type: "SET_CURRENT_PICTURE",
     src
 });
 

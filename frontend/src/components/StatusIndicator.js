@@ -99,7 +99,7 @@ class TrafficLightIcon extends React.Component {
 
 function StatusIndicator({activeUser, activeStatus}) {
     return(
-        <Tooltip title="Active user: {activeUser}/State: {activeStatus}" >
+        <Tooltip title={"Active user: "+activeUser+" State: "+activeStatus} >
             <TrafficLightIcon activeStatus={activeStatus} />
         </Tooltip>
     );
