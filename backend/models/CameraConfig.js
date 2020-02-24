@@ -25,6 +25,7 @@ const {Schema} = mongoose;
 
 const CameraConfigSchema = new Schema({
     version: Number, //Table Version ID
+    short: String, //Camera short description string
     description: String, //Camera description string
     manufacturer: String, //Manufacturer
     model: String, //Camera model

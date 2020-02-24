@@ -151,6 +151,23 @@ export const cameraConfigReducer = (state = {
                 gphoto2Config: action.gphoto2Config //TODO: Parse out string?
             };
             break;
+        case "RECEIVE_CAMERA_CONFIGURATION":
+            let newEntries  = {};
+            if( action.config && action.config.main ) {
+                newState    = {root: generateConfigurationEntries(newEntries, undefined, action.config.main), entries: newEntries}
+            }
+            return newState;
+        case "SET_CAMERA_ENTRY_VALUE":
+            newState    = {...state};
+            newState.entries = {...state.entries};
+            newState.entries[action.id].value   = action.value;
+            newState.entries[action.id].changed = true;
+            return newState;
+        case "RESET_CAMERA_CONFIGURATION_CHANGE_FLAG":
+            newState    = {...state};
+            newState.entries = {...state.entries};
+            resetConfigurationChangeFlag(newState.entries[action.id]);
+            return newState;
         default:
             break;
     }
@@ -201,30 +218,6 @@ const resetConfigurationChangeFlag = (entry) => {
 }
 
 
-const cameraConfiguration = (state = {}, action) => {
-    let newState = undefined;
-    switch( action.type ) {
-        case "RECEIVE_CAMERA_CONFIGURATION":
-            let newEntries  = {};
-            if( action.config && action.config.main ) {
-                newState    = {root: generateConfigurationEntries(newEntries, undefined, action.config.main), entries: newEntries}
-            }
-            return newState;
-        case "SET_CAMERA_ENTRY_VALUE":
-            newState    = {...state};
-            newState.entries = {...state.entries};
-            newState.entries[action.id].value   = action.value;
-            newState.entries[action.id].changed = true;
-            return newState;
-        case "RESET_CAMERA_CONFIGURATION_CHANGE_FLAG":
-            newState    = {...state};
-            newState.entries = {...state.entries};
-            resetConfigurationChangeFlag(newState.entries[action.id]);
-            return newState;
-        default:
-            return state;
-    }
-}
 
 export default cameraConfiguration;
 
