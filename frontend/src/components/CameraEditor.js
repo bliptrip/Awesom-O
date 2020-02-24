@@ -241,19 +241,40 @@ function CameraEditor({camera}) {
         <div
             className={classes.fullList}
             role="presentation"
-            onClick={}
-            onKeyDown={}
+            onClick={closeDrawer(setEditorOpen)}
+            onKeyDown={closeDrawer(setEditorOpen)}
         >
-            <TextField label="Short Description" onChange={} value={camera.short} />
-            <TextField label="Description" onChange={} value={camera.description} />
+            <TextField label="Short Description" onChange={setShort} value={camera.short} />
+            <TextField label="Description" onChange={setDescription} value={camera.description} />
             <TextField label="Manufacturer" disabled=true value={camera.manufacturer} />
             <TextField label="Model" disabled=true value={camera.model} />
             <TextField label="Version" disabled=true value={camera.deviceVersion} />
             <TextField label="Serial Number" disabled=true value={camera.sn} />
-            <GPhotoEditor gphoto2Config={camera.gphoto2Config} />
+            <GPhotoEditor config={camera.config} />
         </div>
     );
 }
 
+const mapStateToProps = (state) => ({
+    camera: state.camera
+});
 
-export default connect()(CameraEditor);
+const mapDispatchToProps = (dispatch) => ({
+    changeValue: (eid,value) => dispatch(cameraConfigSetEntryValue(eid,event.target.value)),
+    resetChangeFlag: (eid) => dispatch(cameraConfigSetEntryValue(eid)),
+    closeDrawer: (event) => ({
+        if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
+            return;
+        }
+        dispatch(cameraConfigSetEditorOpen(false));
+    }),
+    setShort: (event) => dispatch(cameraConfigSetShort(event.target.value)),
+    setDescription: (event) => dispatch(cameraConfigSetShort(event.target.value)),
+    setManufacturer: (event) => dispatch(cameraConfigSetManufacturer(event.target.value)),
+    setModel: (event) => dispatch(cameraConfigSetModel(event.target.value)),
+    setVersion: (event) => dispatch(cameraConfigSetVersion(event.target.value)),
+    setSerial: (event) => dispatch(cameraConfigSetSerial(event.target.value)),
+    setGphoto2Config: (event) => dispatch(cameraConfigSetGphoto2Config(event.target.value))
+});
+
+export default connect(mapStateToProps,mapDispatchToProps)(CameraEditor);

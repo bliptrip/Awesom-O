@@ -528,6 +528,13 @@ export const cameraConfigFetchSuccess = (cameraConfig) => ({
     cameraConfig,
 });
 
+export const CAMERA_CONFIG_SET_SHORT = 'CAMERA_CONFIG_SET_SHORT';
+export const cameraConfigSetShort = (id, description) => ({
+    type: CAMERA_CONFIG_SET_SHORT,
+    id,
+    short: description
+});
+
 export const CAMERA_CONFIG_SET_DESCRIPTION = 'CAMERA_CONFIG_SET_DESCRIPTION';
 export const cameraConfigSetDescription = (id, description) => ({
     type: CAMERA_CONFIG_SET_DESCRIPTION,
@@ -586,6 +593,25 @@ export const CAMERA_CONFIG_SAVE_SUCCESS = 'CAMERA_CONFIG_SAVE_SUCCESS';
 export const cameraConfigSaveSuccess = (_id) => ({
     type: CAMERA_CONFIG_SAVE_SUCCESS,
     _id
+});
+
+export const CAMERA_CONFIG_SET_EDITOR_OPEN = 'CAMERA_CONFIG_SET_EDITOR_OPEN';
+export const cameraConfigSetEditorOpen = (open) => ({
+    type: CAMERA_CONFIG_SET_EDITOR_OPEN,
+    open
+});
+
+export const CAMERA_CONFIG_SET_ENTRY_VALUE = 'CAMERA_CONFIG_SET_ENTRY_VALUE';
+export const cameraConfigSetEntryValue = (eid,value) => ({
+    type: CAMERA_CONFIG_SET_ENTRY_VALUE,
+    id: eid,
+    value
+});
+
+export const CAMERA_CONFIG_RESET_CHANGE_FLAG = 'CAMERA_CONFIG_RESET_CHANGE_FLAG';
+export const cameraConfigResetChangeFlag = (eid) => ({
+    type: CAMERA_CONFIG_RESET_CHANGE_FLAG,
+    id: eid
 });
 
 /* CameraConfig thunks */

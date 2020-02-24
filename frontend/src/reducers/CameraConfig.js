@@ -24,8 +24,52 @@ import * as cameraC from '../actions';
 
 const uuidv4 = require('uuid/v4');
 
+//NOTE: I am overwriting the state rather than making a shallow copy 
+const generateConfigurationEntries = (state, parentId, entry) => {
+    let id = uuidv4();
+    let ret = undefined;
+    state[id] = {id: id, type: entry.type, parent: parentId, label: entry.label};
+    switch(entry.type) {
+        case 'toggle':
+        case 'string':
+        case 'date':
+            state[id] = {...state[id], readonly: entry.readonly, value: entry.value, changed: false}
+            ret = id;
+            break;
+        case 'choice':
+            state[id] = {...state[id], readonly: entry.readonly, value: entry.value, choices: entry.choices, changed: false};
+            ret = id;
+            break;
+        case 'section':
+            //Loop through all children and generate new entries in local state
+            state[id] = {...state[id], children: Object.keys(entry.children).map( (key) => generateConfigurationEntries(state, id, entry.children[key]) )};
+            ret = id;
+            break;
+        default:
+            break;
+    }
+    return ret;
+};
+
+const resetConfigurationChangeFlag = (entry) => {
+    switch(entry.type) {
+        case 'section':
+            entry.children.map(child => resetConfigurationChangeFlag(child));
+            break;
+        case 'toggle':
+        case 'string':
+        case 'date':
+        case 'choice':
+            entry.changed = false;
+            break;
+        default:
+            break;
+    }
+}
+
 export const cameraConfigReducer = (state = {
         _id: undefined,
+        isEditorOpen: false,
         isFetching: false,
         statusError: undefined,
         description: "",
@@ -146,80 +190,35 @@ export const cameraConfigReducer = (state = {
             };
             break;
         case cameraC.CAMERA_CONFIG_SET_GPHOTO2_CONFIG:
+            let newEntries = {};
+            let config     = JSON.parse(action.gphoto2Config);
             newstate = {...state,
                 _id: action.id,
                 gphoto2Config: action.gphoto2Config //TODO: Parse out string?
             };
-            break;
-        case "RECEIVE_CAMERA_CONFIGURATION":
-            let newEntries  = {};
-            if( action.config && action.config.main ) {
-                newState    = {root: generateConfigurationEntries(newEntries, undefined, action.config.main), entries: newEntries}
+            if( config && config.main ) {
+                newstate.config = {root: generateConfigurationEntries(newEntries, undefined, config.main), entries: newEntries}
             }
-            return newState;
-        case "SET_CAMERA_ENTRY_VALUE":
-            newState    = {...state};
-            newState.entries = {...state.entries};
-            newState.entries[action.id].value   = action.value;
-            newState.entries[action.id].changed = true;
-            return newState;
-        case "RESET_CAMERA_CONFIGURATION_CHANGE_FLAG":
-            newState    = {...state};
-            newState.entries = {...state.entries};
-            resetConfigurationChangeFlag(newState.entries[action.id]);
-            return newState;
+            break;
+        case cameraC.CAMERA_CONFIG_SET_EDITOR_OPEN:
+            newstate    = {...state};
+            newstate.isEditorOpen = action.open;
+            break;
+        case cameraC.CAMERA_CONFIG_SET_ENTRY_VALUE:
+            newstate    = {...state};
+            newstate.config = {...newstate.config};
+            newstate.config.entries = {...newstate.config.entries};
+            newstate.config.entries[action.id].value   = action.value;
+            newstate.config.entries[action.id].changed = true;
+            break;
+        case cameraC.CAMERA_CONFIG_RESET_CHANGE_FLAG:
+            newstate    = {...state};
+            newstate.config = {...newstate.config};
+            newstate.config.entries = {...newstate.config.entries};
+            resetConfigurationChangeFlag(newstate.config.entries[action.id]);
+            break;
         default:
             break;
     }
     return(newstate);
 };
-
-//NOTE: I am overwriting the state rather than making a shallow copy 
-const generateConfigurationEntries = (state, parentId, entry) => {
-    let id = uuidv4();
-    let ret = undefined;
-    state[id] = {id: id, type: entry.type, parent: parentId, label: entry.label};
-    switch(entry.type) {
-        case 'toggle':
-        case 'string':
-        case 'date':
-            state[id] = {...state[id], readonly: entry.readonly, value: entry.value, changed: false}
-            ret = id;
-            break;
-        case 'choice':
-            state[id] = {...state[id], readonly: entry.readonly, value: entry.value, choices: entry.choices, changed: false};
-            ret = id;
-            break;
-        case 'section':
-            //Loop through all children and generate new entries in local state
-            state[id] = {...state[id], children: Object.keys(entry.children).map( (key) => generateConfigurationEntries(state, id, entry.children[key]) )};
-            ret = id;
-            break;
-        default:
-            break;
-    }
-    return ret;
-};
-
-const resetConfigurationChangeFlag = (entry) => {
-    switch(entry.type) {
-        case 'section':
-            entry.children.map(child => resetConfigurationChangeFlag(child));
-            break;
-        case 'toggle':
-        case 'string':
-        case 'date':
-        case 'choice':
-            entry.changed = false;
-            break;
-        default:
-            break;
-    }
-}
-
-
-
-export default cameraConfiguration;
-
-export const getCameraConfigurationEntries = config => (config);
-
