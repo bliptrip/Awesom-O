@@ -42,7 +42,7 @@ import RouteMenu from './RouteMenu';
 import StorageMenu from './StorageMenu';
 import StatusIndicator from './StatusIndicator';
 
-import {AWESOMO_RUNNING_STATUS_STOPPED} from '../actions/awesomeORunningStatus.js';
+import {CONTROLLER_RUNNING_STATUS_STOPPED} from '../actions';
 
 function Navbar({classes, openDrawer, closeDrawer, openState}) {
     const handleRouteHome = () => {
@@ -87,7 +87,7 @@ function Navbar({classes, openDrawer, closeDrawer, openState}) {
                     <Typography variant="h6" className={classes.title}>
                         AwesomO  
                     </Typography>
-                    <StatusIndicator className={classes.menuButton} activeUser='bliptrip' activeStatus={AWESOMO_RUNNING_STATUS_STOPPED} />
+                    <StatusIndicator className={classes.menuButton} activeUser='bliptrip' activeStatus={CONTROLLER_RUNNING_STATUS_STOPPED} />
                     <Container />
                     <ButtonGroup>
                         <Tooltip title="Send Camera Home">

@@ -23,7 +23,7 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const router = require('express').Router();
 const Users = mongoose.model('Users');
-const auth = require('../../config/passport').auth;
+const auth = require('../../lib/passport').auth;
 
 const stripUser = (user) => {
     let {_id, username, email} = user;

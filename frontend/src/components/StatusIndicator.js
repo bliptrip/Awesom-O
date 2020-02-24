@@ -22,7 +22,7 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 import React from 'react';
 import Tooltip from '@material-ui/core/Tooltip';
 import SvgIcon from '@material-ui/core/SvgIcon';
-import {AWESOMO_RUNNING_STATUS_RUNNING, AWESOMO_RUNNING_STATUS_PAUSED, AWESOMO_RUNNING_STATUS_STOPPED} from '../actions/awesomeORunningStatus.js';
+import {CONTROLLER_RUNNING_STATUS_RUNNING, CONTROLLER_RUNNING_STATUS_PAUSED, CONTROLLER_RUNNING_STATUS_STOPPED} from '../actions';
 
 class TrafficLightIcon extends React.Component {
 
@@ -39,13 +39,13 @@ class TrafficLightIcon extends React.Component {
         let activeColor;
         var newState = {...this.traffic_color_none};
         switch( activeStatus ) {
-            case AWESOMO_RUNNING_STATUS_RUNNING:
+            case CONTROLLER_RUNNING_STATUS_RUNNING:
                 activeColor = 'green';
                 break;
-            case AWESOMO_RUNNING_STATUS_PAUSED:
+            case CONTROLLER_RUNNING_STATUS_PAUSED:
                 activeColor = 'yellow';
                 break;
-            case AWESOMO_RUNNING_STATUS_STOPPED:
+            case CONTROLLER_RUNNING_STATUS_STOPPED:
                 activeColor = 'red';
                 break;
             default:

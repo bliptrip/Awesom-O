@@ -3,7 +3,7 @@ This file is part of Awesom-O, an image acquisition and analysis web application
 consisting of a frontend web interface and a backend database, camera, and motor access
 management framework.
 
-Copyright (C)  2020  Andrew F. Maule
+Copyright (C)  2019  Andrew F. Maule
 
 Awesom-O is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -19,10 +19,33 @@ You should have received a copy of the GNU Affero General Public License
 along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
-/* Define our action creators here */
+const WebSocket      = require('ws');
 
-export const AWESOMO_RUNNING_STATUS_RUNNING = 'AWESOMO_RUNNING_STATUS_RUNNING';
-export const AWESOMO_RUNNING_STATUS_PAUSED = 'AWESOMO_RUNNING_STATUS_PAUSED';
-export const AWESOMO_RUNNING_STATUS_STOPPED = 'AWESOMO_RUNNING_STATUS_STOPPED';
+var wss = undefined;
 
+const init = (server) => {
+    //Initialize WebSocket server instance
+    const wss = new WebSocket.Server({server: server});
 
+    // Broadcast preview image to all connected clients.
+    wss.broadcast = function broadcast(data) {
+        wss.clients.forEach(function each(client) {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(data);
+            }
+        });
+    };
+
+    wss.on('connection', function connection(ws) {
+        ws.on('message', function incoming(data) {
+            // Broadcast to everyone else.
+            wss.clients.forEach(function each(client) {
+                if (client !== ws && client.readyState === WebSocket.OPEN) {
+                    client.send(data);
+                }
+            });
+        });
+    });
+};
+
+module.exports = {init, wss};

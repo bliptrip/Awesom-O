@@ -24,7 +24,7 @@ const passport = require('passport');
 const router = require('express').Router();
 const Projects = mongoose.model('Projects');
 
-const auth = require('../../config/passport').auth;
+const auth = require('../../lib/passport').auth;
 
 //Create a new user -- NOTE: Eventually will want an admin to approve this
 //No auth required (session or local)

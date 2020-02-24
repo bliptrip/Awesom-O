@@ -19,7 +19,10 @@ You should have received a copy of the GNU Affero General Public License
 along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
-const auth           = require('../../config/passport').auth;
+import {controllerSetRunningStatus,CONTROLLER_RUNNING_STATUS_RUNNING,CONTROLLER_RUNNING_STATUS_PAUSED,CONTROLLER_RUNNING_STATUS_STOPPED,CONTROLLER_SET_LOCATION,controllerSetLocation} from '../../../frontend/src/actions';
+
+const auth           = require('../../lib/passport').auth;
+import {wss} from '../../lib/websocket';
 const mongoose       = require('mongoose');
 const pauseable      = require('pauseable'); //Allows pausing/resuming of timers
 const postal         = require('postal'); //Sending/receiving messages across different backend modules
@@ -43,7 +46,7 @@ var current_project = undefined;
 var current_user = undefined;
 var current_project_timer = undefined;
 var current_route_index;
-var current_state = "STOPPED"; //The state of the controller: "RUNNING", "STOPPED", "PAUSED"
+var current_state = CONTROLLER_RUNNING_STATUS_STOPPED; //The current state of the controller
 
 const openPort = (path) => {
     let lport = new SerialPort(path, {
@@ -250,6 +253,14 @@ const sendCommandAndWait = (axes, timeout, res) => {
 
 var controllerEventLoopChan = postal.channel("controllerEventLoop");
 
+const sendRunningStatus = (state) => {
+    wss.broadcast(JSON.stringify(controllerSetRunningStatus(state)));
+}
+
+const sendLocation = (row, col) => {
+    wss.broadcast(JSON.stringify(controllerSetLocation(row, col)));
+}
+
 const getRoute = (project, index) => {
     let route = undefined;
     if( index < project.routeConfig.route.length ) {
@@ -272,7 +283,8 @@ const moveToPlate = (project, prev, next) => {
         .then( () => {
             waitForComplete(axes,MOVE_TIMEOUT)
             .then( () => {
-                postal.publish("controller", "route.move", {user: current_user, project: current_project, row: next.y, col: next.x});
+                postal.publish("camera", "route.move", {user: current_user, project: current_project});
+                sendLocation(next.y, next.x);
             });
         });
 };
@@ -297,6 +309,8 @@ controllerEventLoopChan.subscribe("notification.timeout", (data, envelope) => {
 controllerEventLoopChan.subscribe("notification.start", (data, envelope) => {
     let nextRoute;
     
+    current_state = CONTROLLER_RUNNING_STATUS_RUNNING;
+    sendRunningStatus(current_state);
     //Send home
     sendCommandHome()
     .then( () => {
@@ -320,12 +334,16 @@ controllerEventLoopChan.subscribe("notification.start", (data, envelope) => {
 controllerEventLoopChan.subscribe("notification.resume", (data, envelope) => {
     if( current_project_timer && current_project_timer.isPaused() ) {
         current_project_timer.resume();
+        current_state = CONTROLLER_RUNNING_STATUS_RUNNING;
+        sendRunningStatus(current_state);
     }
 });
 
 controllerEventLoopChan.subscribe("notification.pause", (data, envelope) => {
     if( current_project_timer && !current_project_timer.isPaused() ) {
         current_project_timer.pause();
+        current_state = CONTROLLER_RUNNING_STATUS_PAUSED;
+        sendRunningStatus(current_state);
     }
 });
 
@@ -333,6 +351,8 @@ controllerEventLoopChan.subscribe("notification.stop", (data, envelope) => {
     if( current_project_timer ) {
         current_project_timer.clear();
         current_project_timer = undefined;
+        current_state = CONTROLLER_RUNNING_STATUS_STOPPED;
+        sendRunningStatus(current_state);
     }
 });
 
@@ -405,7 +425,7 @@ const checkIfNotProject = (res, req, next) => {
 
 const checkIfStopped = (res, req, next) => {
     console.log("checkIfStopped begin.");
-    if( current_state !== "STOPPED" ) {
+    if( current_state !== CONTROLLER_RUNNING_STATUS_STOPPED ) {
         res.status(409).json({errors:
             {message: "Current controller route in progress.  Stop route to execute this operation."}
         }); 
@@ -415,7 +435,7 @@ const checkIfStopped = (res, req, next) => {
 };
 
 const checkIfPaused = (res, req, next) => {
-    if( current_state !== "PAUSED" ) {
+    if( current_state !== CONTROLLER_RUNNING_STATUS_PAUSED ) {
         res.status(409).json({errors:
             {message: "Current controller route not paused."}
         }); 
@@ -425,7 +445,7 @@ const checkIfPaused = (res, req, next) => {
 };
 
 const checkIfRunning = (res, req, next) => {
-    if( current_state !== "RUNNING" ) {
+    if( current_state !== CONTROLLER_RUNNING_STATUS_STOPPED ) {
         res.status(409).json({errors: 
             {message: "Current controller route not running."}
         }); 
@@ -581,27 +601,23 @@ router.put('/start', auth.sess, checkIfSerial, checkIfUser, checkIfProject, chec
     let userid = req.params.userid;
     let projectid = req.params.projectid;
     //Find project in DB
-    current_state = "RUNNING";
     controllerEventLoopChan.publish("notification.start", {user: current_user, project: current_project});
     return res.status(200);
 });
 
     
 router.put('/resume', auth.sess, checkIfSerial, checkIfUser, checkIfProject, checkIfPaused, (req, res, next) => {
-    current_state = "RUNNING";
     controllerEventLoopChan.publish("notification.resume", {user: current_user, project: current_project});
     return;
 });
 
 router.put('/pause', auth.sess, checkIfSerial, checkIfUser, checkIfProject, checkIfRunning, (req, res, next) => {
-    current_state = "PAUSED";
     controllerEventLoopChan.publish("notification.pause", {user: current_user, project: current_project});
     return;
 });
 
 router.put('/stop', auth.sess, checkIfSerial, checkIfUser, checkIfProject, checkIfRunning, (req, res, next) => {
     controllerEventLoopChan.publish("notification.stop", {user: current_user, project: current_project});
-    current_state = "STOPPED";
     return;
 });
 

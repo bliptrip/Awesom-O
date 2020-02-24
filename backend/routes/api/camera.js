@@ -19,6 +19,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
+import {viewportSetCurrentPicture} from '../../../frontend/src/actions'; 
 const btoa         = require('btoa');
 const router       = require('express').Router();
 const fs           = require('fs');
@@ -28,9 +29,9 @@ const passport     = require('passport');
 const postal       = require('postal'); //Sending/receiving messages across different backend modules
 const CameraConfig = mongoose.model('CameraConfig');
 
-const auth = require('../../config/passport').auth;
+import {wss} from '../../lib/websocket';
+const auth = require('../../lib/passport').auth;
 
-var   wss;
 var   gphoto = new gphoto2.GPhoto2();
 gphoto.setLogLevel(1);
 gphoto.on('log', function (level, domain, message) {
@@ -39,7 +40,7 @@ gphoto.on('log', function (level, domain, message) {
 var camera = undefined;
 var camera_list = [];
 var subscription = postal.subscribe({
-    channel: "controller",
+    channel: "camera",
     topic: "route.move",
     callback: function(data, envelope) {
         // `data` is the data published by the publisher.
@@ -68,7 +69,7 @@ var subscription = postal.subscribe({
                 project.storageConfigs.foreach( (storage) => {
                     storage.saveFile(filename, pdata);
                 });
-                edata = encodeImage(pdata, x = data.x, y = data.y);
+                edata = encodeImage(pdata);
                 wss.broadcast(edata);
             }
         });
@@ -76,32 +77,15 @@ var subscription = postal.subscribe({
     }
 });
 
-const listCameras = () => {
-    camera = null;
-    return(
-        gphoto.list( (list) => {
-            camera_list = list;
-            if( camera_list.length > 0 ) {
-                camera = list[0];
-            }
-        }));
-}
+const listCameras = () => { camera = null; return( gphoto.list( (list) => { camera_list = list; if( camera_list.length >
+    0 ) { camera = list[0]; } })); }
 
-const encodeImage = (data, x=-1, y=-1) => {
+const encodeImage = (data) => {
     let edata;
     let src = 'data:image/jpeg;base64,' + btoa(data);
-    if( (x !== -1) || (y !== -1) ) {
-        edata = JSON.stringify({type: "SET_CURRENT_PICTURE", src: src, position: { x: x, y: y }});
-    } else {
-        edata = JSON.stringify({type: "SET_CURRENT_PICTURE", src: src});
-    }
+    edata = JSON.stringify(viewportSetCurrentPicture(src));
     return(edata);
 };
-
-//Sets a local reference to the websocket server
-const setWebsocketServer = (socket) => {
-    wss = socket;
-}
 
 //Retrieve/refresh cameras
 router.get('/list', auth.sess, (req, res, next) => {
@@ -304,4 +288,4 @@ router.get('/remove/:_id', auth.sess, (req, res, next) => {
 });
 
 
-module.exports = {router: router, setWss: setWebsocketServer};
+module.exports = router;

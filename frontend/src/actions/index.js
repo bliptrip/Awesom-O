@@ -1184,20 +1184,28 @@ export const routeConfigRemove = (_id, userId, projectId) => dispatch => {
         .then(_id => dispatch(routeConfigRemoveSuccess(_id))));
 }
 
-//Viewport receive current picture
+/* Viewport actions */
+export const VIEWPORT_SET_CURRENT_PICTURE = "VIEWPORT_SET_CURRENT_PICTURE";
 export const viewportSetCurrentPicture = (src) => ({
-    type: "SET_CURRENT_PICTURE",
+    type: VIEWPORT_SET_CURRENT_PICTURE,
     src
 });
 
+/* Controller actions */
+export const CONTROLLER_RUNNING_STATUS_RUNNING = 'CONTROLLER_RUNNING_STATUS_RUNNING';
+export const CONTROLLER_RUNNING_STATUS_PAUSED = 'CONTROLLER_RUNNING_STATUS_PAUSED';
+export const CONTROLLER_RUNNING_STATUS_STOPPED = 'CONTROLLER_RUNNING_STATUS_STOPPED';
+
 //Controller state: Things like running, paused, stopped, and current location of camera arm (row, col)
-export const receiveControllerStateStatus = (status) => ({
-    type: "RECEIVE_CONTROLLER_STATE_STATUS",
+export const CONTROLLER_SET_RUNNING_STATUS = "CONTROLLER_SET_RUNNING_STATUS";
+export const controllerSetRunningStatus = (status) => ({
+    type: CONTROLLER_SET_RUNNING_STATUS,
     status: status
 });
 
-export const receiveControllerStateLocation = (location) => ({
-    type: "RECEIVE_CONTROLLER_STATE_LOCATION",
+export const CONTROLLER_SET_LOCATION = "CONTROLLER_SET_LOCATION";
+export const controllerSetLocation = (location) => ({
+    type: CONTROLLER_SET_LOCATION,
     location: location
 });
 
