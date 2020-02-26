@@ -27,7 +27,8 @@ export const user = (state={loggedin: false,
                             username: undefined,
                             isFetching: false,
                             statusError: undefined,
-                            email: undefined
+                            email: undefined,
+                            isEditorOpen: false
                             }, action) => {
     let newstate = state;
     switch(action.type) {
@@ -145,6 +146,10 @@ export const user = (state={loggedin: false,
                 isFetching: false,
                 statusError: undefined
             };
+            break;
+        case userC.USER_SET_EDITOR_OPEN:
+            newstate = { ...state,
+                        isEditorOpen: action.isEditorOpen };
             break;
         default:
             break;

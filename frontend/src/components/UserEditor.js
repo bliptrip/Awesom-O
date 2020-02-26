@@ -31,20 +31,37 @@ const useStyles = makeStyles({
             },
 });
 
-function UserEditor({user}) {
+function UserEditor({username, email, setUsername, setEmail}) {
     const classes = useStyles();
 
     return (
         <div
             className={classes.fullList}
             role="presentation"
-            onClick={}
-            onKeyDown={}
+            onClick={closeDrawer}
+            onKeyDown={closeDrawer}
         >
-            <TextField label="Username" onChange={} />
-            <TextField label="Email" onChange={} />
+            <TextField label="Username" value={username} onChange={setUsername} />
+            <TextField label="Email" value={email} onChange={setEmail} />
         </div>
     );
 }
 
-export default connect()(UserEditor);
+const mapStateToProps = (state) => {
+    open: state.user.isEditorOpen,
+    username: state.user.username,
+    email: state.user.email
+}
+
+const mapDispatchToProps = (dispatch) => {
+    closeDrawer: (event) => ({
+        if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
+            return;
+        }
+        dispatch(userSetEditorOpen(false));
+    }),
+    setUsername: (event) => dispatch(userSetUsername(event.target.value)),
+    setEmail: (event) => dispatch(userSetEmail(event.target.value))
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(UserEditor);

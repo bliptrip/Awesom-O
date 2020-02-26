@@ -24,6 +24,7 @@ import * as experimentC from '../actions';
 
 export const experiment = (state = { 
         _id: undefined,
+        isEditorOpen: false,
         isFetching: false,
         statusError: undefined,
         datetime: undefined,
@@ -97,32 +98,38 @@ export const experiment = (state = {
             break;
         case experimentC.EXPERIMENT_CONFIG_SET_DATETIME:
             newstate = {...state,
-                _id: action.id,
                 datetime: action.datetime
             };
             break;
         case experimentC.EXPERIMENT_CONFIG_SET_RENAME:
             newstate = {...state,
-                _id: action.id,
                 rename: action.rename
             };
             break;
         case experimentC.EXPERIMENT_CONFIG_SET_IMAGE_META:
             newstate = {...state,
-                _id: action.id,
                 imageMeta: action.imageMeta
             };
             break;
         case experimentC.EXPERIMENT_CONFIG_SET_FILENAME_FIELDS:
             newstate = {...state,
-                _id: action.id,
                 filenameFields: action.filenameFields
             };
             break;
+        case experimentC.EXPERIMENT_CONFIG_ADD_FILENAME_FIELD:
+            newstate = {...state};
+            newstate.filenameFields.push(action.field);
+            break;
+        case experimentC.EXPERIMENT_CONFIG_REMOVE_FILENAME_FIELD:
+            newstate = {...state};
+            newstate.filenameFields = newstate.filenameFields.filter((f) => (f !== action.field)); //Remove by exclusion -- could be optimized
+            break;
+        case experimentC.EXPERIMENT_CONFIG_CLEAR_FILENAME_FIELDS:
+            newstate = {...state};
+            newstate.filenameFields = [];
+            break;
         case experimentC.EXPERIMENT_CONFIG_ADD_PLATE:
-            newstate = {...state,
-                _id: action.id,
-            };
+            newstate = {...state};
             newstate.plateMeta.push({
                 row: action.row,
                 col: action.col,
@@ -130,10 +137,12 @@ export const experiment = (state = {
             });
             break;
         case experimentC.EXPERIMENT_CONFIG_REMOVE_PLATE:
-            newstate = {...state,
-                _id: action.id
-            };
+            newstate = {...state};
             newstate.plateMeta = newstate.plateMeta.filter((e) => ((e.row !== action.row) && (e.col !== action.col))); //Remove by exclusion -- could be optimized
+            break;
+        case experimentC.EXPERIMENT_CONFIG_CLEAR_PLATE_META:
+            newstate = {...state};
+            newstate.plateMeta = [];
             break;
         case experimentC.EXPERIMENT_CONFIG_SAVE_REQUEST:
             newstate = { ...state,
@@ -151,6 +160,10 @@ export const experiment = (state = {
             newstate = { ...state,
                 areSaving: false,
                 _id: action._id };
+            break;
+        case experimentC.EXPERIMENT_CONFIG_SET_EDITOR_OPEN:
+            newstate = { ...state,
+                isEditorOpen: action.isEditorOpen };
             break;
         default:
             break;

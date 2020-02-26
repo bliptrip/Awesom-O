@@ -38,13 +38,30 @@ function ProjectEditor({project}) {
         <div
             className={classes.fullList}
             role="presentation"
-            onClick={}
-            onKeyDown={}
+            onClick={closeDrawer}
+            onKeyDown={closeDrawer}
         >
-            <TextField label="Short Description" onChange={} />
-            <TextField label="Description" onChange={} />
+            <TextField label="Short Description" onChange={setShort} />
+            <TextField label="Description" onChange={setDescription} />
         </div>
     );
+}
+
+const mapStateToProps = (state) => {
+    open: state.project.isEditorOpen,
+    shortDescription: state.project.short,
+    description: state.project.description
+}
+
+const mapDispatchToProps = (dispatch) => {
+    closeDrawer: (event) => ({
+        if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
+            return;
+        }
+        dispatch(projectSetEditorOpen(false));
+    }),
+    setShort: (event) => dispatch(projectSetShort(event.target.value)),
+    setDescription: (event) => dispatch(projectSetDescription(event.target.value))
 }
 
 export default connect()(ProjectEditor);

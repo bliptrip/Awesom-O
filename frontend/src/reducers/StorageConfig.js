@@ -21,7 +21,10 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 import '../lib/fetch';
 import * as storageC from '../actions';
 
-export const storage = (state = {}, action) => {
+export const storage = (state = {isEditorOpen: false, 
+                                 supportedTypes: [], 
+                                 supportedParams: {}}, 
+                        action) => {
     let newstate = state;
     switch( action.type ) {
         case storageC.STORAGE_CONFIG_CREATE_REQUEST:
@@ -74,7 +77,7 @@ export const storage = (state = {}, action) => {
             newstate = { ...state,
                 isFetching: false,
                 _id: action.storageConfig._id, //TODO: Validate that ID returned is same as that requested
-                type: action.storageConfig.type,
+                storageType: action.storageConfig.storageType,
                 params: action.storageConfig.params,
                 users: action.storageConfig.users,
                 projects: action.storageConfig.projects
@@ -97,14 +100,54 @@ export const storage = (state = {}, action) => {
                 areSaving: false,
                 _id: action.id };
             break;
+        case storageC.STORAGE_CONFIG_SET_EDITOR_OPEN:
+            newstate = { ...state,
+                isEditorOpen: action.isEditorOpen };
+            break;
+        case storageC.STORAGE_CONFIG_GET_SUPPORTED_TYPES_REQUEST:
+            newstate = { ...state,
+                isFetching: true, //TODO: Check that we aren't already processing a save or fetching request
+                statusError: undefined,
+            };
+            break;
+        case storageC.STORAGE_CONFIG_GET_SUPPORTED_TYPES_ERROR:
+            newstate = { ...state,
+                isFetching: false,
+                statusError: action.error 
+            };
+            break;
+        case storageC.STORAGE_CONFIG_GET_SUPPORTED_TYPES_SUCCESS:
+            newstate = { ...state,
+                isFetching: false,
+                statusError: undefined,
+                supportedTypes: action.supportedTypes
+            };
+            break;
+        case storageC.STORAGE_CONFIG_GET_SUPPORTED_PARAMS_REQUEST:
+            newstate = { ...state,
+                isFetching: true, //TODO: Check that we aren't already processing a save or fetching request
+                statusError: undefined,
+            };
+            break;
+        case storageC.STORAGE_CONFIG_GET_SUPPORTED_PARAMS_ERROR:
+            newstate = { ...state,
+                isFetching: false,
+                statusError: action.error 
+            };
+            break;
+        case storageC.STORAGE_CONFIG_GET_SUPPORTED_PARAMS_SUCCESS:
+            newstate = { ...state,
+                isFetching: false,
+                statusError: undefined,
+                supportedParams: action.supportedParams
+            };
+            break;
         case storageC.STORAGE_CONFIG_SET_TYPE:
             newstate = { ...state,
-                _id: action.id, //TODO - validate id is current id
-                type: action.type };
+                storageType: action.storageType };
             break;
         case storageC.STORAGE_CONFIG_SET_PARAMS:
             newstate = { ...state,
-                _id: action.id, //TODO - validate id is current id
                 params: action.params };
             break;
         default:

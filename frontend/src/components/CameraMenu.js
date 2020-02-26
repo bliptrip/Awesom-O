@@ -30,6 +30,8 @@ import ListItemText from '@material-ui/core/ListItemText';
 import CameraAltTwoToneIcon from '@material-ui/icons/CameraAltTwoTone';
 import AddCircleTwoToneIcon from '@material-ui/icons/AddCircleTwoTone';
 import FolderOpenTwoToneIcon from '@material-ui/icons/FolderOpenTwoTone';
+import SettingsIcon from '@material-ui/icons/Settings';
+import SettingsApplicationsIcon from '@material-ui/icons/SettingsApplications';
 import SettingsApplicationsTwoToneIcon from '@material-ui/icons/SettingsApplicationsTwoTone';
 import SaveTwoToneIcon from '@material-ui/icons/SaveTwoTone';
 import {Tooltip} from '@material-ui/core/';
@@ -111,6 +113,22 @@ function CameraMenu() {
                     </ListItemIcon>
                     <ListItem button >
                         <ListItemText primary="Load Saved Settings" />
+                    </ListItem>
+                  </StyledMenuItem>
+                  <StyledMenuItem>
+                    <ListItemIcon>
+                      <SettingsIcon fontSize="large" />
+                    </ListItemIcon>
+                    <ListItem button >
+                        <ListItemText primary="Load Active Camera Current Settings" />
+                    </ListItem>
+                  </StyledMenuItem>
+                  <StyledMenuItem>
+                    <ListItemIcon>
+                      <SettingsApplicationsIcon fontSize="large" />
+                    </ListItemIcon>
+                    <ListItem button >
+                        <ListItemText primary="Apply Current Settings to Active Camera" />
                     </ListItem>
                   </StyledMenuItem>
                   <StyledMenuItem>

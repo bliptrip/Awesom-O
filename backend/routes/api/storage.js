@@ -22,6 +22,7 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 const mongoose = require('mongoose');
 const passport = require('passport');
 const router = require('express').Router();
+import {supported_types, supported_params} from '../../models/StorageConfig';
 const StorageConfig = mongoose.model('StorageConfig');
 
 const auth = require('../../lib/passport').auth;
@@ -113,6 +114,25 @@ router.get('/get/:_id', auth.sess, (req, res, next) => {
         //Strip off the parts of the user that we don't want to share
         return res.json(storage);
     });
+});
+
+router.get('/types', auth.sess, (req, res, next) => {
+    return(res.status(200).json({ types: supported_types }));
+});
+
+router.get('/types/:type', auth.sess, (req, res, next) => {
+    let stype = req.params.type;
+    if( stype in supported_params ) {
+        return(res.status(200).json({ params: supported_params[stype] }));
+    } else {
+        return(res.status(400).json({errors: {
+                                        message: "Invalid storage type: " + stype + "."
+                                    }}));
+    }
+});
+
+router.get('/params', auth.sess, (req, res, next) => {
+    return(res.status(200).json( supported_params ));
 });
 
 router.get('/remove/:_id', auth.sess, (req, res, next) => {

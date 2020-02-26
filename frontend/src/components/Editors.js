@@ -38,26 +38,26 @@ function Editors({user, project, camera, experiment, storage, route, dispatch}) 
                 <SwipeableDrawer
                   anchor="right",
                   open={user.isEditorOpen},
-                  onClose={dispatch(userEditorOpen())},
-                  onOpen={dispatch(userEditorClose())}
+                  onClose={dispatch(userSetEditorOpen(false))},
+                  onOpen={dispatch(userSetEditorOpen(true))}
                 >
-                    <UserEditor user={user}/>
+                    <UserEditor />
                 </SwipeableDrawer>
                 <SwipeableDrawer
                   anchor="right",
                   open={project.isEditorOpen},
-                  onClose={dispatch(projectEditorOpen())},
-                  onOpen={dispatch(projectEditorClose())}
+                  onClose={dispatch(projectSetEditorOpen(false))},
+                  onOpen={dispatch(projectSetEdidtorOpen(true))}
                 >
-                    <ProjectEditor project={project}/>
+                    <ProjectEditor />
                 </SwipeableDrawer>
                 <SwipeableDrawer
                   anchor="right",
                   open={camera.isEditorOpen},
-                  onClose={dispatch(cameraEditorOpen())},
-                  onOpen={dispatch(cameraEditorClose())}
+                  onClose={dispatch(cameraSetEditorOpen(false))},
+                  onOpen={dispatch(cameraEditorClose(true))}
                 >
-                    <CameraEditor camera={camera}/>
+                    <CameraEditor />
                 </SwipeableDrawer>
                 <SwipeableDrawer
                   anchor="right",

@@ -28,16 +28,12 @@ const uuidv4 = require('uuid/v4');
 const generateConfigurationEntries = (state, parentId, entry) => {
     let id = uuidv4();
     let ret = undefined;
-    state[id] = {id: id, type: entry.type, parent: parentId, label: entry.label};
+    state[id] = {id: id, parent: parentId, entry: entry, stale: true};
     switch(entry.type) {
         case 'toggle':
         case 'string':
         case 'date':
-            state[id] = {...state[id], readonly: entry.readonly, value: entry.value, changed: false}
-            ret = id;
-            break;
         case 'choice':
-            state[id] = {...state[id], readonly: entry.readonly, value: entry.value, choices: entry.choices, changed: false};
             ret = id;
             break;
         case 'section':
@@ -51,20 +47,23 @@ const generateConfigurationEntries = (state, parentId, entry) => {
     return ret;
 };
 
-const resetConfigurationChangeFlag = (entry) => {
-    switch(entry.type) {
+const resetConfigurationStaleFlag = (configs,id) => {
+    let config = {...configs[id]};
+    switch(config.entry.type) {
         case 'section':
-            entry.children.map(child => resetConfigurationChangeFlag(child));
+            config.stale = false;
+            config.children.map((cid) => resetConfigurationStaleFlag(configs,cid));
             break;
         case 'toggle':
         case 'string':
         case 'date':
         case 'choice':
-            entry.changed = false;
+            config.stale = false;
             break;
         default:
             break;
     }
+    configs[id] = config;
 }
 
 export const cameraConfigReducer = (state = {
@@ -78,6 +77,7 @@ export const cameraConfigReducer = (state = {
         deviceVersion: "",
         sn: "",
         gphoto2Config: "",
+        config: undefined,
         users: [],
         projects: []
     }, action) => {
@@ -151,7 +151,6 @@ export const cameraConfigReducer = (state = {
             newstate = {...state,
                 isFetching: false,
                 statusError: action.error
-            };
             break;
         case cameraC.CAMERA_CONFIG_REMOVE_SUCCESS:
             newstate = {...state,
@@ -190,32 +189,32 @@ export const cameraConfigReducer = (state = {
             };
             break;
         case cameraC.CAMERA_CONFIG_SET_GPHOTO2_CONFIG:
-            let newEntries = {};
-            let config     = JSON.parse(action.gphoto2Config);
+            let configs = {};
+            let rootid = generateConfigurationEntries(configs, undefined, JSON.parse(action.gphoto2Config).main);
             newstate = {...state,
                 _id: action.id,
-                gphoto2Config: action.gphoto2Config //TODO: Parse out string?
+                gphoto2Config: action.gphoto2Config,
+                configs,
+                rootid
             };
-            if( config && config.main ) {
-                newstate.config = {root: generateConfigurationEntries(newEntries, undefined, config.main), entries: newEntries}
-            }
             break;
         case cameraC.CAMERA_CONFIG_SET_EDITOR_OPEN:
-            newstate    = {...state};
-            newstate.isEditorOpen = action.open;
+            newstate    = {...state,
+                isEditorOpen: action.isEditorOpen };
             break;
         case cameraC.CAMERA_CONFIG_SET_ENTRY_VALUE:
-            newstate    = {...state};
-            newstate.config = {...newstate.config};
-            newstate.config.entries = {...newstate.config.entries};
-            newstate.config.entries[action.id].value   = action.value;
-            newstate.config.entries[action.id].changed = true;
+            newstate                                     = {...state};
+            newstate.configs                             = {...newstate.configs};
+            let config                                   = newstate.configs[action.id];
+            newstate.configs[action.id]                  = { ...config,
+                                                             entry: ...config.entry,
+                                                             stale: true};
+            newstate.configs[action.id].entry.value      = action.value; 
             break;
-        case cameraC.CAMERA_CONFIG_RESET_CHANGE_FLAG:
+        case cameraC.CAMERA_CONFIG_RESET_STALE_FLAG:
             newstate    = {...state};
-            newstate.config = {...newstate.config};
-            newstate.config.entries = {...newstate.config.entries};
-            resetConfigurationChangeFlag(newstate.config.entries[action.id]);
+            newstate.configs = {...newstate.configs};
+            resetConfigurationStaleFlag(newstate.configs, action.id);
             break;
         default:
             break;

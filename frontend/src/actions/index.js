@@ -130,6 +130,12 @@ export const userChangePasswordSuccess = (_id) => ({
     _id: _id
 });
 
+export const USER_SET_EDITOR_OPEN = 'USER_SET_EDITOR_OPEN';
+export const userChangePasswordSuccess = (open) => ({
+    type: USER_SET_EDITOR_OPEN,
+    isEditorOpen: open
+});
+
 /*
  * Fetch User Schema Data from DB
  */
@@ -351,6 +357,13 @@ export const projectSaveSuccess= (id) => ({
     id
 });
 
+export const PROJECT_SET_SHORT = "PROJECT_SET_SHORT";
+export const projectSetShort = (id, description) => ({
+    type: PROJECT_SET_DESCRIPTION,
+    id, //Project ID
+    short: description 
+});
+
 export const PROJECT_SET_DESCRIPTION = "PROJECT_SET_DESCRIPTION";
 export const projectSetDescription = (id, description) => ({
     type: PROJECT_SET_DESCRIPTION,
@@ -397,6 +410,12 @@ export const projectSetRouteConfig = (id, routeId) => ({
     type: PROJECT_SET_ROUTE_CONFIG,
     id, //Project ID
     routeId
+});
+
+export const PROJECT_SET_EDITOR_OPEN = "PROJECT_SET_EDITOR_OPEN";
+export const projectSetEditorOpen = (open) => ({
+    type: PROJECT_SET_EDITOR_OPEN,
+    isEditorOpen: open
 });
 
 /* Project thunks */
@@ -598,7 +617,7 @@ export const cameraConfigSaveSuccess = (_id) => ({
 export const CAMERA_CONFIG_SET_EDITOR_OPEN = 'CAMERA_CONFIG_SET_EDITOR_OPEN';
 export const cameraConfigSetEditorOpen = (open) => ({
     type: CAMERA_CONFIG_SET_EDITOR_OPEN,
-    open
+    isEditorOpen: open
 });
 
 export const CAMERA_CONFIG_SET_ENTRY_VALUE = 'CAMERA_CONFIG_SET_ENTRY_VALUE';
@@ -608,9 +627,9 @@ export const cameraConfigSetEntryValue = (eid,value) => ({
     value
 });
 
-export const CAMERA_CONFIG_RESET_CHANGE_FLAG = 'CAMERA_CONFIG_RESET_CHANGE_FLAG';
-export const cameraConfigResetChangeFlag = (eid) => ({
-    type: CAMERA_CONFIG_RESET_CHANGE_FLAG,
+export const CAMERA_CONFIG_RESET_STALE_FLAG = 'CAMERA_CONFIG_RESET_STALE_FLAG';
+export const cameraConfigResetStaleFlag = (eid) => ({
+    type: CAMERA_CONFIG_RESET_STALE_FLAG,
     id: eid
 });
 
@@ -717,36 +736,49 @@ export const experimentConfigFetchSuccess = (experimentConfig) => ({
 });
 
 export const EXPERIMENT_CONFIG_SET_DATETIME = 'EXPERIMENT_CONFIG_SET_DATETIME';
-export const experimentConfigSetDatetime = (id, appendDT) => ({
+export const experimentConfigSetDatetime = (appendDT) => ({
     type: EXPERIMENT_CONFIG_SET_DATETIME,
-    id,
     datetime: appendDT,
 });
 
 export const EXPERIMENT_CONFIG_SET_RENAME = 'EXPERIMENT_CONFIG_SET_RENAME';
-export const experimentConfigSetRename = (id, renameFile) => ({
+export const experimentConfigSetRename = (renameFile) => ({
     type: EXPERIMENT_CONFIG_SET_RENAME,
-    id,
     rename: renameFile,
 });
 
 export const EXPERIMENT_CONFIG_SET_IMAGE_META = 'EXPERIMENT_CONFIG_SET_IMAGE_META';
-export const experimentConfigSetImageMeta = (id, embedImageMeta) => ({
+export const experimentConfigSetImageMeta = (embedImageMeta) => ({
     type: EXPERIMENT_CONFIG_SET_IMAGE_META,
-    id,
     imageMeta: embedImageMeta,
 });
 
 export const EXPERIMENT_CONFIG_SET_FILENAME_FIELDS = 'EXPERIMENT_CONFIG_SET_FILENAME_FIELDS';
-export const experimentConfigSetFilenameFields = (id, filenameFields) => ({
+export const experimentConfigSetFilenameFields = (filenameFields) => ({
     type: EXPERIMENT_CONFIG_SET_FILENAME_FIELDS,
-    id,
     filenameFields,
+});
+
+export const EXPERIMENT_CONFIG_ADD_FILENAME_FIELD = 'EXPERIMENT_CONFIG_ADD_FILENAME_FIELD';
+export const experimentConfigAddFilenameField = (field) => ({
+    type: EXPERIMENT_CONFIG_ADD_FILENAME_FIELD,
+    field
+});
+
+export const EXPERIMENT_CONFIG_REMOVE_FILENAME_FIELD = 'EXPERIMENT_CONFIG_REMOVE_FILENAME_FIELD';
+export const experimentConfigRemoveFilenameField = (field) => ({
+    type: EXPERIMENT_CONFIG_REMOVE_FILENAME_FIELD,
+    field
+});
+
+export const EXPERIMENT_CONFIG_CLEAR_FILENAME_FIELDS = 'EXPERIMENT_CONFIG_CLEAR_FILENAME_FIELDS';
+export const experimentConfigClearFilenameFields = () => ({
+    type: EXPERIMENT_CONFIG_CLEAR_FILENAME_FIELDS
 });
 
 //Add plate
 export const EXPERIMENT_CONFIG_ADD_PLATE = 'EXPERIMENT_CONFIG_ADD_PLATE';
-export const experimentConfigAddPlate = (id,row,col,meta) => ({
+export const experimentConfigAddPlate = (row,col,meta) => ({
     type: EXPERIMENT_CONFIG_ADD_PLATE,
     row,
     col,
@@ -754,10 +786,15 @@ export const experimentConfigAddPlate = (id,row,col,meta) => ({
 });
 
 export const EXPERIMENT_CONFIG_REMOVE_PLATE = 'EXPERIMENT_CONFIG_REMOVE_PLATE';
-export const experimentConfigRemovePlate = (id, row,col) => ({
+export const experimentConfigRemovePlate = (row,col) => ({
     type: EXPERIMENT_CONFIG_REMOVE_PLATE,
     row,
     col
+});
+
+export const EXPERIMENT_CONFIG_CLEAR_PLATE_META = 'EXPERIMENT_CONFIG_CLEAR_PLATE_META';
+export const experimentConfigClearPlateMeta = () => ({
+    type: EXPERIMENT_CONFIG_CLEAR_PLATE_META,
 });
 
 export const EXPERIMENT_CONFIG_SAVE_REQUEST = 'EXPERIMENT_CONFIG_SAVE_REQUEST';
@@ -776,6 +813,12 @@ export const EXPERIMENT_CONFIG_SAVE_SUCCESS = 'EXPERIMENT_CONFIG_SAVE_SUCCESS';
 export const experimentConfigSaveSuccess = (id) => ({
     type: EXPERIMENT_CONFIG_SAVE_SUCCESS,
     id,
+});
+
+export const EXPERIMENT_CONFIG_SET_EDITOR_OPEN = 'EXPERIMENT_CONFIG_SET_EDITOR_OPEN';
+export const experimentConfigSetEditorOpen = (open) => ({
+    type: EXPERIMENT_CONFIG_SET_EDITOR_OPEN,
+    isEditorOpen: open
 });
 
 /* Experimental Configuration Thunks */
@@ -906,16 +949,14 @@ export const storageConfigFetchSuccess = (storageConfig) => ({
 });
 
 export const STORAGE_CONFIG_SET_TYPE = 'STORAGE_CONFIG_SET_TYPE';
-export const storageConfigSetType = (id, storageType) => ({
+export const storageConfigSetType = (storageType) => ({
     type: STORAGE_CONFIG_SET_TYPE,
-    id,
     storageType
 });
 
 export const STORAGE_CONFIG_SET_PARAMS = 'STORAGE_CONFIG_SET_PARAMS';
-export const storageConfigSetParams = (id, params) => ({
+export const storageConfigSetParams = (params) => ({
     type: STORAGE_CONFIG_SET_PARAMS,
-    id,
     params
 });
 
@@ -937,23 +978,46 @@ export const storageConfigSaveSuccess = (id) => ({
     id
 });
 
-export const STORAGE_TYPE_REQUEST = 'STORAGE_TYPE_REQUEST';
-export const storageTypeFetchRequest = (id) => ({
-    type: STORAGE_TYPE_REQUEST,
-    id
+export const STORAGE_CONFIG_SET_EDITOR_OPEN = 'STORAGE_CONFIG_SET_EDITOR_OPEN';
+export const storageConfigSetEditorOpen = (open) => ({
+    type: STORAGE_CONFIG_SET_EDITOR_OPEN,
+    isEditorOpen: open 
 });
 
-export const STORAGE_TYPE_ERROR = 'STORAGE_TYPE_ERROR';
-export const storageTypeFetchError = (error) => ({
-    type: STORAGE_TYPE_ERROR,
+export const STORAGE_CONFIG_GET_SUPPORTED_TYPES_REQUEST = 'STORAGE_CONFIG_GET_SUPPORTED_TYPES_REQUEST';
+export const storageConfigGetSupportedTypesRequest = () => ({
+    type: STORAGE_CONFIG_GET_SUPPORTED_TYPES_REQUEST
+});
+
+export const STORAGE_CONFIG_GET_SUPPORTED_TYPES_ERROR = 'STORAGE_CONFIG_GET_SUPPORTED_TYPES_ERROR';
+export const storageConfigGetSupportedTypesError = (error) => ({
+    type: STORAGE_CONFIG_GET_SUPPORTED_TYPES_ERROR,
     error
 });
 
-export const STORAGE_TYPE_SUCCESS = 'STORAGE_TYPE_SUCCESS';
-export const storageTypeFetchSuccess = (storageType) => ({
-    type: STORAGE_TYPE_SUCCESS,
-    storageType
+export const STORAGE_CONFIG_GET_SUPPORTED_TYPES_SUCCESS = 'STORAGE_CONFIG_GET_SUPPORTED_TYPES_SUCCESS';
+export const storageConfigGetSupportedTypesSuccess = (types) => ({
+    type: STORAGE_CONFIG_GET_SUPPORTED_TYPES_SUCCESS,
+    supportedTypes: types
 });
+
+export const STORAGE_CONFIG_GET_SUPPORTED_PARAMS_REQUEST = 'STORAGE_CONFIG_GET_SUPPORTED_PARAMS_REQUEST';
+export const storageConfigGetSupportedParamsRequest = () => ({
+    type: STORAGE_CONFIG_GET_SUPPORTED_PARAMS_REQUEST
+});
+
+export const STORAGE_CONFIG_GET_SUPPORTED_PARAMS_ERROR = 'STORAGE_CONFIG_GET_SUPPORTED_PARAMS_ERROR';
+export const storageConfigGetSupportedParamsError = (error) => ({
+    type: STORAGE_CONFIG_GET_SUPPORTED_PARAMS_ERROR,
+    error
+});
+
+export const STORAGE_CONFIG_GET_SUPPORTED_PARAMS_SUCCESS = 'STORAGE_CONFIG_GET_SUPPORTED_PARAMS_SUCCESS';
+export const storageConfigGetSupportedParamsSuccess = (params) => ({
+    type: STORAGE_CONFIG_GET_SUPPORTED_PARAMS_SUCCESS,
+    supportedParams: params 
+});
+
 
 /* StorageConfig Thunks */
 export const storageConfigCreate = (userId, projectId, templateId = undefined) => dispatch => {
@@ -1021,6 +1085,40 @@ export const storageConfigRemove = (_id,userId,projectId) => dispatch => {
         .then(json => dispatch(storageConfigRemoveSuccess(json._id))));
 }
 
+export const storageConfigGetSupportedTypes = () => dispatch => {
+    dispatch(storageConfigGetSupportedTypesRequest());
+    return(fetchAwesomO({url: '/api/storage/types'})
+    .then( response => response.json(),
+        // Do not use catch, because that will also catch
+        // any errors in the dispatch and resulting render,
+        // causing a loop of 'Unexpected batch number' errors.
+        // https://github.com/facebook/react/issues/6895
+        error => dispatch(storageConfigGetSupportedTypesError(error))
+    )
+    .then(types =>
+        // We can dispatch many times!
+        // Here, we update the app state with the results of the API call.
+        dispatch(storageConfigGetSupportedTypesSuccess(types))
+    ));
+}
+
+export const storageConfigGetSupportedParams = () => dispatch => {
+    dispatch(storageConfigGetSupportedParamsRequest());
+    return(fetchAwesomO({url: '/api/storage/params'})
+    .then( response => response.json(),
+        // Do not use catch, because that will also catch
+        // any errors in the dispatch and resulting render,
+        // causing a loop of 'Unexpected batch number' errors.
+        // https://github.com/facebook/react/issues/6895
+        error => dispatch(storageConfigGetSupportedParamsError(error))
+    )
+    .then(params =>
+        // We can dispatch many times!
+        // Here, we update the app state with the results of the API call.
+        dispatch(storageConfigGetSupportedParamsSuccess(params))
+    ));
+}
+
 /*
  * Route configuration
  */
@@ -1060,61 +1158,58 @@ export const routeConfigFetchSuccess = (routeConfig) => ({
 });
 
 export const ROUTE_CONFIG_SET_INTERPLATE_DELAY = 'ROUTE_CONFIG_SET_INTERPLATE_DELAY';
-export const routeConfigSetInterplateDelay = (_id, seconds) => ({
-    _id,
+export const routeConfigSetInterplateDelay = (seconds) => ({
     type: ROUTE_CONFIG_SET_INTERPLATE_DELAY,
     seconds
 });
 
 export const ROUTE_CONFIG_SET_LOOP_DELAY = 'ROUTE_CONFIG_SET_LOOP_DELAY';
-export const routeConfigSetLoopDelay = (_id, seconds) => ({
-    _id,
+export const routeConfigSetLoopDelay = (seconds) => ({
     type: ROUTE_CONFIG_SET_LOOP_DELAY,
     seconds
 });
 
 export const ROUTE_CONFIG_SET_STEPS_PER_CM_X = 'ROUTE_CONFIG_SET_STEPS_PER_CM_X';
-export const routeConfigSetStepsPerCmX = (_id, steps) => ({
-    _id,
+export const routeConfigSetStepsPerCmX = (steps) => ({
     type: ROUTE_CONFIG_SET_STEPS_PER_CM_X,
     steps
 });
 
 export const ROUTE_CONFIG_SET_STEPS_PER_CM_Y = 'ROUTE_CONFIG_SET_STEPS_PER_CM_Y';
-export const routeConfigSetStepsPerCmY = (_id, steps) => ({
-    _id,
+export const routeConfigSetStepsPerCmY = (steps) => ({
     type: ROUTE_CONFIG_SET_STEPS_PER_CM_Y,
     steps
 });
 
 export const ROUTE_CONFIG_SET_DISTANCE_X = 'ROUTE_CONFIG_SET_DISTANCE_X';
-export const routeConfigSetDistanceX = (_id, plateDistanceX) => ({
-    _id,
+export const routeConfigSetDistanceX = (plateDistanceX) => ({
     type: ROUTE_CONFIG_SET_DISTANCE_X,
     plateDistanceX
 });
 
 export const ROUTE_CONFIG_SET_DISTANCE_Y = 'ROUTE_CONFIG_SET_DISTANCE_Y';
-export const routeConfigSetDistanceY = (_id, plateDistanceY) => ({
-    _id,
+export const routeConfigSetDistanceY = (plateDistanceY) => ({
     type: ROUTE_CONFIG_SET_DISTANCE_Y,
     plateDistanceY
 });
 
 export const ROUTE_CONFIG_ADD_ROUTE = 'ROUTE_CONFIG_ADD_ROUTE';
-export const routeConfigAddRoute = (_id, row, col) => ({
-    _id,
+export const routeConfigAddRoute = (row, col) => ({
     type: ROUTE_CONFIG_ADD_ROUTE,
     row,
     col
 });
 
 export const ROUTE_CONFIG_REMOVE_ROUTE = 'ROUTE_CONFIG_REMOVE_ROUTE';
-export const routeConfigRemoveRoute = (_id, row, col) => ({
-    _id,
+export const routeConfigRemoveRoute = (row, col) => ({
     type: ROUTE_CONFIG_REMOVE_ROUTE,
     row,
     col
+});
+
+export const ROUTE_CONFIG_CLEAR_ROUTE = 'ROUTE_CONFIG_CLEAR_ROUTE';
+export const routeConfigClearRoute = () => ({
+    type: ROUTE_CONFIG_CLEAR_ROUTE
 });
 
 export const ROUTE_CONFIG_SAVE_REQUEST = 'ROUTE_CONFIG_SAVE_REQUEST';
@@ -1151,6 +1246,17 @@ export const ROUTE_CONFIG_REMOVE_SUCCESS = 'ROUTE_CONFIG_REMOVE_SUCCESS';
 export const routeConfigRemoveSuccess = (_id) => ({
     _id,
     type: ROUTE_CONFIG_REMOVE_SUCCESS
+});
+
+export const ROUTE_CONFIG_RESET_STALE_FLAG = 'ROUTE_CONFIG_RESET_STALE_FLAG';
+export const routeConfigResetStaleFlag = () => ({
+    type: ROUTE_CONFIG_RESET_STALE_FLAG
+});
+
+export const ROUTE_CONFIG_SET_EDITOR_OPEN = 'ROUTE_CONFIG_SET_EDITOR_OPEN';
+export const routeConfigSetEditorOpen = (open) => ({
+    type: ROUTE_CONFIG_SET_EDITOR_OPEN,
+    isEditorOpen: open
 });
 
 /* Route thunks */

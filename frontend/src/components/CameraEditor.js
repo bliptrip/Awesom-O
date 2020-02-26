@@ -20,7 +20,17 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 import React from 'react';
 import {connect} from 'react-redux';
-import { makeStyles } from '@material-ui/core/styles';
+import {cameraConfigSetEntryValue} from '../actions';
+
+import Checkbox from '@material-ui/core/Checkbox';
+import Divider from '@material-ui/core/Divider';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
+import makeStyles from '@material-ui/core/styles';
+import MenuItem from '@material-ui/core/MenuItem';
+import Select from '@material-ui/core/Select';
+import TextField from '@material-ui/core/TextField';
 
 const useStyles = makeStyles({
       list: {
@@ -31,237 +41,250 @@ const useStyles = makeStyles({
             },
 });
 
+const mapCameraConfigurationSettingsChildrenStateToProps  = (state,ownprops) => ({config: state.camera.configs[ownprops.id]});
+const mapCameraConfigurationSettingsChildrenStateDispatchToProps = (dispatch) => ({
+    setValue: (id, value) => cameraConfigSetEntryValue(id,value)
+});
 
-function CameraConfigurationSettingsToggle(props) {
-    let disabled = props.entry.readonly ? {"disabled": "disabled"} : {};
+const preconnect = connect({mapStateToProps: mapCameraConfigurationSettingsChildrenStateToProps, mapDispatchToProps: mapCameraConfigurationSettingsChildrenStateDispatchToProps});
 
-    function toggleCheckbox(event, entry) {
-        entry.value = (event.target.checked) ? 2 : 0;
-        props.setValue(entry.id, entry.value);
+const CameraConfigurationSettingsToggle = ({config, setValue}) => {
+    let disabled = config.entry.readonly ? {"disabled": "disabled"} : {};
+
+    function toggleCheckbox(event) {
+        let newvalue = (event.target.checked) ? 2 : 0;
+        setValue(config.id, newvalue);
     }
 
     return (
-        <div class={props.entry.changed ? "has-background-warning" : ""}>
-            <label class="checkbox">
-                <input type="checkbox" checked={props.entry.value} onChange={(e) => {toggleCheckbox(e, props.entry)}} {...disabled}/>
-                <strong>{props.entry.label}</strong>
-            </label>
-        </div>
+        <ListItem>
+            <ListItemText primary={config.entry.label} />
+            <Checkbox checked={config.entry.value ? true : false} color={config.stale ? "secondary" : "primary"}  onChange={(e) => {toggleCheckbox(e)}} {...disabled} />
+        </ListItem>
     );
 }
+const DynCameraConfigurationSettingsToggle = preconnect(CameraConfigurationSettingsToggle);
 
-function CameraConfigurationSettingsChoice(props) {
-    let disabled = props.entry.readonly ? {"disabled": "disabled"} : {};
+const CameraConfigurationSettingsChoice = ({config, setValue}) => {
+    let disabled = config.entry.readonly ? {"disabled": "disabled"} : {};
 
-    function changeSelectChoice(event, entry) {
-        entry.value = event.target.value;
-        props.setValue(entry.id, entry.value);
+    function changeSelectChoice(event) {
+        let newvalue  = event.target.value;
+        setValue(config.id, newvalue);
     }
 
     return (
-        <div class={props.entry.changed ? "has-background-warning" : ""}>
-            <label><strong>{props.entry.label}</strong>:</label>
-            <div class="select">
-                <select value={props.entry.value} onChange={(e) => {changeSelectChoice(e, props.entry)}} {...disabled}>
-                    {props.entry.choices.map((c) => (<option>{c}</option>))}
-                </select>
-            </div>
-        </div>
+        <ListItem>
+            <Select
+                value={config.entry.value}
+                onChange={(e) => {changeSelectChoice(e)}}
+                {...disabled}
+                color={config.stale ? "secondary" : "primary"}
+                label={config.entry.label}
+            >
+                {config.entry.choices.map((c) => (<MenuItem value={c}>{c}</MenuItem>))}
+            </Select>
+        </ListItem>
     );
 }
+const DynCameraConfigurationSettingsChoice = preconnect(CameraConfigurationSettingsChoice);
 
-function CameraConfigurationSettingsString(props) {
-    let disabled = props.entry.readonly ? {"disabled": "disabled"} : {};
-
-    function changeText(event, entry) {
-        entry.value = event.target.value;
-        props.setValue(entry.id, entry.value);
+const CameraConfigurationSettingsString = ({config, setValue}) => {
+    function changeText(event) {
+        let newvalue = event.target.value;
+        setValue(config.id, newvalue);
     }
 
     return (
-        <div class={props.entry.changed ? "has-background-warning" : ""}>
-            <label><strong>{props.entry.label}</strong>:</label>
-            <input type="text" placeholder={props.entry.value} value={props.entry.value} onInput={(e) => changeText(e,props.entry)} {...disabled} />
-        </div>
+        <ListItem>
+            <TextField 
+                color={config.stale ? "secondary" : "primary"} 
+                InputProps={{readOnly: config.entry.readonly}}
+                label={config.entry.label} 
+                value={config.entry.value}
+                onChange={(e) => {changeText(e)}}/>
+        </ListItem>
     );
 }
+const DynCameraConfigurationSettingsString = preconnect(CameraConfigurationSettingsString);
 
-
-function CameraConfigurationSettingsDateTime(props) {
-    let disabled = props.entry.readonly ? {"disabled": "disabled"} : {};
-
+const CameraConfigurationSettingsDateTime = ({config, setValue}) => {
     function changeDateTime(event, entry) {
-        entry.value = event.target.value;
-        props.setValue(entry.id, event.target.value);
+        let newvalue = event.target.value;
+        setValue(config.id, newvalue);
     }
 
     return (
-        <div class={props.entry.changed ? "has-background-warning" : ""}>
-            <label><strong>{props.entry.label}</strong>:</label>
-            <input type="datetime-local" value={props.entry.value} onInput={(e) => {changeDateTime(e,props.entry)}} {...disabled} />
-        </div>
+        <ListItem>
+            <TextField 
+                color={config.stale ? "secondary" : "primary"} 
+                InputProps={{readOnly: config.entry.readonly, type: 'datetime-local'}} 
+                label={config.entry.label} 
+                value={config.entry.value} />
+        </ListItem>
     );
 }
+const DynCameraConfigurationSettingsDateTime = preconnect(CameraConfigurationSettingsDateTime); 
 
-function CameraConfigurationSettings({config, setValue}) {
-    function generateCameraSettingsTag(entry) {
-        switch(entry.type) {
+const CameraConfigurationSettings = ({gphoto2config, configs, rootid}) => {
+    function generateCameraSettingsTag(config) {
+        switch(config.entry.type) {
             case 'toggle':
                 return(
-                    <CameraConfigurationSettingsToggle entry={entry} setValue={setValue} />
+                    <DynCameraConfigurationSettingsToggle id=config.id />
                 );
                 break;
             case 'choice':
                 return(
-                    <CameraConfigurationSettingsChoice entry={entry} setValue={setValue} />
+                    <DynCameraConfigurationSettingsChoice id=config.id />
                 );
                 break;
             case 'string':
                 return( 
-                    <CameraConfigurationSettingsString entry={entry} setValue={setValue} />
+                    <DynCameraConfigurationSettingsString id=config.id />
                 );
                 break;
             case 'date':
                 return(
-                    <CameraConfigurationSettingsDateTime entry={entry} setValue={setValue} />
+                    <DynCameraConfigurationSettingsDateTime id=config.id />
                 );
+                break;
             case 'section':
                 return(
-                    <React.Fragment>
-                        <h1 class="is-1">{entry.label}</h1>
-                        <div class="box">
-                            { (entry.children).map(id => (generateCameraSettingsTag(config.entries[id]))) }
-                        </div>
-                    </React.Fragment>
+                    <List>
+                        <Divider />
+                        <ListItem>
+                            <ListItemText
+                                primary={entry.label}
+                            />
+                        </ListItem>
+                        { (configs[config.id].children).map(id => (generateCameraSettingsTag(configs[id]))) }
+                    </List>
                 );
                 break;
             default:
                 return(
-                    <div>
-                        <p>Invalid Entry</p>
-                    </div>
+                    <ListItem>
+                        <ListItemText
+                            primary='Invalid Entry'
+                        />
+                    </ListItem>
                 );
                 break;
         }
     }
 
     return( 
-        <div class="container">
-            { config.root && config.entries[config.root].children.map((id) => (generateCameraSettingsTag(config.entries[id]))) }
+        <div>
+            {generateCameraSettingsTag(configs[rootid]))) }
         </div>
     );
 }
 
-function CameraConfigurationPanel({config, resetCameraConfigurationChangeFlag, receiveConfiguration, setValue}) {
-    const [token, setToken]      = useState(cookie.load('token'));
+const mapCameraConfigurationSettingsStateToProps = (state) => {
+    gphoto2Config: state.camera.gphoto2Config
+}
 
-    function loadCurrentCameraConfiguration() {
-        fetch("/camera/settings", {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Token " + token,
-            }
-        })
-        .then(res => {
-            if ((res.status == 401) && (res.statusText == "Unauthorized")) {
-                return null;
-            } else {
-                return(res.json());
-            }
-        })
-        .then(myJson => {
-            console.log(JSON.stringify(myJson));
-            if( myJson ) {
-                receiveConfiguration(myJson);
-            }
-        });
-    }
+const DynCameraConfigurationSettings = connect({mapStateToProps: mapCameraConfigurationSettingsStateToProps})(CameraConfigurationSettings); 
 
-    function setCurrentCameraConfiguration() {
-        Object.entries(config.entries)
-                .filter(
-                    e => e[1].changed
-                )
-                .forEach( e => {
-                    let body = {name: e[1].label,
-                                value: e[1].value  };
-                    fetch("/camera/settings", {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Authorization": "Token " + token,
-                        },
-                        body: JSON.stringify(body),
-                    })
-                    .then(res => { 
-                        if (res.status === 200) {
-                            resetCameraConfigurationChangeFlag(e[0]);
-                        }
-                    });
+function loadCurrentCameraConfiguration() {
+    fetch("/camera/settings", {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Token " + token,
+        }
+    })
+    .then(res => {
+        if ((res.status == 401) && (res.statusText == "Unauthorized")) {
+            return null;
+        } else {
+            return(res.json());
+        }
+    })
+    .then(myJson => {
+        console.log(JSON.stringify(myJson));
+        if( myJson ) {
+            receiveConfiguration(myJson);
+        }
+    });
+}
+
+function setCurrentCameraConfiguration() {
+    Object.entries(config.entries)
+            .filter(
+                e => e[1].stale
+            )
+            .forEach( e => {
+                let body = {name: e[1].label,
+                            value: e[1].value  };
+                fetch("/camera/settings", {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Token " + token,
+                    },
+                    body: JSON.stringify(body),
+                })
+                .then(res => { 
+                    if (res.status === 200) {
+                        resetCameraConfigurationChangeFlag(e[0]);
+                    }
                 });
-    }
-
-    return(
-        <div class="content">
-            <nav class='level'>
-                <div class='level-item level-left'>
-                    <span>
-                        <a href="#" class="button tooltip" data-tooltip="Load Camera Settings from attached Camera" onClick={loadCurrentCameraConfiguration}>
-                            <span class="icon is-large">
-                                <i class="fas fa-2x fa-download"></i>
-                            </span>
-                            <p>Download Settings</p>
-                        </a>
-                        <a href="#" class="button tooltip" data-tooltip="Apply Current Settings to attached Camera" onClick={setCurrentCameraConfiguration}>
-                            <span class="icon is-large">
-                                <i class="fas fa-2x fa-upload"></i>
-                            </span>
-                            <p>Upload Settings</p>
-                        </a>
-                    </span>
-                </div>
-            </nav>
-            <CameraConfigurationSettings config={config} setValue={setValue} />
-        </div>
-    )
-};
-
-function GPhotoEditor({gphoto2Config}) {
-    let config=JSON.parse(gphoto2Config);
-
-    return (
-    );
+            });
 }
 
-function CameraEditor({camera}) {
+
+function CameraEditor({cshort, cdescription, cmanufacturer, cmodel, cdeviceVersion, csn, configs, rootid}) {
     const classes = useStyles();
 
     return (
         <div
             className={classes.fullList}
             role="presentation"
-            onClick={closeDrawer(setEditorOpen)}
-            onKeyDown={closeDrawer(setEditorOpen)}
+            onClick={closeDrawer}
+            onKeyDown={closeDrawer}
         >
-            <TextField label="Short Description" onChange={setShort} value={camera.short} />
-            <TextField label="Description" onChange={setDescription} value={camera.description} />
-            <TextField label="Manufacturer" disabled=true value={camera.manufacturer} />
-            <TextField label="Model" disabled=true value={camera.model} />
-            <TextField label="Version" disabled=true value={camera.deviceVersion} />
-            <TextField label="Serial Number" disabled=true value={camera.sn} />
-            <GPhotoEditor config={camera.config} />
+            <List>
+                <ListItem>
+                    <TextField label="Short Description" onChange={setShort} value={cshort} />
+                </ListItem>
+                <ListItem>
+                    <TextField label="Description" onChange={setDescription} value={cdescription} />
+                </ListItem>
+                <ListItem>
+                    <TextField label="Manufacturer" disabled=true value={cmanufacturer} />
+                </ListItem>
+                <ListItem>
+                    <TextField label="Model" disabled=true value={cmodel} />
+                </ListItem>
+                <ListItem>
+                    <TextField label="Version" disabled=true value={cdeviceVersion} />
+                </ListItem>
+                <ListItem>
+                    <TextField label="Serial Number" disabled=true value={csn} />
+                </ListItem>
+                <Divider />
+                <ListItem>
+                    <DynCameraConfigurationSettings configs={configs} rootid={rootid} />
+                </ListItem>
+            </List>
         </div>
     );
 }
 
 const mapStateToProps = (state) => ({
-    camera: state.camera
+    cshort: state.camera.short,
+    cdescription: state.camera.description,
+    cmanufacturer: state.camera.manufacturer,
+    cmodel: state.camera.model,
+    cdeviceVersion: state.camera.deviceVersion,
+    csn: state.camera.sn,
+    configs: state.camera.configs,
+    rootid: state.camera.rootid
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    changeValue: (eid,value) => dispatch(cameraConfigSetEntryValue(eid,event.target.value)),
-    resetChangeFlag: (eid) => dispatch(cameraConfigSetEntryValue(eid)),
     closeDrawer: (event) => ({
         if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
             return;
@@ -270,11 +293,6 @@ const mapDispatchToProps = (dispatch) => ({
     }),
     setShort: (event) => dispatch(cameraConfigSetShort(event.target.value)),
     setDescription: (event) => dispatch(cameraConfigSetShort(event.target.value)),
-    setManufacturer: (event) => dispatch(cameraConfigSetManufacturer(event.target.value)),
-    setModel: (event) => dispatch(cameraConfigSetModel(event.target.value)),
-    setVersion: (event) => dispatch(cameraConfigSetVersion(event.target.value)),
-    setSerial: (event) => dispatch(cameraConfigSetSerial(event.target.value)),
-    setGphoto2Config: (event) => dispatch(cameraConfigSetGphoto2Config(event.target.value))
 });
 
 export default connect(mapStateToProps,mapDispatchToProps)(CameraEditor);

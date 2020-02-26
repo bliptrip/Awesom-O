@@ -20,7 +20,7 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 import * as routeC from '../actions';
 
-export const route = (state = {}, action) => {
+export const route = (state = {isEditorOpen: false}, action) => {
     let newstate = state;
     switch( action.type ) {
         case routeC.ROUTE_CONFIG_REMOVE_REQUEST:
@@ -123,14 +123,16 @@ export const route = (state = {}, action) => {
             };
             break;
         case routeC.ROUTE_CONFIG_ADD_ROUTE:
-            newstate = { ...state,
-                _id: action.routeConfig._id }; //TODO: validate id
+            newstate = { ...state };
             newstate.route.push({row: action.routeConfig.row, col: action.routeConfig.col});
             break;
         case routeC.ROUTE_CONFIG_REMOVE_ROUTE:
-            newstate = { ...state,
-                _id: action.routeConfig._id }; //TODO: validate id
+            newstate = { ...state };
             newstate.route = newstate.route.filter( (e) => ((e.row !== action.row) && (e.col !== action.col)) );
+            break;
+        case routeC.ROUTE_CONFIG_CLEAR_ROUTE:
+            newstate = { ...state,
+                         route: [] };
             break;
         case routeC.ROUTE_CONFIG_SAVE_REQUEST:
             newstate = { ...state,
@@ -149,6 +151,15 @@ export const route = (state = {}, action) => {
                 areSaving: false,
                 _id: action.id };
             break;
+        case routeC.ROUTE_CONFIG_RESET_STALE_FLAG:
+            newstate = { ...state,
+                stale: false };
+            break;
+        case routeC.ROUTE_CONFIG_SET_EDITOR_OPEN:
+            newstate = { ...state,
+                isEditorOpen: action.isEditorOpen };
+            break;
+
         default:
             break;
     }

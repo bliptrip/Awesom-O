@@ -24,19 +24,27 @@ const mongoose = require('mongoose');
 const {Schema} = mongoose;
 
 //Right now only support local paths
-const supported_types = [ 'fs' ];
-const supported_params = { 'fs': ['path'] }
+export const supported_types = [ 'fs' ];
+export const supported_params = { 'fs': [{'path': 'String'}] }
 
-const StorageTypeSchema = new Schema({
-    version: Number, //Table Version ID
-    description: String, //Description
-    type: String, //Storage type -- fs , box.com, dropbox.com, google drive, etc.
-});
+mongoose.model('StorageType', StorageTypeSchema);
 
 const StorageConfigSchema = new Schema({
     version: Number, //Table Version ID
-    type: {type: Schema.Types.ObjectId, ref: "StorageType"}, //Storage type -- local, box.com, dropbox.com, google drive, etc.
-    params: {type: Map, of: String}, //representation of parameters specific to each supported type of storage -- only support local storage for now
+    storageType: {
+        type: String, //Storage type -- fs , box.com, dropbox.com, google drive, etc.
+        enum: supported_types,
+        required: true },
+    params: {
+        type: Map, 
+        validate: {
+            validator: function(v) {
+                        let validKeys = Object.keys(supported_params[this.storageType]);
+                        return( Object.keys(v) in validKeys );
+            },
+            message: props => `${props.value} are not valid paramers for this storage type`
+        },
+        of: String }, //representation of parameters specific to each supported type of storage -- only support local storage for now
     users: [{type: Schema.Types.ObjectId, ref: 'Users'}], //Users with access to this StorageConfig
     projects: [{type: Schema.Types.ObjectId, ref: 'Projects'}] //Projects with access to this StorageConfig
 });
@@ -52,5 +60,4 @@ StorageConfigSchema.methods.saveFile = (filename, data) => {
     return;
 }
 
-mongoose.model('StorageType', StorageTypeSchema);
 mongoose.model('StorageConfig', StorageConfigSchema);
