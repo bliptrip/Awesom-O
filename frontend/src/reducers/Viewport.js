@@ -18,20 +18,19 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
+import * as viewportC from '../actions';
 
 const viewport = (state = {}, action) => {
-    let newstate = {...state};
+    let newstate = state;
     switch( action.type ) {
-        case "RECEIVE_CURRENT_PICTURE":
-            newstate.src = action.src;
-            return newstate;
+        case viewportC.VIEWPORT_SET_CURRENT_PICTURE:
+            newstate = {...state,
+                        src: action.src};
+            break;
         default:
-            return state;
+            break;
     }
+    return(newstate);
 }
 
 export default viewport;
-
-export const getViewportImage = (state) => {
-    return state.src;
-}

@@ -152,7 +152,7 @@ router.get('/capture', auth.sess, (req, res, next) => {
                 console.log("Capture FS Path: " + path + "/" + imageName);
                 edata = encodeImage(data);
                 wss.broadcast(edata);
-                return res.status(200);
+                return res.sendStatus(200);
             }
         });
     } else {
@@ -167,7 +167,7 @@ router.get('/capture', auth.sess, (req, res, next) => {
             } else {
                 let edata = encodeImage(data);
                 wss.broadcast(edata);
-                return res.status(200);
+                return res.sendStatus(200);
             }
         });
     }

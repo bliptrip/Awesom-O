@@ -21,11 +21,11 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 
 const WebSocket      = require('ws');
 
-var wss = undefined;
+export var wss;
 
-const init = (server) => {
+export const init = (server) => {
     //Initialize WebSocket server instance
-    const wss = new WebSocket.Server({server: server});
+    wss = new WebSocket.Server({server: server});
 
     // Broadcast preview image to all connected clients.
     wss.broadcast = function broadcast(data) {
@@ -48,4 +48,3 @@ const init = (server) => {
     });
 };
 
-module.exports = {init, wss};
