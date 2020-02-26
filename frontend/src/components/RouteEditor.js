@@ -161,4 +161,4 @@ const mapDispatchToProps = (dispatch) => {
     setDistanceY: (distance) => dispatch(routeConfigSetDistanceY(distance))
 }
 
-export default connect(mapStateToProps,mapDispatchToProps)(RouteEditor);
+export default connect()(RouteEditor);
