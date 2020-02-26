@@ -26,7 +26,6 @@ import Paper from "paper";
 import React, {useState} from 'react';
 import cookie from 'react-cookies';
 import { connect } from 'react-redux';
-import { getControllerStatus, getViewportImage } from '../reducers';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import { fetchAwesomO } from '../lib/fetch.js';
 
@@ -295,8 +294,8 @@ function Viewport(props)  {
 };
 
 const mapStateToProps = state => ({
-    controllerStatus: getControllerStatus(state),
-    imageSrc: getViewportImage(state),
+    controllerStatus: state.controller.status,
+    imageSrc: state.viewport.src
 });
 
 const mapDispatchToProps = dispatch => ({

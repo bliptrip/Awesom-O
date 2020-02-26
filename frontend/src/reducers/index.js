@@ -20,7 +20,6 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
 import {cameraConfigReducer} from './CameraConfig';
-import * as fromCameraConfiguration from './CameraConfig';
 import {experiment} from './ExperimentConfig';
 import {project} from './Projects';
 import {route} from './RouteConfig';
@@ -42,8 +41,3 @@ const rootReducer = combineReducers({
 });
 
 export default rootReducer;
-
-export const getControllerStatus = (state) => fromController.getControllerStatus(state.controller);
-export const getControllerLocation = (state) => fromController.getControllerLocation(state.controller);
-export const getViewportImage = (state) => fromViewport.getViewportImage(state.viewport);
-export const getCameraConfigurationEntries = (state) => fromCameraConfiguration.getCameraConfigurationEntries(state.cameraConfiguration);

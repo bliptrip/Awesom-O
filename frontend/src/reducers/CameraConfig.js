@@ -150,7 +150,8 @@ export const cameraConfigReducer = (state = {
         case cameraC.CAMERA_CONFIG_REMOVE_ERROR:
             newstate = {...state,
                 isFetching: false,
-                statusError: action.error
+                statusError: action.error 
+            };
             break;
         case cameraC.CAMERA_CONFIG_REMOVE_SUCCESS:
             newstate = {...state,
@@ -200,15 +201,17 @@ export const cameraConfigReducer = (state = {
             break;
         case cameraC.CAMERA_CONFIG_SET_EDITOR_OPEN:
             newstate    = {...state,
-                isEditorOpen: action.isEditorOpen };
+                isEditorOpen: action.isEditorOpen 
+            };
             break;
         case cameraC.CAMERA_CONFIG_SET_ENTRY_VALUE:
             newstate                                     = {...state};
             newstate.configs                             = {...newstate.configs};
             let config                                   = newstate.configs[action.id];
             newstate.configs[action.id]                  = { ...config,
-                                                             entry: ...config.entry,
-                                                             stale: true};
+                                                             stale: true
+            };
+            newstate.configs[action.id].entry            = {...config.entry};
             newstate.configs[action.id].entry.value      = action.value; 
             break;
         case cameraC.CAMERA_CONFIG_RESET_STALE_FLAG:

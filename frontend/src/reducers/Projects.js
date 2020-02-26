@@ -114,7 +114,7 @@ export const project = (state = {isEditorOpen: false}, action) => {
                 isEditorOpen: action.isEditorOpen
             };
             break;
-        case PROJECT_SET_CAMERA_CONFIG:
+        case projectC.PROJECT_SET_CAMERA_CONFIG:
             newstate = { ...state,
                 cameraId: action.cameraId
             };

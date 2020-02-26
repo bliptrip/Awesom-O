@@ -131,7 +131,7 @@ export const userChangePasswordSuccess = (_id) => ({
 });
 
 export const USER_SET_EDITOR_OPEN = 'USER_SET_EDITOR_OPEN';
-export const userChangePasswordSuccess = (open) => ({
+export const userSetEditorOpen = (open) => ({
     type: USER_SET_EDITOR_OPEN,
     isEditorOpen: open
 });

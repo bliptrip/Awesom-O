@@ -27,8 +27,6 @@ const {Schema} = mongoose;
 export const supported_types = [ 'fs' ];
 export const supported_params = { 'fs': [{'path': 'String'}] }
 
-mongoose.model('StorageType', StorageTypeSchema);
-
 const StorageConfigSchema = new Schema({
     version: Number, //Table Version ID
     storageType: {
