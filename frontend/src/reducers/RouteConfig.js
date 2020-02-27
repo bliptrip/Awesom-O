@@ -20,7 +20,9 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 import * as routeC from '../actions';
 
-export const route = (state = {isEditorOpen: false}, action) => {
+export const route = (state = {
+                                isEditorOpen: false,
+                                route: [] }, action) => {
     let newstate = state;
     switch( action.type ) {
         case routeC.ROUTE_CONFIG_REMOVE_REQUEST:

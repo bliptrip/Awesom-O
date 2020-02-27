@@ -116,11 +116,11 @@ router.get('/get/:_id', auth.sess, (req, res, next) => {
     });
 });
 
-router.get('/types', auth.sess, (req, res, next) => {
+router.get('/types', (req, res, next) => {
     return(res.status(200).json({ types: supported_types }));
 });
 
-router.get('/types/:type', auth.sess, (req, res, next) => {
+router.get('/types/:type', (req, res, next) => {
     let stype = req.params.type;
     if( stype in supported_params ) {
         return(res.status(200).json({ params: supported_params[stype] }));
@@ -131,7 +131,7 @@ router.get('/types/:type', auth.sess, (req, res, next) => {
     }
 });
 
-router.get('/params', auth.sess, (req, res, next) => {
+router.get('/params', (req, res, next) => {
     return(res.status(200).json( supported_params ));
 });
 

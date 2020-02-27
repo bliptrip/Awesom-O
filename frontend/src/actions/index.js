@@ -1160,7 +1160,7 @@ export const storageConfigGetSupportedTypes = () => dispatch => {
     .then(types =>
         // We can dispatch many times!
         // Here, we update the app state with the results of the API call.
-        dispatch(storageConfigGetSupportedTypesSuccess(types))
+        dispatch(storageConfigGetSupportedTypesSuccess(types.types))
     ));
 }
 

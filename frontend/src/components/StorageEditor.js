@@ -38,9 +38,7 @@ import parse from 'csv-parse';
 
 import {storageConfigSetEditorOpen,
         storageConfigSetType,
-        storageConfigSetParams,
-        storageConfigGetSupportedTypes,
-        storageConfigGetSupportedParams } from '../actions';
+        storageConfigSetParams} from '../actions';
 
 const useStyles = makeStyles({
     list: {
@@ -51,13 +49,10 @@ const useStyles = makeStyles({
     }
 });
 
-function StorageEditor({closeDrawer, storageType, params, supportedTypes, supportedParams, setType, setParams, getSupportedTypes, getSupportedParams}) {
+function StorageEditor({closeDrawer, storageType, params, supportedTypes, supportedParams, setType, setParams}) {
     const classes = useStyles();
     let disableOptions = (!supportedTypes || (supportedTypes === [])) ? "disabled" : "";
     let sparams = {};
-    getSupportedTypes();
-    getSupportedParams();
-
     if( storageType ) {
         sparams = supportedParams[storageType];
     }
@@ -130,9 +125,7 @@ const mapDispatchToProps = (dispatch) => ({
         dispatch(storageConfigSetEditorOpen(false));
     },
     setType: (type) => dispatch(storageConfigSetType(type)),
-    setParams: (params) => dispatch(storageConfigSetParams(params)),
-    getSupportedTypes: () => dispatch(storageConfigGetSupportedTypes()),
-    getSupportedParams: () => dispatch(storageConfigGetSupportedParams())
+    setParams: (params) => dispatch(storageConfigSetParams(params))
 });
 
 export default connect(mapStateToProps,mapDispatchToProps)(StorageEditor);

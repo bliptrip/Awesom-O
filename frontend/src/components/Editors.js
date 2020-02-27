@@ -42,54 +42,58 @@ import {userSetEditorOpen, projectSetEditorOpen, cameraConfigSetEditorOpen, expe
 
 function Editors({userEOpen, projectEOpen, cameraEOpen, experimentEOpen, storageEOpen, routeEOpen, dispatch}) {
       return (
-              <div>
+          <div>
                 <SwipeableDrawer
                   anchor="right"
                   open={userEOpen}
-                  onClose={dispatch(userSetEditorOpen(false))}
-                  onOpen={dispatch(userSetEditorOpen(true))}
+                  onClose={(e) => dispatch(userSetEditorOpen(false))}
+                  onOpen={(e) => dispatch(userSetEditorOpen(true))}
                 >
                     <UserEditor />
                 </SwipeableDrawer>
                 <SwipeableDrawer
                   anchor="right"
                   open={projectEOpen}
-                  onClose={dispatch(projectSetEditorOpen(false))}
-                  onOpen={dispatch(projectSetEditorOpen(true))}
+                  onClose={e => dispatch(projectSetEditorOpen(false))}
+                  onOpen={e => dispatch(projectSetEditorOpen(true))}
                 >
                     <ProjectEditor />
                 </SwipeableDrawer>
                 <SwipeableDrawer
                   anchor="right"
-                  open={cameraEOpen}
-                  onClose={dispatch(cameraConfigSetEditorOpen(false))}
-                  onOpen={dispatch(cameraConfigSetEditorOpen(true))}
-                >
-                    <CameraEditor />
-                </SwipeableDrawer>
-                <SwipeableDrawer
-                  anchor="right"
-                  open={experimentEOpen}
-                  onClose={dispatch(experimentConfigSetEditorOpen(false))}
-                  onOpen={dispatch(experimentConfigSetEditorOpen(true))}
-                >
-                    <ExperimentEditor />
-                </SwipeableDrawer>
-                <SwipeableDrawer
-                  anchor="right"
                   open={storageEOpen}
-                  onClose={dispatch(storageConfigSetEditorOpen(false))}
-                  onOpen={dispatch(storageConfigSetEditorOpen(true))}
+                  onClose={e => dispatch(storageConfigSetEditorOpen(false))}
+                  onOpen={e => dispatch(storageConfigSetEditorOpen(true))}
                 >
                     <StorageEditor />
                 </SwipeableDrawer>
                 <SwipeableDrawer
                   anchor="right"
+                  open='true'
+                  onClose={e => dispatch(experimentConfigSetEditorOpen(false))}
+                  onOpen={e => dispatch(experimentConfigSetEditorOpen(true))}
+                >
+                    <ExperimentEditor />
+                </SwipeableDrawer>
+                <SwipeableDrawer
+                  anchor="right"
                   open={routeEOpen}
-                  onClose={dispatch(routeConfigSetEditorOpen(false))}
-                  onOpen={dispatch(routeConfigSetEditorOpen(true))}
+                  onClose={e => dispatch(routeConfigSetEditorOpen(false))}
+                  onOpen={e => dispatch(routeConfigSetEditorOpen(true))}
                 >
                     <RouteEditor />
+                </SwipeableDrawer>
+          </div>
+      );
+      return (
+              <div>
+                <SwipeableDrawer
+                  anchor="right"
+                  open={cameraEOpen}
+                  onClose={e => dispatch(cameraConfigSetEditorOpen(false))}
+                  onOpen={dispatch(cameraConfigSetEditorOpen(true))}
+                >
+                    <CameraEditor />
                 </SwipeableDrawer>
               </div>
             );

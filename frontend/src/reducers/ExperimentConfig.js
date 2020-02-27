@@ -27,11 +27,11 @@ export const experiment = (state = {
         isEditorOpen: false,
         isFetching: false,
         statusError: undefined,
-        datetime: undefined,
+        datetime: false,
         rename: false,
-        imageMeta: undefined,
-        filenameFields: undefined,
-        plateMeta: undefined,
+        imageMeta: false,
+        filenameFields: [],
+        plateMeta: [],
         users: [],
         projects: []
     }, action) => {

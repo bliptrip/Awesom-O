@@ -22,10 +22,11 @@ import React from 'react';
 import {connect} from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 
-import FileUploader from 'file-uploader';
+//import FileUploader from 'file-uploader';
 
 import Checkbox from '@material-ui/core/Checkbox';
 import Divider from '@material-ui/core/Divider';
+import Input from '@material-ui/core/Input';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -58,14 +59,18 @@ const useStyles = makeStyles({
 function ExperimentEditor({datetime, rename, imageMeta, filenameFields, plateMeta, setDatetime, setRename, setImageMeta, addFilenameField, removeFilenameField, clearFilenameFields, addPlate, clearPlateMeta, closeDrawer}) {
     const classes = useStyles();
     const disableRenameOptions = rename ? "" : "disabled";
-    let fieldset = Set();
+    let fieldset = new Set();
     plateMeta.forEach( pm => { Object.keys(pm.meta).forEach( k => fieldset.add(k) ) } ); //Possible fields we can allow user to add
 
-    const importExperimentMeta = (fileData) => {
-        const metadata = JSON.parse(fileData);
-        clearPlateMeta(); //Clear previous image metadata
-        clearFilenameFields(); //Clear previous image metadata
-        metadata.forEach(pm => addPlate(pm.row, pm.col, pm.meta));
+    const importExperimentMeta = (event) => {
+        const reader   = new FileReader();
+        reader.addEventListener("load", function () {
+            let metaData = reader.result;
+            clearPlateMeta(); //Clear previous image metadata
+            clearFilenameFields(); //Clear previous image metadata
+            JSON.parse(metaData).meta.forEach(pm => addPlate(pm.row, pm.col, pm.meta));
+        }, false);
+        reader.readAsText(event.target.files[0]);
     };
 
     const handleFilenameField = (field) => (event) => {
@@ -91,22 +96,22 @@ function ExperimentEditor({datetime, rename, imageMeta, filenameFields, plateMet
                     </Tooltip>
                 </ListItem>
                 <Divider />
-                <ListItem disabled={disableRenameOptions} >
+                <ListItem {...disableRenameOptions} >
                     <ListItemText primary="Include Datetime" />
                     <Tooltip title="Include date and timestamp in generated filenames.">
                         <Checkbox checked={datetime} onChange={setDatetime} />
                     </Tooltip>
                 </ListItem>
-                <ListItem disabled={disableRenameOptions} >
+                <ListItem {...disableRenameOptions} >
                     <ListItemText primary="Include Experimental Descriptors" />
                     <Tooltip title="Include experimental descriptors from metadata fields in filename, and where possible, in image metadata?">
                         <Checkbox checked={imageMeta} onChange={setImageMeta} />
                     </Tooltip>
                 </ListItem>
-                <ListItem disabled={disableRenameOptions} >
+                <ListItem {...disableRenameOptions} >
                     <Tooltip title="Include plate metadata field in image filename and image metadata?">
                         <List>
-                        {   fieldset.map( f => (
+                        {   Array.from(fieldset).map( f => (
                                 <ListItem>
                                     <ListItemText primary={f} />
                                     <Checkbox checked={f in filenameFields} onChange={handleFilenameField(f)} />
@@ -115,21 +120,12 @@ function ExperimentEditor({datetime, rename, imageMeta, filenameFields, plateMet
                         </List>
                     </Tooltip>
                 </ListItem>
-                <ListItem disabled={disableRenameOptions} >
-                    <Tooltip title="Import experiment metadata fields associated with each plate.">
-                        <FileUploader
-                            title="Import Metadata Fields"
-                            uploadedFileCallback={e => {
-                                importExperimentMeta(e);
-                            }}
-                            accept=".json"
-                            fileSizeLimit="100000" // Note that size is in Bytes
-                            customLimitTextCSS={{ 'font-family': 'arial',
-                                'color': '#b00e05',
-                                'font-size': '14px'
-                            }}
-                        />
-                    </Tooltip>
+                <ListItem {...disableRenameOptions} >
+                    <Input
+                        onChange={(e) => importExperimentMeta(e)}
+                        type="file"
+                        inputProps={{accept: ".json"}}
+                    />
                 </ListItem>
             </List>
         </div>

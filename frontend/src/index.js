@@ -26,7 +26,7 @@ import {createStore, applyMiddleware} from 'redux';
 import {connect, Provider} from 'react-redux';
 import thunkMiddleware from 'redux-thunk'; //Needed to dispatch thunk actions
 import * as serviceWorker from './serviceWorker';
-import {userCheckCurrent} from './actions';
+import {userCheckCurrent, storageConfigGetSupportedTypes, storageConfigGetSupportedParams} from './actions';
 import {Route, Router} from 'react-router';
 import {createBrowserHistory} from 'history';
 import App from './App';
@@ -37,8 +37,10 @@ const store = createStore( rootReducer,
                            applyMiddleware(thunkMiddleware) );
 const browserHistory = createBrowserHistory();
 
-function ProviderWrapper({checkLogState}) {
+function ProviderWrapper({checkLogState, getSupportedTypes, getSupportedParams}) {
     checkLogState(); //Dispatch a request to check current login state
+    getSupportedTypes();
+    getSupportedParams();
     return (
         <Router history={browserHistory}>
             <div>
@@ -51,7 +53,9 @@ function ProviderWrapper({checkLogState}) {
 }
 
 const mapDispatchToProps = (dispatch) => ({
-    checkLogState: () => dispatch(userCheckCurrent())
+    checkLogState: () => dispatch(userCheckCurrent()),
+    getSupportedTypes: () => dispatch(storageConfigGetSupportedTypes()),
+    getSupportedParams: () => dispatch(storageConfigGetSupportedParams())
 });
 
 const VisibleProviderWrapper = connect(null, mapDispatchToProps)(ProviderWrapper);
