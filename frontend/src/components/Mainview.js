@@ -21,6 +21,7 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 
 import React from 'react';
 import clsx from 'clsx';
+import Editors from './Editors';
 import Navbar from './Navbar';
 import VisibleViewport from './Viewport';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
@@ -195,6 +196,7 @@ export default function MainView() {
             </Grid>
         </Grid>
       <div className={classes.drawerHeader} />
+      <Editors />
       </main>
     </div>
   );

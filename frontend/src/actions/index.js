@@ -628,9 +628,44 @@ export const cameraConfigSetEntryValue = (eid,value) => ({
 });
 
 export const CAMERA_CONFIG_RESET_STALE_FLAG = 'CAMERA_CONFIG_RESET_STALE_FLAG';
-export const cameraConfigResetStaleFlag = (eid) => ({
+export const cameraConfigResetStaleFlag = (eids) => ({
     type: CAMERA_CONFIG_RESET_STALE_FLAG,
-    id: eid
+    ids: eids
+});
+
+export const CAMERA_CONFIG_LOAD_SETTINGS_REQUEST = 'CAMERA_CONFIG_LOAD_SETTINGS_REQUEST';
+export const cameraConfigLoadSettingsRequest = (camIndex) => ({
+    type: CAMERA_CONFIG_LOAD_SETTINGS_REQUEST,
+    camIndex
+});
+
+export const CAMERA_CONFIG_LOAD_SETTINGS_ERROR = 'CAMERA_CONFIG_LOAD_SETTINGS_ERROR';
+export const cameraConfigLoadSettingsError = (error) => ({
+    type: CAMERA_CONFIG_LOAD_SETTINGS_ERROR,
+    error 
+});
+
+export const CAMERA_CONFIG_LOAD_SETTINGS_SUCCESS = 'CAMERA_CONFIG_LOAD_SETTINGS_SUCCESS';
+export const cameraConfigLoadSettingsSuccess = (settings) => ({
+    type: CAMERA_CONFIG_LOAD_SETTINGS_SUCCESS,
+    settings
+});
+
+export const CAMERA_CONFIG_APPLY_SETTINGS_REQUEST = 'CAMERA_CONFIG_APPLY_SETTINGS_REQUEST';
+export const cameraConfigApplySettingsRequest = (camIndex) => ({
+    type: CAMERA_CONFIG_APPLY_SETTINGS_REQUEST,
+    camIndex
+});
+
+export const CAMERA_CONFIG_APPLY_SETTINGS_ERROR = 'CAMERA_CONFIG_APPLY_SETTINGS_ERROR';
+export const cameraConfigApplySettingsError = (error) => ({
+    type: CAMERA_CONFIG_APPLY_SETTINGS_ERROR,
+    error 
+});
+
+export const CAMERA_CONFIG_APPLY_SETTINGS_SUCCESS = 'CAMERA_CONFIG_APPLY_SETTINGS_SUCCESS';
+export const cameraConfigApplySettingsSuccess = () => ({
+    type: CAMERA_CONFIG_APPLY_SETTINGS_SUCCESS
 });
 
 /* CameraConfig thunks */
@@ -680,6 +715,33 @@ export const cameraConfigRemove = (_id, userId, projectId) => dispatch => {
           error => dispatch(cameraConfigRemoveError(error)))
     .then( _id => dispatch(cameraConfigRemoveSuccess(_id))));
 };
+
+export const cameraConfigLoadSettings = (camIndex) => dispatch => {
+    dispatch(cameraConfigLoadSettingsRequest(camIndex));
+    return(fetchAwesomO({url: '/api/camera/settings/'+camIndex})
+    .then(response => response.json(),
+          error => dispatch(cameraConfigLoadSettingsError(error)))
+    .then( camSettings => dispatch(cameraConfigLoadSettingsSuccess(camSettings))));
+}
+
+export const cameraConfigApplySettings = (camIndex,camConfigs) => dispatch => {
+    dispatch(cameraConfigApplySettingsRequest(camIndex));
+    /* Only update the entries marked 'stale' */
+    let updates = camConfigs
+                    .filter( c => c.stale )
+                    .map( c => ({ id: c.id,
+                                 name: c.entry.label,
+                                 value: c.entry.value }) );
+    return(fetchAwesomO({url: '/api/camera/settings',
+                         method: 'PUT',
+                         body: JSON.stringify({ camIndex: camIndex, updates: updates })})
+                .then(response => response.json(),
+                      error => dispatch(cameraConfigApplySettingsError(error)))
+                .then(json => {
+                    dispatch(cameraConfigResetStaleFlag(json.updateIds)); //Reset stale flags on those entries that did update successfully
+                    dispatch(cameraConfigApplySettingsSuccess());
+                }));
+}
 
 //Experimental Config
 export const EXPERIMENT_CONFIG_CREATE_REQUEST = 'EXPERIMENT_CONFIG_CREATE_REQUEST';

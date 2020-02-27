@@ -20,14 +20,14 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 import React from 'react';
 import {connect} from 'react-redux';
-import {cameraConfigSetEntryValue} from '../actions';
+import {cameraConfigSetEntryValue, cameraConfigSetEditorOpen, cameraConfigSetShort, cameraConfigSetDescription} from '../actions';
 
 import Checkbox from '@material-ui/core/Checkbox';
 import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
-import makeStyles from '@material-ui/core/styles';
+import {makeStyles} from '@material-ui/core/styles';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
@@ -131,22 +131,22 @@ const CameraConfigurationSettings = ({gphoto2config, configs, rootid}) => {
         switch(config.entry.type) {
             case 'toggle':
                 return(
-                    <DynCameraConfigurationSettingsToggle id=config.id />
+                    <DynCameraConfigurationSettingsToggle id={config.id} />
                 );
                 break;
             case 'choice':
                 return(
-                    <DynCameraConfigurationSettingsChoice id=config.id />
+                    <DynCameraConfigurationSettingsChoice id={config.id} />
                 );
                 break;
             case 'string':
                 return( 
-                    <DynCameraConfigurationSettingsString id=config.id />
+                    <DynCameraConfigurationSettingsString id={config.id} />
                 );
                 break;
             case 'date':
                 return(
-                    <DynCameraConfigurationSettingsDateTime id=config.id />
+                    <DynCameraConfigurationSettingsDateTime id={config.id} />
                 );
                 break;
             case 'section':
@@ -155,7 +155,7 @@ const CameraConfigurationSettings = ({gphoto2config, configs, rootid}) => {
                         <Divider />
                         <ListItem>
                             <ListItemText
-                                primary={entry.label}
+                                primary={config.entry.label}
                             />
                         </ListItem>
                         { (configs[config.id].children).map(id => (generateCameraSettingsTag(configs[id]))) }
@@ -176,66 +176,18 @@ const CameraConfigurationSettings = ({gphoto2config, configs, rootid}) => {
 
     return( 
         <div>
-            {generateCameraSettingsTag(configs[rootid]))) }
+            {generateCameraSettingsTag(configs[rootid])}
         </div>
     );
 }
 
-const mapCameraConfigurationSettingsStateToProps = (state) => {
+const mapCameraConfigurationSettingsStateToProps = (state) => ({
     gphoto2Config: state.camera.gphoto2Config
-}
+});
 
 const DynCameraConfigurationSettings = connect({mapStateToProps: mapCameraConfigurationSettingsStateToProps})(CameraConfigurationSettings); 
 
-function loadCurrentCameraConfiguration() {
-    fetch("/camera/settings", {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Token " + token,
-        }
-    })
-    .then(res => {
-        if ((res.status == 401) && (res.statusText == "Unauthorized")) {
-            return null;
-        } else {
-            return(res.json());
-        }
-    })
-    .then(myJson => {
-        console.log(JSON.stringify(myJson));
-        if( myJson ) {
-            receiveConfiguration(myJson);
-        }
-    });
-}
-
-function setCurrentCameraConfiguration() {
-    Object.entries(config.entries)
-            .filter(
-                e => e[1].stale
-            )
-            .forEach( e => {
-                let body = {name: e[1].label,
-                            value: e[1].value  };
-                fetch("/camera/settings", {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": "Token " + token,
-                    },
-                    body: JSON.stringify(body),
-                })
-                .then(res => { 
-                    if (res.status === 200) {
-                        resetCameraConfigurationChangeFlag(e[0]);
-                    }
-                });
-            });
-}
-
-
-function CameraEditor({cshort, cdescription, cmanufacturer, cmodel, cdeviceVersion, csn, configs, rootid}) {
+function CameraEditor({cshort, cdescription, cmanufacturer, cmodel, cdeviceVersion, csn, configs, rootid, closeDrawer, setShort, setDescription}) {
     const classes = useStyles();
 
     return (
@@ -253,16 +205,16 @@ function CameraEditor({cshort, cdescription, cmanufacturer, cmodel, cdeviceVersi
                     <TextField label="Description" onChange={setDescription} value={cdescription} />
                 </ListItem>
                 <ListItem>
-                    <TextField label="Manufacturer" disabled=true value={cmanufacturer} />
+                    <TextField label="Manufacturer" disabled='true' value={cmanufacturer} />
                 </ListItem>
                 <ListItem>
-                    <TextField label="Model" disabled=true value={cmodel} />
+                    <TextField label="Model" disabled='true' value={cmodel} />
                 </ListItem>
                 <ListItem>
-                    <TextField label="Version" disabled=true value={cdeviceVersion} />
+                    <TextField label="Version" disabled='true' value={cdeviceVersion} />
                 </ListItem>
                 <ListItem>
-                    <TextField label="Serial Number" disabled=true value={csn} />
+                    <TextField label="Serial Number" disabled='true' value={csn} />
                 </ListItem>
                 <Divider />
                 <ListItem>
@@ -285,14 +237,14 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    closeDrawer: (event) => ({
+    closeDrawer: (event) => {
         if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
             return;
         }
         dispatch(cameraConfigSetEditorOpen(false));
-    }),
+    },
     setShort: (event) => dispatch(cameraConfigSetShort(event.target.value)),
-    setDescription: (event) => dispatch(cameraConfigSetShort(event.target.value)),
+    setDescription: (event) => dispatch(cameraConfigSetDescription(event.target.value)),
 });
 
 export default connect(mapStateToProps,mapDispatchToProps)(CameraEditor);

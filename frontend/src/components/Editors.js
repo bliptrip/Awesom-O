@@ -30,70 +30,78 @@ import ListItemText from '@material-ui/core/ListItemText';
 import InboxIcon from '@material-ui/icons/MoveToInbox';
 import MailIcon from '@material-ui/icons/Mail';
 
-function Editors({user, project, camera, experiment, storage, route, dispatch}) {
-      const classes = useStyles();
+import UserEditor from './UserEditor';
+import ProjectEditor from './ProjectEditor';
+import CameraEditor from './CameraEditor';
+import ExperimentEditor from './ExperimentEditor';
+import RouteEditor from './RouteEditor';
+import StorageEditor from './StorageEditor';
 
+
+import {userSetEditorOpen, projectSetEditorOpen, cameraConfigSetEditorOpen, experimentConfigSetEditorOpen, storageConfigSetEditorOpen, routeConfigSetEditorOpen} from '../actions';
+
+function Editors({userEOpen, projectEOpen, cameraEOpen, experimentEOpen, storageEOpen, routeEOpen, dispatch}) {
       return (
               <div>
                 <SwipeableDrawer
-                  anchor="right",
-                  open={user.isEditorOpen},
-                  onClose={dispatch(userSetEditorOpen(false))},
+                  anchor="right"
+                  open={userEOpen}
+                  onClose={dispatch(userSetEditorOpen(false))}
                   onOpen={dispatch(userSetEditorOpen(true))}
                 >
                     <UserEditor />
                 </SwipeableDrawer>
                 <SwipeableDrawer
-                  anchor="right",
-                  open={project.isEditorOpen},
-                  onClose={dispatch(projectSetEditorOpen(false))},
-                  onOpen={dispatch(projectSetEdidtorOpen(true))}
+                  anchor="right"
+                  open={projectEOpen}
+                  onClose={dispatch(projectSetEditorOpen(false))}
+                  onOpen={dispatch(projectSetEditorOpen(true))}
                 >
                     <ProjectEditor />
                 </SwipeableDrawer>
                 <SwipeableDrawer
-                  anchor="right",
-                  open={camera.isEditorOpen},
-                  onClose={dispatch(cameraSetEditorOpen(false))},
-                  onOpen={dispatch(cameraEditorClose(true))}
+                  anchor="right"
+                  open={cameraEOpen}
+                  onClose={dispatch(cameraConfigSetEditorOpen(false))}
+                  onOpen={dispatch(cameraConfigSetEditorOpen(true))}
                 >
                     <CameraEditor />
                 </SwipeableDrawer>
                 <SwipeableDrawer
-                  anchor="right",
-                  open={experiment.isEditorOpen},
-                  onClose={dispatch(experimentEditorOpen())},
-                  onOpen={dispatch(experimentEditorClose())}
+                  anchor="right"
+                  open={experimentEOpen}
+                  onClose={dispatch(experimentConfigSetEditorOpen(false))}
+                  onOpen={dispatch(experimentConfigSetEditorOpen(true))}
                 >
-                    <ExperimentEditor experiment={experiment}/>
+                    <ExperimentEditor />
                 </SwipeableDrawer>
                 <SwipeableDrawer
-                  anchor="right",
-                  open={storage.isEditorOpen},
-                  onClose={dispatch(storageEditorOpen())},
-                  onOpen={dispatch(storageEditorClose())}
+                  anchor="right"
+                  open={storageEOpen}
+                  onClose={dispatch(storageConfigSetEditorOpen(false))}
+                  onOpen={dispatch(storageConfigSetEditorOpen(true))}
                 >
-                    <StorageEditor storage={storage}/>
+                    <StorageEditor />
                 </SwipeableDrawer>
                 <SwipeableDrawer
-                  anchor="right",
-                  open={route.isEditorOpen},
-                  onClose={dispatch(routeEditorOpen())},
-                  onOpen={dispatch(routeEditorClose())}
+                  anchor="right"
+                  open={routeEOpen}
+                  onClose={dispatch(routeConfigSetEditorOpen(false))}
+                  onOpen={dispatch(routeConfigSetEditorOpen(true))}
                 >
-                    <RouteEditor route={route}/>
+                    <RouteEditor />
                 </SwipeableDrawer>
               </div>
             );
 }
 
 const mapStateToProps = (state) => ({
-    user: state.user,
-    project: state.project,
-    camera: state.camera,
-    experiment: state.experiment,
-    storage: state.storage,
-    route: state.route
+    userEOpen: state.user.isEditorOpen,
+    projectEOpen: state.project.isEditorOpen,
+    cameraEOpen: state.camera.isEditorOpen,
+    experimentEOpen: state.experiment.isEditorOpen,
+    storageEOpen: state.storage.isEditorOpen,
+    routeEOpen: state.route.isEditorOpen
 });
 
 export default connect(mapStateToProps, null)(Editors);

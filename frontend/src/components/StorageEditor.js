@@ -23,14 +23,18 @@ import {connect} from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 
 import FileUploader from 'file-uploader';
-const parse = require('csv-parse');
 
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
+
+import parse from 'csv-parse';
 
 import {storageConfigSetEditorOpen,
         storageConfigSetType,
@@ -50,7 +54,6 @@ const useStyles = makeStyles({
 function StorageEditor({closeDrawer, storageType, params, supportedTypes, supportedParams, setType, setParams, getSupportedTypes, getSupportedParams}) {
     const classes = useStyles();
     let disableOptions = (!supportedTypes || (supportedTypes === [])) ? "disabled" : "";
-    let params = {};
     let sparams = {};
     getSupportedTypes();
     getSupportedParams();
@@ -68,8 +71,8 @@ function StorageEditor({closeDrawer, storageType, params, supportedTypes, suppor
         setType(e.target.value);
     }
 
-    const generateParamEntry = (params, key) => (
-        switch(params[key]) {
+    const generateParamEntry = (nparams, key) => {
+        switch(nparams[key]) {
             case 'String':
                 return(<TextField 
                     onChange={onChangeParam(key)} 
@@ -78,10 +81,10 @@ function StorageEditor({closeDrawer, storageType, params, supportedTypes, suppor
                     defaultValue="" />);
                 break;
             default:
-                return();
+                return;
                 break;
         }
-    )
+    }
 
     return (
         <div
@@ -104,31 +107,32 @@ function StorageEditor({closeDrawer, storageType, params, supportedTypes, suppor
                     </Tooltip>
                 </ListItem>
                 { Object.keys(sparams).map( k => 
-                    <ListItem {disableOptions}>
+                    <ListItem {...disableOptions}>
                         {generateParamEntry(sparams, k)}
                     </ListItem> )
                 }
             </List>
+    </div>);
 }
 
-const mapStateToProps = (state) => {
+const mapStateToProps = (state) => ({
     storageType: state.storage.storageType,
     params: state.storage.params,
     supportedTypes: state.storage.supportedTypes,
     supportedParams: state.storage.supportedParams
-}
+});
 
-const mapDispatchToProps = (dispatch) => {
-    closeDrawer: (event) => ({
+const mapDispatchToProps = (dispatch) => ({
+    closeDrawer: (event) => {
         if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
             return;
         }
         dispatch(storageConfigSetEditorOpen(false));
-    }),
+    },
     setType: (type) => dispatch(storageConfigSetType(type)),
     setParams: (params) => dispatch(storageConfigSetParams(params)),
     getSupportedTypes: () => dispatch(storageConfigGetSupportedTypes()),
     getSupportedParams: () => dispatch(storageConfigGetSupportedParams())
-}
+});
 
 export default connect(mapStateToProps,mapDispatchToProps)(StorageEditor);

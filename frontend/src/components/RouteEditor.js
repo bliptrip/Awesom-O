@@ -23,13 +23,13 @@ import {connect} from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 
 import FileUploader from 'file-uploader';
-const parse = require('csv-parse');
-
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import TextField from '@material-ui/core/TextField';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
+
+import parse from 'csv-parse';
 
 import {routeConfigSetEditorOpen,
         routeConfigClearRoute,
@@ -50,7 +50,7 @@ const useStyles = makeStyles({
             },
 });
 
-function RouteEditor({route, clearRoutes, addRoute, setInterplateDelay, setLoopDelay, setStepsPerCmX, setStepsPerCmY, setDistanceX, setDistanceY }) {
+function RouteEditor({route, interplateDelay, loopDelay, stepsPerCmX, stepsPerCmY, distanceX, distanceY, clearRoutes, addRoute, setInterplateDelay, setLoopDelay, setStepsPerCmX, setStepsPerCmY, setDistanceX, setDistanceY, closeDrawer }) {
     const classes = useStyles();
 
     const importRoutes = (fileData) => {
@@ -120,12 +120,14 @@ function RouteEditor({route, clearRoutes, addRoute, setInterplateDelay, setLoopD
                     </Typography>
                 </GridListTile>
                 {route.map(r=> (
-                    <GridListTile> 
-                        <Typography variant='body1'>{r.row}</Typopgraphy>
-                    </GridListTile>
-                    <GridListTile>
-                        <Typography variant='body1'>{r.col}</Typopgraphy>
-                    </GridListTile>
+                    <>
+                        <GridListTile> 
+                            <Typography variant='body1'>{r.row}</Typography>
+                        </GridListTile>
+                        <GridListTile>
+                            <Typography variant='body1'>{r.col}</Typography>
+                        </GridListTile>
+                    </>
                 ))}
             </GridList>
             
@@ -133,24 +135,23 @@ function RouteEditor({route, clearRoutes, addRoute, setInterplateDelay, setLoopD
     );
 }
 
-const mapStateToProps = (state) => {
-    open: state.route.open,
+const mapStateToProps = (state) => ({
     interplateDelay: state.route.interplateDelay,
     loopDelay: state.route.loopDelay,
     stepsPerCmX: state.route.stepsPerCmX,
     stepsPerCmY: state.route.stepsPerCmY,
     distanceX: state.route.distanceX,
-    distanceY: state.route.distanceY
+    distanceY: state.route.distanceY,
     route: state.route.route
-}
+});
 
-const mapDispatchToProps = (dispatch) => {
-    closeDrawer: (event) => ({
+const mapDispatchToProps = (dispatch) => ({
+    closeDrawer: (event) => {
         if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
             return;
         }
         dispatch(routeConfigSetEditorOpen(false));
-    }),
+    },
     clearRoute: () => dispatch(routeConfigClearRoute()),
     addRoute: (row,col) => dispatch(routeConfigAddRoute(row,col)),
     setInterplateDelay: (seconds) => dispatch(routeConfigSetInterplateDelay(seconds)),
@@ -159,6 +160,6 @@ const mapDispatchToProps = (dispatch) => {
     setStepsPerCmY: (steps) => dispatch(routeConfigSetStepsPerCmY(steps)),
     setDistanceX: (distance) => dispatch(routeConfigSetDistanceX(distance)),
     setDistanceY: (distance) => dispatch(routeConfigSetDistanceY(distance))
-}
+});
 
-export default connect()(RouteEditor);
+export default connect(mapStateToProps,mapDispatchToProps)(RouteEditor);

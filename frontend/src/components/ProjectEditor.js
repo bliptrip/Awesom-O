@@ -22,6 +22,10 @@ import React from 'react';
 import {connect} from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 
+import TextField from '@material-ui/core/TextField';
+
+import {projectSetEditorOpen, projectSetShort, projectSetDescription} from '../actions';
+
 const useStyles = makeStyles({
       list: {
               width: 250,
@@ -31,7 +35,7 @@ const useStyles = makeStyles({
             },
 });
 
-function ProjectEditor({project}) {
+function ProjectEditor({closeDrawer, setShort, setDescription}) {
     const classes = useStyles();
 
     return (
@@ -47,21 +51,20 @@ function ProjectEditor({project}) {
     );
 }
 
-const mapStateToProps = (state) => {
-    open: state.project.isEditorOpen,
+const mapStateToProps = (state) => ({
     shortDescription: state.project.short,
     description: state.project.description
-}
+});
 
-const mapDispatchToProps = (dispatch) => {
-    closeDrawer: (event) => ({
+const mapDispatchToProps = (dispatch) => ({
+    closeDrawer: (event) => {
         if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
             return;
         }
         dispatch(projectSetEditorOpen(false));
-    }),
+    },
     setShort: (event) => dispatch(projectSetShort(event.target.value)),
     setDescription: (event) => dispatch(projectSetDescription(event.target.value))
-}
+});
 
-export default connect()(ProjectEditor);
+export default connect(mapStateToProps,mapDispatchToProps)(ProjectEditor);

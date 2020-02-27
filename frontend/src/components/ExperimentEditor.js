@@ -25,6 +25,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import FileUploader from 'file-uploader';
 
 import Checkbox from '@material-ui/core/Checkbox';
+import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -54,20 +55,28 @@ const useStyles = makeStyles({
             },
 });
 
-function ExperimentEditor({datetime, rename, imageMeta, filenameFields, plateMeta, setDatetime, setRename, setImageMeta, addFilenameField, removeFilenameField, clearFilenameFields, addPlate, clearPlateMeta}) {
+function ExperimentEditor({datetime, rename, imageMeta, filenameFields, plateMeta, setDatetime, setRename, setImageMeta, addFilenameField, removeFilenameField, clearFilenameFields, addPlate, clearPlateMeta, closeDrawer}) {
     const classes = useStyles();
-    const disableRenameOptions = rename ? {"" : "disabled"};
+    const disableRenameOptions = rename ? "" : "disabled";
+    let fieldset = Set();
+    plateMeta.forEach( pm => { Object.keys(pm.meta).forEach( k => fieldset.add(k) ) } ); //Possible fields we can allow user to add
 
     const importExperimentMeta = (fileData) => {
         const metadata = JSON.parse(fileData);
         clearPlateMeta(); //Clear previous image metadata
         clearFilenameFields(); //Clear previous image metadata
         metadata.forEach(pm => addPlate(pm.row, pm.col, pm.meta));
-    }
+    };
+
+    const handleFilenameField = (field) => (event) => {
+        if( event.target.checked ) {
+            addFilenameField(field);
+        } else {
+            removeFilenameField(field);
+        }
+    };
 
     return (
-        let fieldset = Set();
-        plateMeta.forEach( pm => { Object.keys(pm.meta).forEach( k => fieldset.add(k) ) } ); //Possible fields we can allow user to add
         <div
             className={classes.fullList}
             role="presentation"
@@ -77,7 +86,7 @@ function ExperimentEditor({datetime, rename, imageMeta, filenameFields, plateMet
             <List>
                 <ListItem>
                     <ListItemText primary="Rename Images" />
-                    <Tooltip title="Rename the downloaded camera images?"">
+                    <Tooltip title="Rename the downloaded camera images?">
                         <Checkbox checked={rename} onChange={setRename} />
                     </Tooltip>
                 </ListItem>
@@ -101,7 +110,7 @@ function ExperimentEditor({datetime, rename, imageMeta, filenameFields, plateMet
                                 <ListItem>
                                     <ListItemText primary={f} />
                                     <Checkbox checked={f in filenameFields} onChange={handleFilenameField(f)} />
-                                </ListItem>
+                                </ListItem> ))
                         }
                         </List>
                     </Tooltip>
@@ -127,21 +136,21 @@ function ExperimentEditor({datetime, rename, imageMeta, filenameFields, plateMet
     );
 }
 
-const mapStateToProps = (state) => {
+const mapStateToProps = (state) => ({
     datetime: state.experiment.datetime,
     rename: state.experiment.rename,
     imageMeta: state.experiment.imageMeta,
     filenameFields: state.experiment.filenameFields,
     plateMeta: state.experiment.plateMeta
-}
+});
 
-const mapDispatchToProps = (dispatch) => {
-    closeDrawer: (event) => ({
+const mapDispatchToProps = (dispatch) => ({
+    closeDrawer: (event) => {
         if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
             return;
         }
         dispatch(experimentConfigSetEditorOpen(false));
-    }),
+    },
     setDatetime: (e) => dispatch(experimentConfigSetDatetime(e.target.checked)),
     setRename: (e) => dispatch(experimentConfigSetRename(e.target.checked)),
     setImageMeta: (e) => dispatch(experimentConfigSetImageMeta(e.target.checked)),
@@ -150,6 +159,6 @@ const mapDispatchToProps = (dispatch) => {
     clearFilenameFields: () => dispatch(experimentConfigClearFilenameFields()),
     addPlate:  (row,col,meta) => dispatch(experimentConfigAddPlate(row,col,meta)),
     clearPlateMeta:  () => dispatch(experimentConfigClearPlateMeta()),
-}
+});
 
 export default connect(mapStateToProps,mapDispatchToProps)(ExperimentEditor);

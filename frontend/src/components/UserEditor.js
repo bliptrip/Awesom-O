@@ -22,6 +22,10 @@ import React from 'react';
 import {connect} from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 
+import TextField from '@material-ui/core/TextField';
+
+import {userSetEditorOpen, userSetUsername, userSetEmail} from '../actions';
+
 const useStyles = makeStyles({
       list: {
               width: 250,
@@ -31,7 +35,7 @@ const useStyles = makeStyles({
             },
 });
 
-function UserEditor({username, email, setUsername, setEmail}) {
+function UserEditor({username, email, setUsername, setEmail, closeDrawer}) {
     const classes = useStyles();
 
     return (
@@ -47,21 +51,20 @@ function UserEditor({username, email, setUsername, setEmail}) {
     );
 }
 
-const mapStateToProps = (state) => {
-    open: state.user.isEditorOpen,
+const mapStateToProps = (state) => ({
     username: state.user.username,
     email: state.user.email
-}
+});
 
-const mapDispatchToProps = (dispatch) => {
-    closeDrawer: (event) => ({
+const mapDispatchToProps = (dispatch) => ({
+    closeDrawer: (event) => {
         if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
             return;
         }
         dispatch(userSetEditorOpen(false));
-    }),
+    },
     setUsername: (event) => dispatch(userSetUsername(event.target.value)),
     setEmail: (event) => dispatch(userSetEmail(event.target.value))
-}
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(UserEditor);

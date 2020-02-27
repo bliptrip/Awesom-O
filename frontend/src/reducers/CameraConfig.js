@@ -82,6 +82,9 @@ export const cameraConfigReducer = (state = {
         projects: []
     }, action) => {
     let newstate = state;
+    let config;
+    let configs;
+    let rootid;
     switch(action.type) {
         case cameraC.CAMERA_CONFIG_CREATE_REQUEST:
             newstate = {...state,
@@ -159,6 +162,12 @@ export const cameraConfigReducer = (state = {
                 statusError: undefined
             };
             break;
+        case cameraC.CAMERA_CONFIG_SET_SHORT:
+            newstate = {...state,
+                _id: action.id,
+                short: action.short
+            };
+            break;
         case cameraC.CAMERA_CONFIG_SET_DESCRIPTION:
             newstate = {...state,
                 _id: action.id,
@@ -190,8 +199,8 @@ export const cameraConfigReducer = (state = {
             };
             break;
         case cameraC.CAMERA_CONFIG_SET_GPHOTO2_CONFIG:
-            let configs = {};
-            let rootid = generateConfigurationEntries(configs, undefined, JSON.parse(action.gphoto2Config).main);
+            configs = {};
+            rootid = generateConfigurationEntries(configs, undefined, JSON.parse(action.gphoto2Config).main);
             newstate = {...state,
                 _id: action.id,
                 gphoto2Config: action.gphoto2Config,
@@ -207,7 +216,7 @@ export const cameraConfigReducer = (state = {
         case cameraC.CAMERA_CONFIG_SET_ENTRY_VALUE:
             newstate                                     = {...state};
             newstate.configs                             = {...newstate.configs};
-            let config                                   = newstate.configs[action.id];
+            config                                       = newstate.configs[action.id];
             newstate.configs[action.id]                  = { ...config,
                                                              stale: true
             };
@@ -217,7 +226,45 @@ export const cameraConfigReducer = (state = {
         case cameraC.CAMERA_CONFIG_RESET_STALE_FLAG:
             newstate    = {...state};
             newstate.configs = {...newstate.configs};
-            resetConfigurationStaleFlag(newstate.configs, action.id);
+            action.ids.forEach( id => resetConfigurationStaleFlag(newstate.configs, id) );
+            break;
+        case cameraC.CAMERA_CONFIG_LOAD_SETTINGS_REQUEST:
+            newstate    = { ...state,
+                            isFetching: true,
+                            statusError: undefined
+                          };
+            break;
+        case cameraC.CAMERA_CONFIG_LOAD_SETTINGS_ERROR:
+            newstate    = { ...state,
+                            isFetching: false,
+                            statusError: action.error
+                          };
+            break;
+        case cameraC.CAMERA_CONFIG_LOAD_SETTINGS_SUCCESS:
+            configs = {};
+            rootid = generateConfigurationEntries(configs, undefined, action.settings.main);
+            newstate    = { ...state,
+                            isFetching: false,
+                            statusError: undefined,
+                            gphoto2Config: JSON.stringify(action.settings),
+                            configs,
+                            rootid
+                          };
+            break;
+        case cameraC.CAMERA_CONFIG_APPLY_SETTINGS_REQUEST:
+            newstate = {...state,
+                        isFetching: true,
+                        statusError: undefined};
+            break;
+        case cameraC.CAMERA_CONFIG_APPLY_SETTINGS_ERROR:
+            newstate = {...state,
+                        isFetching: false,
+                        statusError: action.error};
+            break;
+        case cameraC.CAMERA_CONFIG_APPLY_SETTINGS_SUCCESS:
+            newstate = {...state,
+                        isFetching: false,
+                        statusError: undefined};
             break;
         default:
             break;
