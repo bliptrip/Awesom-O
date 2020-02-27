@@ -39,7 +39,7 @@ class WsEventHandler extends React.Component {
     render() {
         return (
             <React.Fragment>
-                <WebSocket url='ws://localhost:3001/' onMessage={this.eventHandler.bind(this)} />
+                <WebSocket url='ws://localhost:3031/' onMessage={this.eventHandler.bind(this)} />
             </React.Fragment>
         );
     };

@@ -287,8 +287,7 @@ function Viewport(props)  {
 
     return (
         <Grid container alignItems='center' justify='center' id="canvasContainer" className={classes.canvasContainer, classes.root}>
-            <canvas id="rasterCanvas" />
-            <img id="sourceImage" src={props.imageSrc || previewImage} className={classes.hide} />
+            <img id="sourceImage" src={props.imageSrc || previewImage} />
         </Grid>
     );
 };
