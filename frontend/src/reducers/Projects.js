@@ -21,7 +21,10 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 import '../lib/fetch';
 import * as projectC from '../actions';
 
-export const project = (state = {isEditorOpen: false}, action) => {
+export const project = (state = { isEditorOpen: false,
+                                  statusError: undefined,
+                                  savedProjects: [] }, 
+                        action) => {
     let newstate = state;
     switch( action.type ) {
         case projectC.PROJECT_CREATE_REQUEST:
@@ -117,6 +120,26 @@ export const project = (state = {isEditorOpen: false}, action) => {
         case projectC.PROJECT_SET_CAMERA_CONFIG:
             newstate = { ...state,
                 cameraId: action.cameraId
+            };
+            break;
+        case projectC.PROJECT_LOAD_SAVED_REQUEST:
+            newstate = { ...state,
+                isFetching: true,
+                statusError: undefined,
+                savedProject: []
+            };
+            break;
+        case projectC.PROJECT_LOAD_SAVED_ERROR:
+            newstate = { ...state,
+                isFetching: false,
+                statusError: action.error
+            };
+            break;
+        case projectC.PROJECT_LOAD_SAVED_SUCCESS:
+            newstate = { ...state,
+                isFetching: false,
+                statusError: undefined,
+                savedProjects: action.savedProjects
             };
             break;
         default:

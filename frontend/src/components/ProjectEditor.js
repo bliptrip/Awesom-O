@@ -22,7 +22,12 @@ import React from 'react';
 import {connect} from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 
+import Container from '@material-ui/core/Container';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
 import TextField from '@material-ui/core/TextField';
+
+import CancelIcon from '@material-ui/icons/Cancel';
 
 import {projectSetEditorOpen, projectSetShort, projectSetDescription} from '../actions';
 
@@ -35,24 +40,32 @@ const useStyles = makeStyles({
             },
 });
 
-function ProjectEditor({closeDrawer, setShort, setDescription}) {
+function ProjectEditor({closeDrawer, short, description, setShort, setDescription}) {
     const classes = useStyles();
 
     return (
         <div
             className={classes.fullList}
             role="presentation"
-            onClick={closeDrawer}
-            onKeyDown={closeDrawer}
         >
-            <TextField label="Short Description" onChange={setShort} />
-            <TextField label="Description" onChange={setDescription} />
+            <List>
+                <ListItem>
+                    <CancelIcon fontSize='small' onClick={closeDrawer}/>
+                    <Container />
+                </ListItem>
+                <ListItem>
+                    <TextField label="Short Description" value={short} onChange={setShort} />
+                </ListItem>
+                <ListItem>
+                    <TextField label="Description" value={description} onChange={setDescription} />
+                </ListItem>
+            </List>
         </div>
     );
 }
 
 const mapStateToProps = (state) => ({
-    shortDescription: state.project.short,
+    short: state.project.short,
     description: state.project.description
 });
 
@@ -63,7 +76,7 @@ const mapDispatchToProps = (dispatch) => ({
         }
         dispatch(projectSetEditorOpen(false));
     },
-    setShort: (event) => dispatch(projectSetShort(event.target.value)),
+    setShort: (event) => {console.log(event.target.value); dispatch(projectSetShort(event.target.value))},
     setDescription: (event) => dispatch(projectSetDescription(event.target.value))
 });
 

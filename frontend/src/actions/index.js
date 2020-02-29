@@ -418,6 +418,23 @@ export const projectSetEditorOpen = (open) => ({
     isEditorOpen: open
 });
 
+export const PROJECT_LOAD_SAVED_REQUEST = 'PROJECT_LOAD_SAVED_REQUEST';
+export const projectLoadSavedRequest = () => ({
+    type: PROJECT_LOAD_SAVED_REQUEST,
+});
+
+export const PROJECT_LOAD_SAVED_ERROR = 'PROJECT_LOAD_SAVED_ERROR';
+export const projectLoadSavedError = (error) => ({
+    type: PROJECT_LOAD_SAVED_ERROR,
+    error
+});
+
+export const PROJECT_LOAD_SAVED_SUCCESS = 'PROJECT_LOAD_SAVED_SUCCESS';
+export const projectLoadSavedSuccess= (savedProjects) => ({
+    type: PROJECT_LOAD_SAVED_SUCCESS,
+    savedProjects
+});
+
 /* Project thunks */
 export const projectCreate = (userId,templateId=undefined) => dispatch => {
     let fetchURL;
@@ -492,6 +509,23 @@ export const projectSave = project => dispatch => {
     .then(json => dispatch(projectSaveSuccess(json._id))));
     
 }
+
+export const projectLoadSaved = userId => dispatch => {
+    dispatch(projectLoadSavedRequest());
+    return(fetchAwesomO({url: '/api/project/list/'+userId})
+    .then( response => response.json(),
+        // Do not use catch, because that will also catch
+        // any errors in the dispatch and resulting render,
+        // causing a loop of 'Unexpected batch number' errors.
+        // https://github.com/facebook/react/issues/6895
+        error => dispatch(projectLoadSavedError(error))
+    )
+    .then(projects =>
+        // We can dispatch many times!
+        // Here, we update the app state with the results of the API call.
+        dispatch(projectLoadSavedSuccess(projects))
+    ));
+};
 
 //Camera-configuration action-creators
 export const CAMERA_CONFIG_CREATE_REQUEST = 'CAMERA_CONFIG_CREATE_REQUEST';
@@ -668,6 +702,22 @@ export const cameraConfigApplySettingsSuccess = () => ({
     type: CAMERA_CONFIG_APPLY_SETTINGS_SUCCESS
 });
 
+export const CAMERA_CAPTURE_REQUEST = 'CAMERA_CAPTURE_REQUEST';
+export const cameraCaptureRequest = () => ({
+    type: CAMERA_CAPTURE_REQUEST
+});
+
+export const CAMERA_CAPTURE_ERROR = 'CAMERA_CAPTURE_ERROR';
+export const cameraCaptureError = (error) => ({
+    type: CAMERA_CAPTURE_ERROR,
+    error 
+});
+
+export const CAMERA_CAPTURE_SUCCESS = 'CAMERA_CAPTURE_SUCCESS';
+export const cameraCaptureSuccess = () => ({
+    type: CAMERA_CAPTURE_SUCCESS
+});
+
 /* CameraConfig thunks */
 export const cameraConfigCreate = (userId, projectId, templateId=undefined) => dispatch => {
     dispatch(cameraConfigCreateRequest());
@@ -733,14 +783,24 @@ export const cameraConfigApplySettings = (camIndex,camConfigs) => dispatch => {
                                  name: c.entry.label,
                                  value: c.entry.value }) );
     return(fetchAwesomO({url: '/api/camera/settings',
-                         method: 'PUT',
+                         method: 'POST',
                          body: JSON.stringify({ camIndex: camIndex, updates: updates })})
                 .then(response => response.json(),
                       error => dispatch(cameraConfigApplySettingsError(error)))
-                .then(json => {
-                    dispatch(cameraConfigResetStaleFlag(json.updateIds)); //Reset stale flags on those entries that did update successfully
+                .then(updateIds => {
+                    dispatch(cameraConfigResetStaleFlag(updateIds)); //Reset stale flags on those entries that did update successfully
                     dispatch(cameraConfigApplySettingsSuccess());
                 }));
+}
+
+
+export const cameraCapture = () => dispatch => {
+    dispatch(cameraCaptureRequest());
+    /* Only update the entries marked 'stale' */
+    return(fetchAwesomO({url: '/api/camera/capture'})
+                .then(response => dispatch(cameraCaptureSuccess()),
+                      error => dispatch(cameraCaptureError(error)))
+    );
 }
 
 //Experimental Config
@@ -1385,6 +1445,39 @@ export const viewportSetCurrentPicture = (src) => ({
     src
 });
 
+export const VIEWPORT_GET_CURRENT_PICTURE_REQUEST = "VIEWPORT_GET_CURRENT_PICTURE_REQUEST";
+export const viewportGetCurrentPictureRequest = () => ({
+    type: VIEWPORT_GET_CURRENT_PICTURE_REQUEST
+});
+
+export const VIEWPORT_GET_CURRENT_PICTURE_ERROR = "VIEWPORT_GET_CURRENT_PICTURE_ERROR";
+export const viewportGetCurrentPictureError = (error) => ({
+    type: VIEWPORT_GET_CURRENT_PICTURE_ERROR,
+    error
+});
+
+export const VIEWPORT_GET_CURRENT_PICTURE_SUCCESS = "VIEWPORT_GET_CURRENT_PICTURE_SUCCESS";
+export const viewportGetCurrentPictureSuccess = (src) => ({
+    type: VIEWPORT_GET_CURRENT_PICTURE_SUCCESS,
+    src
+});
+
+/* Viewport thunks */
+export const viewportGetCurrentPicture = () => (dispatch) => {
+    dispatch(viewportGetCurrentPictureRequest());
+    return(fetchAwesomO({ url: '/api/camera/current' })
+        .then(  response => response.json(), 
+                error => dispatch(viewportGetCurrentPictureError(error)))
+        .then( current => {
+            if( current !== undefined ) {
+                dispatch(viewportGetCurrentPictureSuccess(current.src));
+            } else {
+                dispatch(viewportGetCurrentPictureSuccess(undefined));
+            }
+         })
+    );
+}
+
 /* Controller actions */
 export const CONTROLLER_RUNNING_STATUS_RUNNING = 'CONTROLLER_RUNNING_STATUS_RUNNING';
 export const CONTROLLER_RUNNING_STATUS_PAUSED = 'CONTROLLER_RUNNING_STATUS_PAUSED';
@@ -1392,9 +1485,10 @@ export const CONTROLLER_RUNNING_STATUS_STOPPED = 'CONTROLLER_RUNNING_STATUS_STOP
 
 //Controller state: Things like running, paused, stopped, and current location of camera arm (row, col)
 export const CONTROLLER_SET_RUNNING_STATUS = "CONTROLLER_SET_RUNNING_STATUS";
-export const controllerSetRunningStatus = (status) => ({
+export const controllerSetRunningStatus = (status,userId) => ({
     type: CONTROLLER_SET_RUNNING_STATUS,
-    status: status
+    status,
+    userId
 });
 
 export const CONTROLLER_SET_LOCATION = "CONTROLLER_SET_LOCATION";
@@ -1403,3 +1497,312 @@ export const controllerSetLocation = (location) => ({
     location: location
 });
 
+export const CONTROLLER_MOVE_PLATE_REQUEST = "CONTROLLER_MOVE_PLATE_REQUEST";
+export const controllerMovePlateRequest = () => ({
+    type: CONTROLLER_MOVE_PLATE_REQUEST
+});
+
+export const CONTROLLER_MOVE_PLATE_ERROR = "CONTROLLER_MOVE_PLATE_ERROR";
+export const controllerMovePlateError = (error) => ({
+    type: CONTROLLER_MOVE_PLATE_ERROR,
+    error
+});
+
+export const CONTROLLER_MOVE_PLATE_SUCCESS = "CONTROLLER_MOVE_PLATE_SUCCESS";
+export const controllerMovePlateSuccess = (location) => ({
+    type: CONTROLLER_MOVE_PLATE_SUCCESS,
+    location
+});
+
+export const CONTROLLER_MOVE_DISTANCE_REQUEST = "CONTROLLER_MOVE_DISTANCE_REQUEST";
+export const controllerMoveDistanceRequest = () => ({
+    type: CONTROLLER_MOVE_DISTANCE_REQUEST,
+});
+
+export const CONTROLLER_MOVE_DISTANCE_ERROR = "CONTROLLER_MOVE_DISTANCE_ERROR";
+export const controllerMoveDistanceError = (error) => ({
+    type: CONTROLLER_MOVE_DISTANCE_ERROR,
+    error
+});
+
+export const CONTROLLER_MOVE_DISTANCE_SUCCESS = "CONTROLLER_MOVE_DISTANCE_SUCCESS";
+export const controllerMoveDistanceSuccess = (location) => ({
+    type: CONTROLLER_MOVE_DISTANCE_SUCCESS,
+    location
+});
+
+export const CONTROLLER_MOVE_HOME_REQUEST = "CONTROLLER_MOVE_HOME_REQUEST";
+export const controllerMoveHomeRequest = () => ({
+    type: CONTROLLER_MOVE_HOME_REQUEST
+});
+
+export const CONTROLLER_MOVE_HOME_ERROR = "CONTROLLER_MOVE_HOME_ERROR";
+export const controllerMoveHomeError = (error) => ({
+    type: CONTROLLER_MOVE_HOME_ERROR,
+    error
+});
+
+export const CONTROLLER_MOVE_HOME_SUCCESS = "CONTROLLER_MOVE_HOME_SUCCESS";
+export const controllerMoveHomeSuccess = (location) => ({
+    type: CONTROLLER_MOVE_HOME_SUCCESS,
+    location
+});
+
+export const CONTROLLER_SET_USER_REQUEST = "CONTROLLER_SET_USER_REQUEST";
+export const controllerSetUserRequest = () => ({
+    type: CONTROLLER_SET_USER_REQUEST
+});
+
+export const CONTROLLER_SET_USER_ERROR = "CONTROLLER_SET_USER_ERROR";
+export const controllerSetUserError = (error) => ({
+    type: CONTROLLER_SET_USER_ERROR,
+    error
+});
+
+export const CONTROLLER_SET_USER_SUCCESS = "CONTROLLER_SET_USER_SUCCESS";
+export const controllerSetUserSuccess = (userId) => ({
+    type: CONTROLLER_SET_USER_SUCCESS,
+    userId
+});
+
+export const CONTROLLER_CLEAR_USER_REQUEST = "CONTROLLER_CLEAR_USER_REQUEST";
+export const controllerClearUserRequest = () => ({
+    type: CONTROLLER_CLEAR_USER_REQUEST
+});
+
+export const CONTROLLER_CLEAR_USER_ERROR = "CONTROLLER_CLEAR_USER_ERROR";
+export const controllerClearUserError = (error) => ({
+    type: CONTROLLER_CLEAR_USER_ERROR,
+    error
+});
+
+export const CONTROLLER_CLEAR_USER_SUCCESS = "CONTROLLER_CLEAR_USER_SUCCESS";
+export const controllerClearUserSuccess = () => ({
+    type: CONTROLLER_CLEAR_USER_SUCCESS
+});
+
+export const CONTROLLER_SET_PROJECT_REQUEST = "CONTROLLER_SET_PROJECT_REQUEST";
+export const controllerSetProjectRequest = () => ({
+    type: CONTROLLER_SET_PROJECT_REQUEST
+});
+
+export const CONTROLLER_SET_PROJECT_ERROR = "CONTROLLER_SET_PROJECT_ERROR";
+export const controllerSetProjectError = (error) => ({
+    type: CONTROLLER_SET_PROJECT_ERROR,
+    error
+});
+
+export const CONTROLLER_SET_PROJECT_SUCCESS = "CONTROLLER_SET_PROJECT_SUCCESS";
+export const controllerSetProjectSuccess = (projectId) => ({
+    type: CONTROLLER_SET_PROJECT_SUCCESS,
+    projectId
+});
+
+export const CONTROLLER_CLEAR_PROJECT_REQUEST = "CONTROLLER_CLEAR_PROJECT_REQUEST";
+export const controllerClearProjectRequest = () => ({
+    type: CONTROLLER_CLEAR_PROJECT_REQUEST
+});
+
+export const CONTROLLER_CLEAR_PROJECT_ERROR = "CONTROLLER_CLEAR_PROJECT_ERROR";
+export const controllerClearProjectError = (error) => ({
+    type: CONTROLLER_CLEAR_PROJECT_ERROR,
+    error
+});
+
+export const CONTROLLER_CLEAR_PROJECT_SUCCESS = "CONTROLLER_CLEAR_PROJECT_SUCCESS";
+export const controllerClearProjectSuccess = () => ({
+    type: CONTROLLER_CLEAR_PROJECT_SUCCESS
+});
+
+export const CONTROLLER_START_REQUEST = "CONTROLLER_START_REQUEST";
+export const controllerStartRequest = () => ({
+    type: CONTROLLER_START_REQUEST
+});
+
+export const CONTROLLER_START_ERROR = "CONTROLLER_START_ERROR";
+export const controllerStartError = (error) => ({
+    type: CONTROLLER_START_ERROR,
+    error
+});
+
+export const CONTROLLER_START_SUCCESS = "CONTROLLER_START_SUCCESS";
+export const controllerStartSuccess = () => ({
+    type: CONTROLLER_START_SUCCESS
+});
+
+export const CONTROLLER_RESUME_REQUEST = "CONTROLLER_RESUME_REQUEST";
+export const controllerResumeRequest = () => ({
+    type: CONTROLLER_RESUME_REQUEST
+});
+
+export const CONTROLLER_RESUME_ERROR = "CONTROLLER_RESUME_ERROR";
+export const controllerResumeError = (error) => ({
+    type: CONTROLLER_RESUME_ERROR,
+    error
+});
+
+export const CONTROLLER_RESUME_SUCCESS = "CONTROLLER_RESUME_SUCCESS";
+export const controllerResumeSuccess = () => ({
+    type: CONTROLLER_RESUME_SUCCESS
+});
+
+export const CONTROLLER_PAUSE_REQUEST = "CONTROLLER_PAUSE_REQUEST";
+export const controllerPauseRequest = () => ({
+    type: CONTROLLER_PAUSE_REQUEST
+});
+
+export const CONTROLLER_PAUSE_ERROR = "CONTROLLER_PAUSE_ERROR";
+export const controllerPauseError = (error) => ({
+    type: CONTROLLER_PAUSE_ERROR,
+    error
+});
+
+export const CONTROLLER_PAUSE_SUCCESS = "CONTROLLER_PAUSE_SUCCESS";
+export const controllerPauseSuccess = () => ({
+    type: CONTROLLER_PAUSE_SUCCESS
+});
+
+export const CONTROLLER_STOP_REQUEST = "CONTROLLER_STOP_REQUEST";
+export const controllerStopRequest = () => ({
+    type: CONTROLLER_STOP_REQUEST
+});
+
+export const CONTROLLER_STOP_ERROR = "CONTROLLER_STOP_ERROR";
+export const controllerStopError = (error) => ({
+    type: CONTROLLER_STOP_ERROR,
+    error
+});
+
+export const CONTROLLER_STOP_SUCCESS = "CONTROLLER_STOP_SUCCESS";
+export const controllerStopSuccess = () => ({
+    type: CONTROLLER_STOP_SUCCESS
+});
+
+export const CONTROLLER_GET_CURRENT_STATUS_REQUEST = "CONTROLLER_GET_CURRENT_STATUS_REQUEST";
+export const controllerGetCurrentStatusRequest = () => ({
+    type: CONTROLLER_GET_CURRENT_STATUS_REQUEST
+});
+
+export const CONTROLLER_GET_CURRENT_STATUS_ERROR = "CONTROLLER_GET_CURRENT_STATUS_ERROR";
+export const controllerGetCurrentStatusError = (error) => ({
+    type: CONTROLLER_GET_CURRENT_STATUS_ERROR,
+    error
+});
+
+export const CONTROLLER_GET_CURRENT_STATUS_SUCCESS = "CONTROLLER_GET_CURRENT_STATUS_SUCCESS";
+export const controllerGetCurrentStatusSuccess = (status, userId, projectId, location) => ({
+    type: CONTROLLER_GET_CURRENT_STATUS_SUCCESS,
+    status,
+    userId,
+    projectId,
+    location
+});
+
+
+export const controllerMovePlate = (direction, numPlates) => dispatch => {
+    dispatch(controllerMovePlateRequest());
+    return(fetchAwesomO({
+        url: '/api/controller/move/'+direction+'/plates/'+numPlates,
+        method: 'PUT'})
+        .then(  response => response.json(),
+                error => dispatch(controllerMovePlateError(error)) )
+        .then(location => dispatch(controllerMovePlateSuccess(location))));
+}
+
+export const controllerMoveDistance = (direction, distance) => dispatch => {
+    dispatch(controllerMoveDistanceRequest());
+    return(fetchAwesomO({
+        url: '/api/controller/move/'+direction+'/cm/'+distance,
+        method: 'PUT'})
+        .then(  response => response.json(),
+                error => dispatch(controllerMoveDistanceError(error)) )
+        .then(location => dispatch(controllerMoveDistanceSuccess(location))));
+}
+
+export const controllerMoveHome = (moveX, moveY) => dispatch => {
+    let promise = undefined;
+    dispatch(controllerMoveHomeRequest());
+    if( moveX && moveY ) {
+        promise = fetchAwesomO({ url: '/api/controller/home',
+                                 method: 'PUT' });
+    } else if( moveX ) {
+        promise = fetchAwesomO({ url: '/api/controller/homex',
+                                 method: 'PUT' });
+    } else if( moveY ) {
+        promise = fetchAwesomO({ url: '/api/controller/homex',
+                                 method: 'PUT' });
+    }
+
+    if( promise ) {
+        return(promise
+                .then(  response => response.json(),
+                        error => dispatch(controllerMoveHomeError(error)))
+                .then( location => dispatch(controllerMoveHomeSuccess(location))));
+    }
+}
+
+export const controllerSetUser = (userId) => dispatch => {
+    dispatch(controllerSetUserRequest());
+    return(fetchAwesomO({ url: '/api/controller/user/set/' + userId,  method: 'PUT' })
+        .then(  response => response.json(),
+                error => dispatch(controllerSetUserError(error)))
+        .then( json => dispatch(controllerSetUserSuccess(json.userId))));
+}
+
+export const controllerClearUser = (userId) => dispatch => {
+    dispatch(controllerClearUserRequest());
+    return(fetchAwesomO({ url: '/api/controller/user/clear/' + userId,  method: 'PUT' })
+        .then(  response => dispatch(controllerClearUserSuccess()), 
+                error => dispatch(controllerClearUserError(error))));
+}
+
+export const controllerSetProject = (projectId) => dispatch => {
+    dispatch(controllerSetProjectRequest());
+    return(fetchAwesomO({ url: '/api/controller/project/set/' + projectId,  method: 'PUT' })
+        .then(  response => response.json(), 
+                error => dispatch(controllerSetProjectError(error)))
+        .then( json => dispatch(controllerSetProjectSuccess(json.projectId))));
+}
+
+export const controllerClearProject = (projectId) => dispatch => {
+    dispatch(controllerClearProjectRequest());
+    return(fetchAwesomO({ url: '/api/controller/project/clear/' + projectId,  method: 'PUT' })
+        .then(  response => dispatch(controllerClearProjectSuccess()), 
+                error => dispatch(controllerClearProjectError(error))));
+}
+
+export const controllerStart = () => dispatch => {
+    dispatch(controllerStartRequest());
+    return(fetchAwesomO({ url: '/api/controller/start', method: 'PUT' })
+        .then(  response => dispatch(controllerStartSuccess()), 
+                error => dispatch(controllerStartError(error))));
+}
+
+export const controllerResume = () => dispatch => {
+    dispatch(controllerResumeRequest());
+    return(fetchAwesomO({ url: '/api/controller/resume', method: 'PUT' })
+        .then(  response => dispatch(controllerResumeSuccess()),
+                error => dispatch(controllerResumeError(error))));
+}
+
+export const controllerPause = () => dispatch => {
+    dispatch(controllerPauseRequest());
+    return(fetchAwesomO({ url: '/api/controller/pause', method: 'PUT' })
+        .then(  response => dispatch(controllerPauseSuccess()), 
+                error => dispatch(controllerPauseError(error))));
+}
+
+export const controllerStop = () => dispatch => {
+    dispatch(controllerStopRequest());
+    return(fetchAwesomO({ url: '/api/controller/stop', method: 'PUT' })
+        .then(  response => dispatch(controllerStopSuccess()), 
+                error => dispatch(controllerStopError(error))));
+}
+
+export const controllerGetCurrentStatus = () => dispatch => {
+    dispatch(controllerGetCurrentStatusRequest());
+    return(fetchAwesomO({ url: '/api/controller/current' })
+        .then(  response => response.json(), 
+                error => dispatch(controllerGetCurrentStatusError(error)))
+        .then( current => dispatch(controllerGetCurrentStatusSuccess(current.status, current.userId, current.projectId, current.location))));
+}

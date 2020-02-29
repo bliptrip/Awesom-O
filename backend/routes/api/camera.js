@@ -20,6 +20,9 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
 import {viewportSetCurrentPicture} from '../../../frontend/src/actions'; 
+import {wss} from '../../lib/websocket';
+import {checkIfStopped} from './controller';
+
 const btoa         = require('btoa');
 const router       = require('express').Router();
 const fs           = require('fs');
@@ -29,8 +32,8 @@ const passport     = require('passport');
 const postal       = require('postal'); //Sending/receiving messages across different backend modules
 const CameraConfig = mongoose.model('CameraConfig');
 
-import {wss} from '../../lib/websocket';
 const auth = require('../../lib/passport').auth;
+var currentPicture = undefined; //Keeps track of 
 
 var   gphoto = new gphoto2.GPhoto2();
 gphoto.setLogLevel(1);
@@ -92,9 +95,6 @@ router.get('/list', auth.sess, (req, res, next) => {
     camera = null;
     gphoto.list( (list) => {
         camera_list = list;
-        if( camera_list.length > 0 ) {
-            camera = list[0];
-        }
         return(res.status(200).json(camera_list));
     });
 });
@@ -102,8 +102,8 @@ router.get('/list', auth.sess, (req, res, next) => {
 //Set camera to a particular camera
 router.put('/set/:index', auth.sess, (req, res, next) => {
     let index = req.params.index;
-    if( index < list.length ) {
-        camera = list[index];
+    if( camera_list && index < camera_list.length ) {
+        camera = camera_list[index];
         res.sendStatus(200);
     } else {
         res.sendStatus(400);
@@ -122,20 +122,23 @@ router.get('/settings', auth.sess, (req, res, next) => {
 });
 
 //Put saves settings to camera
-router.put('/settings', auth.sess, (req, res, next) => {
-    camera.setConfigValue(req.body.name, req.body.value, (err) => 
-        {
-            if(err) {
-                res.status(404).send("setConfigValue failed with error code: " + JSON.stringify(err));
-            } else {
-                res.sendStatus(200);
+router.post('/settings', auth.sess, (req, res, next) => {
+    let camIndex = req.body.camIndex;
+    let tentativeUpdates  = req.body.updates;
+    let updates           = [];
+    tentativeUpdates.forEach( config => {
+        camera.setConfigValue(config.name, config.value, (err) => {
+            if(!err) {
+                updates.push(config.id);
             }
         });
+    });
+    res.status(200).json(updates);
     return;
 });
 
 //Take a picture from camera and download image
-router.get('/capture', auth.sess, (req, res, next) => {
+router.get('/capture', auth.sess, checkIfStopped, (req, res, next) => {
     // Take picture and keep image on camera
     if( process.env.NODE_CAPTURE === "fs" ) {
         path = process.env.NODE_CAPTURE_PATH;
@@ -166,10 +169,19 @@ router.get('/capture', auth.sess, (req, res, next) => {
                 });
             } else {
                 let edata = encodeImage(data);
+                currentPicture = edata;
                 wss.broadcast(edata);
                 return res.sendStatus(200);
             }
         });
+    }
+});
+
+router.get('/current', auth.sess, (req, res, next) => {
+    if( currentPicture !== undefined ) {
+        return(res.status(200).send(currentPicture));
+    } else {
+        return(res.status(200).json(currentPicture));
     }
 });
 

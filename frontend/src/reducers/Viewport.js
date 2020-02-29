@@ -20,11 +20,31 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 import * as viewportC from '../actions';
 
-const viewport = (state = {}, action) => {
+const viewport = (state = {
+                    src: undefined,
+                    isFetching: false,
+                    errorStatus: undefined
+                  }, action) => {
     let newstate = state;
     switch( action.type ) {
         case viewportC.VIEWPORT_SET_CURRENT_PICTURE:
             newstate = {...state,
+                        src: action.src};
+            break;
+        case viewportC.VIEWPORT_GET_CURRENT_PICTURE_REQUEST:
+            newstate = {...state,
+                        isFetching: true,
+                        errorStatus: undefined};
+            break;
+        case viewportC.VIEWPORT_GET_CURRENT_PICTURE_ERROR:
+            newstate = {...state,
+                        isFetching: false,
+                        errorStatus: action.error};
+            break;
+        case viewportC.VIEWPORT_GET_CURRENT_PICTURE_SUCCESS:
+            newstate = {...state,
+                        isFetching: false,
+                        errorStatus: action.error,
                         src: action.src};
             break;
         default:

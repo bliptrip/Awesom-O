@@ -69,7 +69,7 @@ function Editors({userEOpen, projectEOpen, cameraEOpen, experimentEOpen, storage
                 </SwipeableDrawer>
                 <SwipeableDrawer
                   anchor="right"
-                  open='true'
+                  open={experimentEOpen}
                   onClose={e => dispatch(experimentConfigSetEditorOpen(false))}
                   onOpen={e => dispatch(experimentConfigSetEditorOpen(true))}
                 >

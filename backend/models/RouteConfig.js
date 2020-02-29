@@ -27,14 +27,32 @@ const RouteLocationSchema = new Schema({row: Number, col: Number}) //Plate coord
 
 const RouteConfigSchema = new Schema({
     version: Number,
-    interplateDelay: Number, //In seconds
-    loopDelay: Number,  //In seconds
+    interplateDelay: {
+        type: Number, //In seconds
+        default: 10
+    },
+    loopDelay: {
+        type: Number,  //In seconds
+        default: 21600
+    },
     previewHooks: [String], //List of preview hook scripts to call
     captureHooks: [String], //List of capture hook scripts to call
-    stepsPerCmX: Number, //Motor steps/cm in x direction
-    stepsPerCmY: Number, //Motor steps/cm in y direction
-    distanceX: Number, //X distance in cm b/w plates
-    distanceY: Number, //Y distance in cm b/w plates
+    stepsPerCmX: { 
+        type: Number, //Motor steps/cm in x direction
+        default: 9804
+    },
+    stepsPerCmY: {
+        type: Number, //Motor steps/cm in y direction
+        default: 9804
+    },
+    distanceX: {
+        type: Number, //X distance in cm b/w plates
+        default: 12
+    },
+    distanceY: {
+        type: Number, //Y distance in cm b/w plates
+        default: 12
+    },
     route: [RouteLocationSchema],
     users: [{type: Schema.Types.ObjectId, ref: 'Users'}], //Users with access to this RouteConfig
     projects: [{type: Schema.Types.ObjectId, ref: 'Projects'}], //Projects with access to this RouteConfig

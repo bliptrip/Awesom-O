@@ -24,9 +24,10 @@ import { makeStyles } from '@material-ui/core/styles';
 
 //import FileUploader from 'file-uploader';
 
+import Container from '@material-ui/core/Container';
 import Checkbox from '@material-ui/core/Checkbox';
-import Divider from '@material-ui/core/Divider';
 import Input from '@material-ui/core/Input';
+import InputLabel from '@material-ui/core/InputLabel';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -60,7 +61,10 @@ function ExperimentEditor({datetime, rename, imageMeta, filenameFields, plateMet
     const classes = useStyles();
     const disableRenameOptions = rename ? "" : "disabled";
     let fieldset = new Set();
-    plateMeta.forEach( pm => { Object.keys(pm.meta).forEach( k => fieldset.add(k) ) } ); //Possible fields we can allow user to add
+    plateMeta.forEach( pm => { 
+        Object.keys(pm.meta).forEach( k => fieldset.add(k) );
+        console.log(fieldset);
+    } ); //Possible fields we can allow user to add
 
     const importExperimentMeta = (event) => {
         const reader   = new FileReader();
@@ -95,7 +99,6 @@ function ExperimentEditor({datetime, rename, imageMeta, filenameFields, plateMet
                         <Checkbox checked={rename} onChange={setRename} />
                     </Tooltip>
                 </ListItem>
-                <Divider />
                 <ListItem {...disableRenameOptions} >
                     <ListItemText primary="Include Datetime" />
                     <Tooltip title="Include date and timestamp in generated filenames.">
@@ -121,6 +124,7 @@ function ExperimentEditor({datetime, rename, imageMeta, filenameFields, plateMet
                     </Tooltip>
                 </ListItem>
                 <ListItem {...disableRenameOptions} >
+                    <InputLabel>Import experimental metadata</InputLabel>
                     <Input
                         onChange={(e) => importExperimentMeta(e)}
                         type="file"

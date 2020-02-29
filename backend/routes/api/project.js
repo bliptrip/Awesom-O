@@ -81,7 +81,7 @@ router.post('/create', auth.sess, (req, res, next) => {
 
 router.post('/save', auth.sess, (req, res, next) => {
     let projectJSON  = req.body;
-    Project.update({_id: projectJSON._id}, projectJSON, {upsert: false}, function(err, resp) {
+    Projects.update({_id: projectJSON._id}, projectJSON, {upsert: false}, function(err, resp) {
         if( err ) {
             return(res.status(422).json({ errors: resp }));
         } else {
@@ -101,7 +101,7 @@ router.get('/get/:_id', auth.sess, (req, res, next) => {
         });
     }
 
-    return Project.findById({_id: _id}, (err, project) => {
+    return Projects.findById(_id, (err, project) => {
         if( err ) {
             return res.status(422).json({
                 errors: err
@@ -121,6 +121,16 @@ router.get('/get/:_id', auth.sess, (req, res, next) => {
 
 router.get('/remove/:_id', auth.sess, (req, res, next) => {
     return(res.status(422).json({ errors: "Unsupported operation" }));
+});
+
+router.get('/list/:userId', auth.sess, (req, res, next) => {
+    Projects.find( { users: { "$elemMatch": { "$eq": req.params.userId }}}, (err, projects) => {
+        if( err ) {
+            return(res.status(422).json({ errors: err }));
+        } else {
+            return(res.status(200).json(projects));
+        }
+    })
 });
 
 

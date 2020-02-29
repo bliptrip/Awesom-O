@@ -31,22 +31,19 @@ import fetch from 'cross-fetch'; //Backwards-compatibility if fetch not supporte
 import ConnectedWsEventHandler from './WsEventHandler/WsEventHandler';
 import SignIn from './SignIn';
 
-class App extends Component {
-    constructor(props) {
-        super(props);
-    };
+import {viewportGetCurrentPicture} from './actions';
 
-    render() {
-        if(this.props.loggedin !== true) {
-            return(<SignIn />);
-        } else {
-            return(
-                <div>
-                    <ConnectedWsEventHandler />
-                    <Mainview />
-                </div>
-            );
-        }
+function App({loggedin, getCurrentPicture}) {
+    if(loggedin !== true) {
+        return(<SignIn />);
+    } else {
+        getCurrentPicture(); /* Retrieve current picture off backend server, if available. */
+        return(
+            <div>
+                <ConnectedWsEventHandler />
+                <Mainview />
+            </div>
+        );
     }
 }
 
@@ -54,4 +51,8 @@ export const mapStateToProps = (state) => ({
     loggedin: state.user.loggedin
 });
 
-export default connect(mapStateToProps)(App);
+export const mapDispatchToProps = (dispatch) => ({
+    getCurrentPicture: () => dispatch(viewportGetCurrentPicture())
+});
+
+export default connect(mapStateToProps,mapDispatchToProps)(App);

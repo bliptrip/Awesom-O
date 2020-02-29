@@ -19,7 +19,6 @@ You should have received a copy of the GNU Affero General Public License
 along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
-import '../lib/fetch';
 import * as cameraC from '../actions';
 
 const uuidv4 = require('uuid/v4');
@@ -262,6 +261,21 @@ export const cameraConfigReducer = (state = {
                         statusError: action.error};
             break;
         case cameraC.CAMERA_CONFIG_APPLY_SETTINGS_SUCCESS:
+            newstate = {...state,
+                        isFetching: false,
+                        statusError: undefined};
+            break;
+        case cameraC.CAMERA_CAPTURE_REQUEST:
+            newstate = {...state,
+                        isFetching: true,
+                        statusError: undefined};
+            break;
+        case cameraC.CAMERA_CAPTURE_ERROR:
+            newstate = {...state,
+                        isFetching: false,
+                        statusError: action.error};
+            break;
+        case cameraC.CAMERA_CAPTURE_SUCCESS:
             newstate = {...state,
                         isFetching: false,
                         statusError: undefined};

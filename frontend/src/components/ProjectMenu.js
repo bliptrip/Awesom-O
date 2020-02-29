@@ -20,18 +20,27 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
 import React, {useState} from 'react';
+import {connect} from 'react-redux';
 import { withStyles } from '@material-ui/core/styles';
+import clsx from 'clsx';
 import IconButton from '@material-ui/core/IconButton';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
+import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+import Select from '@material-ui/core/Select';
+import Tooltip from '@material-ui/core/Tooltip';
+
 import AccountTreeTwoToneIcon from '@material-ui/icons/AccountTreeTwoTone';
 import AddCircleTwoToneIcon from '@material-ui/icons/AddCircleTwoTone';
+import EditIcon from '@material-ui/icons/Edit';
 import FolderOpenTwoToneIcon from '@material-ui/icons/FolderOpenTwoTone';
 import SaveTwoToneIcon from '@material-ui/icons/SaveTwoTone';
-import {Tooltip} from '@material-ui/core/';
+
+
+import {projectCreate, projectLoadSaved, projectSetEditorOpen} from '../actions';
 
 const StyledMenu = withStyles({
       paper: {
@@ -64,7 +73,41 @@ const StyledMenuItem = withStyles(theme => ({
             },
 }))(MenuItem);
 
-function ProjectMenu() {
+function ProjectSavedProjects({activate, savedProjects}) {
+    let [open, setOpen] = useState(activate);
+    let [selectedProject, setSelectedProject] = useState(undefined);
+
+    const handleSelect = event => {
+        setOpen(false);
+    }
+
+    const toValue = project => (project._id+"_"+project.short)
+
+    const changeSelectChoice = event => {
+        setSelectedProject(event.target.value);
+    }
+
+    if( savedProjects && (savedProjects.length > 0) ) {
+        return (
+            <List>
+                <ListItem>
+                    <Select
+                        value={toValue(savedProjects[0])}
+                        onChange={(e) => {changeSelectChoice(e)}}
+                        color="primary"
+                        label="Open Saved Project"
+                    >
+                        {savedProjects.map((p) => (<MenuItem value={toValue(p)}>{p.short}</MenuItem>))}
+                    </Select>
+                </ListItem>
+            </List> );
+    } else {
+        return ( <>
+                 </> );
+    }
+}
+
+function ProjectMenu({userId, savedProjects, addProject, setEditorOpen, loadSaved}) {
       const [anchorEl, setAnchorEl] = useState(null);
 
       const handleClick = event => {
@@ -95,7 +138,7 @@ function ProjectMenu() {
                   open={Boolean(anchorEl)}
                   onClose={handleClose}
                 >
-                  <StyledMenuItem>
+                  <StyledMenuItem onClick={addProject(userId)}>
                     <ListItemIcon>
                       <AddCircleTwoToneIcon fontSize="large" />
                     </ListItemIcon>
@@ -103,7 +146,15 @@ function ProjectMenu() {
                         <ListItemText primary="Add Project" />
                     </ListItem>
                   </StyledMenuItem>
-                  <StyledMenuItem>
+                  <StyledMenuItem onClick={setEditorOpen}>
+                    <ListItemIcon>
+                      <EditIcon fontSize="large" />
+                    </ListItemIcon>
+                    <ListItem button >
+                        <ListItemText primary="Edit Current Project" />
+                    </ListItem>
+                  </StyledMenuItem>
+                  <StyledMenuItem onClick={loadSaved(userId)}>
                     <ListItemIcon>
                       <FolderOpenTwoToneIcon fontSize="large" />
                     </ListItemIcon>
@@ -124,4 +175,15 @@ function ProjectMenu() {
             );
 };
 
-export default ProjectMenu;
+const mapStateToProps = (state) => ({
+    userId: state.user._id,
+    savedProjects: state.projects.savedProjects
+});
+
+const mapDispatchToProps = (dispatch) => ({
+    addProject: (id) => (e) => {dispatch(projectCreate(id)); dispatch(projectSetEditorOpen(true))},
+    setEditorOpen: (e) => dispatch(projectSetEditorOpen(true)),
+    loadSaved: (id) => (e) => {projectLoadSaved(id)}
+});
+
+export default connect(mapStateToProps,mapDispatchToProps)(ProjectMenu);

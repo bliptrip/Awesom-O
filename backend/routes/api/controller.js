@@ -34,7 +34,7 @@ const Users          = mongoose.model('Users');
 
 const SLEEP_INT   = 100; //sleep time in milliseconds between sending subcommands on serial port
 const STEPS_PER_CM = 9804; //motor steps per cm
-const DEFAULT_PATH = "/dev/cu.USA19H142P1.1";
+const DEFAULT_PATH = "/dev/ttyS0";
 const HOME_TIMEOUT = 30000;
 const MOVE_TIMEOUT = 15000;
 
@@ -46,6 +46,7 @@ var current_project = undefined;
 var current_user = undefined;
 var current_project_timer = undefined;
 var current_route_index;
+var current_location = [0,0]; //Assume at home at init
 var current_state = CONTROLLER_RUNNING_STATUS_STOPPED; //The current state of the controller
 
 const openPort = (path) => {
@@ -64,9 +65,15 @@ const openPort = (path) => {
     });
 
     lport.on('readable', () => {
-        console.log('Data:' +  lport.read());
+        let r = lport.read().toString();
+        console.log(r);
+        if( r.match(/RS=AR/) ) {
+            console.log('Resetting error.');
+            sendCommand('1AR');
+            sendCommand('2AR');
+        }
     });
-    
+
     return(lport);
 }
 
@@ -83,13 +90,12 @@ const sleep = (ms) => {
 }
 
 const sendCommand = (command) => {
+    console.log(command);
     port.write(command + "\r\n");
-    const r = port.read();
-    return(r);
 }
 
 const sendCommandStop = () => {
-    return sendCommand('SK');
+    sendCommand('SK');
 }
 
 //Status character codes:
@@ -105,15 +111,25 @@ const sendCommandStop = () => {
 //S = Stopping a motion (ST or SK command executing)
 //T = Wait Time (WT command executing)
 //W = Wait Input (WI command executing)
+//
+//NOTE: Send RS will return 2RS=R^M1RS=R^M if the drive is ready
+//If the drive is in motion, will get RS=MPR^M
+//If the drives have hit the end-stops, then 2RS=AR^M1RS=AR^M, and AL=0002^M2AL=0002^M
+//NOTE: AR command will not clear the end-stop flag, as it will continue to trip until motors move away from end-stop
+//switch.
+//NOTE: SK can be used to stop/kill motors immediately.
+//To configure serial port to raw mode in linux: sudo stty -F /dev/ttyS0 -echo -echoe -echok raw 9600
+//To read from serial port: cat -v < /dev/ttyS0
+//To write to serial port: echo -ne "RS\r\n" > /dev/ttyS0
 const sendCommandStatus = () => {
     const p = new Promise( (resolve) => {
         //Axis 1 Servo Request status 
-        const r1 = sendCommand('1RS');
+        sendCommand('1RS');
         sleep(SLEEP_INT);
         //Axis 2 Servo Request Status
-        const r2 = sendCommand('2RS');
+         sendCommand('2RS');
         sleep(SLEEP_INT);
-        resolve(r1+'\n'+r2);
+        resolve();
     });
     return(p);
 }
@@ -130,13 +146,19 @@ const sendCommandHome = () => {
         sendCommand('DE2');
         sleep(SLEEP_INT);
         //Define position -1200000 steps (CCW)
-        sendCommand('DI-1200000');
+        sendCommand('1DI1200000');
+        sleep(SLEEP_INT);
+        sendCommand('2DI-1200000');
         sleep(SLEEP_INT);
         //Velocity rate 1 rev/sec
-        sendCommand('VE3');
+        sendCommand('1VE3');
+        sleep(SLEEP_INT);
+        sendCommand('2VE3');
         sleep(SLEEP_INT);
         //Feed length command
-        sendCommand('FL');
+        sendCommand('1FL');
+        sleep(SLEEP_INT);
+        sendCommand('2FL');
         sleep(SLEEP_INT);
         resolve();
     });
@@ -145,11 +167,11 @@ const sendCommandHome = () => {
 
 const sendCommandHomeX = () => {
     const p = new Promise( (resolve) => {
-        //Define limit 2
+        //Define limit 2 -- end-of-travel limit occurs when an input is open (de-energized)
         sendCommand('DL2');
         sleep(SLEEP_INT);
         //Define position -1200000 steps (CCW) along axis 1 (x-axis)
-        sendCommand('1DI-1200000');
+        sendCommand('1DI1200000');
         sleep(SLEEP_INT);
         //Velocity axis 1
         sendCommand('1VE3');
@@ -164,16 +186,16 @@ const sendCommandHomeX = () => {
 
 const sendCommandHomeY = () => {
     const p = new Promise( (resolve) => {
-        //Define limit 2
+        //Define limit 2 -- end-of-travel limit occurs when an input is open (de-energized)
         sendCommand('DL2');
         sleep(SLEEP_INT);
         //Define position -1200000 steps (CCW) along axis 1 (x-axis)
         sendCommand('2DI-1200000');
         sleep(SLEEP_INT);
-        //Velocity axis 1
+        //Velocity axis 2
         sendCommand('2VE3');
         sleep(SLEEP_INT);
-        //Axis 1 Feed length command
+        //Axis 2 Feed length command
         sendCommand('2FL');
         sleep(SLEEP_INT);
         resolve();
@@ -204,32 +226,26 @@ const sendCommandMove = (axes)  => {
 const waitForComplete = (axes, timeout = 0) => {
     const p = new Promise( (resolve,reject) => {
         let r = "";
-        let timeout;
+        let mtimeout;
         let alarmCode = "";
-        if( (timeout !== 0) && reject ) {
-            timeout = setTimeout(() => { reject('timeout') }, timeout); //Set a timeout to give up on operation, and if times out, call reject CB with timeout event
+        if( timeout !== 0) {
+            mtimeout = setTimeout(() => {
+                let err = {errors: {message: 'timeout'}};
+                console.log(JSON.stringify(err));
+                reject(err);
+            }, timeout); //Set a timeout to give up on operation, and if times out, call reject CB with timeout event
         }
         axes.forEach( (axis) => {
-            do {
-                r = sendCommand(axis+'RS');
-                if ( r.match(/A/g) ) {
-                    console.log("Alarm: " + alarmcode);
-                    //Reset alarm
-                    sendCommand(axis+'AR');
-                    break;
-                }
-
-                if ( r.match(/E/g) ) {
-                    //Reset drive fault
-                    sendCommand(axis+'AR');
-                    alarmCode="AE";
-                    break;
-                }
-            } while( alarmCode === "" );
+            sendCommand(axis.index+'RS');
+            sendCommand(axis.index+'AL');
         });
-        clearTimeout(timeout);
+        if( timeout !== 0) {
+            clearTimeout(mtimeout);
+        }
         if( alarmCode !== "" ) {
-            reject(alarmCode);
+            let err = {errors: {message: "alarm code: "+alarmCode}};
+            console.log(JSON.stringify(err));
+            reject(err);
         } else {
             resolve();
         }
@@ -239,22 +255,17 @@ const waitForComplete = (axes, timeout = 0) => {
 
 const sendCommandAndWait = (axes, timeout, res) => {
     sendCommandMove(axes)
-    .then( () => {
-        waitForComplete(axes,timeout)
-        .then( () => { 
-            res.sendStatus(200); 
-        }, (err) => {
-            res.status(400).json(err);
-        });
-    });
+    .then( () => (waitForComplete(axes,timeout)) )
+    .then( () =>
+            res.status(200).json({x: current_location[0], y: current_location[1]}));
 };
 
 //Controller route event loop logic -- handled by a postal subscription to controllerEventLoop with various types of notifications
 
 var controllerEventLoopChan = postal.channel("controllerEventLoop");
 
-const sendRunningStatus = (state) => {
-    wss.broadcast(JSON.stringify(controllerSetRunningStatus(state)));
+const sendRunningStatus = (state,userId) => {
+    wss.broadcast(JSON.stringify(controllerSetRunningStatus(state,userId)));
 }
 
 const sendLocation = (row, col) => {
@@ -357,84 +368,77 @@ controllerEventLoopChan.subscribe("notification.stop", (data, envelope) => {
 });
 
 //Middleware function: Check current status and reject if not stopped
-const checkIfSerial = (res, req, next) => {
-    console.log("checkIfSerial begin.");
+const checkIfSerial = (req, res, next) => {
     if( port === undefined ) {
         res.status(409).json({errors:
             {message: "Serial port not opened."}
         }); 
+        return;
     }
-    console.log("checkIfSerial end.");
     next();
 };
 
-const checkIfNotSerial = (res, req, next) => {
-    console.log("checkIfNotSerial begin.");
-    if( port === undefined ) {
+const checkIfNotSerial = (req, res, next) => {
+    if( port !== undefined ) {
         res.status(409).json({errors:
             {message: "Serial port opened."}
         }); 
+        return;
     }
-    console.log("checkIfNotSerial end.");
     next();
 };
 
-const checkIfUser = (res, req, next) => {
-    console.log("checkIfUser begin.");
+const checkIfUser = (req, res, next) => {
     if( current_user === undefined ) {
         res.status(409).json({errors:
             {message: "User id not set."}
         }); 
+        return;
     }
-    console.log("checkIfUser end.");
     next();
 };
 
-const checkIfNotUser = (res, req, next) => {
-    console.log("checkIfNotUser begin.");
+const checkIfNotUser = (req, res, next) => {
     if( current_user !== undefined ) {
         res.status(409).json({errors:
             {message: "User id set."}
         }); 
+        return;
     }
-    console.log("checkIfUser end.");
     next();
 };
 
-const checkIfProject = (res, req, next) => {
-    console.log("checkIfProject begin.");
+const checkIfProject = (req, res, next) => {
     if( current_project === undefined ) {
         res.status(409).json({errors:
             {message: "Project id not set."}
         }); 
+        return;
     }
-    console.log("checkIfProject end.");
     next();
 };
 
-const checkIfNotProject = (res, req, next) => {
-    console.log("checkIfNotProject begin.");
+const checkIfNotProject = (req, res, next) => {
     if( current_project !== undefined ) {
         res.status(409).json({errors:
             {message: "Project id set."}
         }); 
+        return;
     }
-    console.log("checkIfProject end.");
     next();
 };
 
-const checkIfStopped = (res, req, next) => {
-    console.log("checkIfStopped begin.");
+export const checkIfStopped = (req, res, next) => {
     if( current_state !== CONTROLLER_RUNNING_STATUS_STOPPED ) {
         res.status(409).json({errors:
             {message: "Current controller route in progress.  Stop route to execute this operation."}
         }); 
+        return;
     }
-    console.log("checkIfStopped end.");
     next();
 };
 
-const checkIfPaused = (res, req, next) => {
+const checkIfPaused = (req, res, next) => {
     if( current_state !== CONTROLLER_RUNNING_STATUS_PAUSED ) {
         res.status(409).json({errors:
             {message: "Current controller route not paused."}
@@ -444,8 +448,8 @@ const checkIfPaused = (res, req, next) => {
     next();
 };
 
-const checkIfRunning = (res, req, next) => {
-    if( current_state !== CONTROLLER_RUNNING_STATUS_STOPPED ) {
+const checkIfRunning = (req, res, next) => {
+    if( current_state !== CONTROLLER_RUNNING_STATUS_RUNNING ) {
         res.status(409).json({errors: 
             {message: "Current controller route not running."}
         }); 
@@ -454,25 +458,50 @@ const checkIfRunning = (res, req, next) => {
     next();
 }
 
+router.get('/list', checkIfStopped, (req, res, next) => {
+    SerialPort.list()
+        .then( ports => res.status(200).json({ports: ports}),
+               err => res.status(409).json({errors: {message: err}}) );
+});
+
 //Open serial port
-router.put('/open', auth.sess, checkIfStopped, (req, res, next) => {
-    console.log("Opening default port.");
+router.put('/open', auth.sess, checkIfNotSerial, checkIfStopped, (req, res, next) => {
     port = openPort(DEFAULT_PATH);
     if( port != undefined ) {
+        sendCommand('DL2');
+        sleep(SLEEP_INT);
+        //Accelerate rate 5
+        sendCommand('AC5');
+        sleep(SLEEP_INT);
+        //Decelerate rate 2
+        sendCommand('DE2');
         res.sendStatus(200);
+        return;
     } else {
         res.sendStatus(400);
+        return;
     }
 });
 
-router.put('/open/:path', auth.sess, checkIfStopped, (req, res, next) => {
-    console.log("Opening non-default port.");
+
+router.put('/open/:path', auth.sess, checkIfNotSerial, checkIfStopped, (req, res, next) => {
     port = openPort(req.params.path);
     if( port ) {
         res.sendStatus(200);
+        return;
     } else {
         res.sendStatus(400);
+        return;
     }
+});
+
+router.get('/current', (req, res, next) => {
+    res.status(200).json({ status: current_state, 
+                           userId: current_user ? current_user._id : undefined, 
+                           projectId: current_project ? current_project._id : undefined,
+                           location: {x: current_location[0], y: current_location[1]}
+                         });
+    return;
 });
 
 router.put('/close', auth.sess, checkIfSerial, checkIfUser, checkIfProject, checkIfStopped, (req, res, next) => {
@@ -480,59 +509,71 @@ router.put('/close', auth.sess, checkIfSerial, checkIfUser, checkIfProject, chec
     .then( () => {
         port = undefined;
         res.sendStatus(200);
+        return;
     });
 });
 
-router.put('/homex', auth.sess, checkIfSerial, checkIfUser, checkIfProject, checkIfStopped, (req, res, next) => {
+router.put('/homex', auth.sess, checkIfSerial, checkIfUser, checkIfStopped, (req, res, next) => {
     sendCommandHomeX()
     .then( () => {
         waitForComplete([1],HOME_TIMEOUT)
         .then( () => { 
-            res.sendStatus(200); 
+            current_location[0] = 0;
+            sendLocation(current_location[0], current_location[1]);
+            res.status(200).json({x: 0, y: current_location[1]}); 
+            return;
         }, (err) => {
             res.status(400).json(err);
+            return;
         });
     });
 });
 
-router.put('/homey', auth.sess, checkIfSerial, checkIfUser, checkIfProject, checkIfStopped, (req, res, next) => {
+router.put('/homey', auth.sess, checkIfSerial, checkIfUser, checkIfStopped, (req, res, next) => {
     sendCommandHomeY()
     .then( () => {
         waitForComplete([2],HOME_TIMEOUT)
-        .then( () => { res.sendStatus(200); },
-        (err) => {
+        .then( () => { 
+            current_location[1] = 0;
+            sendLocation(current_location[0], current_location[1]);
+            res.status(200).json({x: current_location[0], y: 0}); 
+        }, (err) => {
             res.status(400).json(err);
         });
     });
 });
 
-router.put('/home', auth.sess, checkIfSerial, checkIfUser, checkIfProject, checkIfStopped, (req, res, next) => {
+router.put('/home', auth.sess, checkIfSerial, checkIfUser, checkIfStopped, (req, res, next) => {
     sendCommandHome()
     .then( () => {
-        waitForComplete([1,2],HOME_TIMEOUT)
-        .then( () => {
-            res.sendStatus(200); 
+            current_location = [0,0];
+            sendLocation(current_location[0], current_location[1]);
+            res.status(200).json({x: 0, y: 0}); 
+            return;
         }, (err) => {
-            res.status(400).json(err);
+            current_location = [0,0];
+            sendLocation(current_location[0], current_location[1]);
+            res.status(200).json({x: 0, y: 0}); 
+            return;
         });
-    });
 });
 
 router.put('/move/:cardinal/:units/:num', auth.sess, checkIfSerial, checkIfUser, checkIfProject, checkIfStopped, (req, res, next) => {
     let axis;
-    let distance_bw_plate;
-    let steps_per_cm;
-    let steps = req.params.num;
+    let distance_bw_plate = 0;
+    let steps_per_cm = 0;
+    let steps = Number(req.params.num);
+    console.log("steps "+steps.toString());
     switch( req.params.cardinal) {
         case 'east':
-            steps = -steps;
+            steps = -1 * steps;
         case 'west':
             axis = 1;
             distance_bw_plate = current_project.routeConfig.distanceX;
             steps_per_cm      = current_project.routeConfig.stepsPerCmX;
             break;
         case 'north':
-            steps = -steps;
+            steps = -1 * steps;
         case 'south':
             axis = 2;
             distance_bw_plate = current_project.routeConfig.distanceY;
@@ -543,16 +584,26 @@ router.put('/move/:cardinal/:units/:num', auth.sess, checkIfSerial, checkIfUser,
                 {message: "Invalid cardinal direction in URL."}
             }));
     }
+    distance_bw_plate = Number(distance_bw_plate);
+    steps_per_cm = Number(steps_per_cm);
+    console.log("distance_bw_plate "+distance_bw_plate.toString());
+    console.log("steps_per_cm "+steps_per_cm.toString());
+    console.log("steps "+steps.toString());
     switch( req.params.units ) {
         case 'plates':
+            current_location[axis-1] += steps; //Only update location for when manually moving distance in 'plate' units
+            sendLocation(current_location[0], current_location[1]);
             steps = steps * steps_per_cm * distance_bw_plate;
+            break;
         case 'cm':
             steps = steps * steps_per_cm;
             break;
         default:
             break;
     }
-    sendCommandAndWait({index: axis, steps: steps}, MOVE_TIMEOUT, res);
+    console.log("steps "+steps.toString());
+    sendCommandAndWait([{index: axis, steps: steps}], MOVE_TIMEOUT, res);
+    return;
 });
 
 
@@ -564,37 +615,41 @@ router.put('/user/set/:userid', auth.sess, checkIfStopped, checkIfNotUser, (req,
             }));
         } 
         current_user = user;
-        return res.status(200);
+        return res.status(200).json({userId: req.params.userid});
     });
 });
 
 router.put('/user/clear/:userid', auth.sess, checkIfStopped, checkIfUser, (req, res, next) => {
     current_user = undefined;
-    return res.status(200);
+    return res.sendStatus(200);
 });
 
-router.put('/project/set/:projectid', auth.sess, checkIfStopped, checkIfNotUser, checkIfNotProject, (req, res, next) => {
-    Projects.findById(req.params.projectid, (err, project) => {
+router.put('/project/set/:projectid', auth.sess, checkIfStopped, checkIfNotProject, (req, res, next) => {
+    Projects.findById(req.params.projectid)
+        .populate('routeConfig')
+        .exec( (err, project) => {
         if( err ) {
             return res.status(404).json({ errors:
                 { message: "Project ID "+projectid+" not found in DB." }
             });
         } 
         current_project = project;
-        current_project.populate('cameraConfig');
-        current_project.populate('experimentConfig');
-        current_project.populate('storageConfigs');
-        current_project.storageConfigs.forEach( (config) => {
-            config.populate('type');
-        });
-        current_project.populate('routeConfig');
-        return res.status(200);
+        //current_project.populate('cameraConfig');
+        //current_project.populate('experimentConfig');
+        //current_project.populate('storageConfigs');
+        //current_project.storageConfigs.forEach( (config) => {
+        //    config.populate('type');
+        //});
+        //current_project.populate('routeConfig');
+        console.log(JSON.stringify(current_project));
+        res.status(200).json({projectId: req.params.projectId});
+        return;
     });
 });
 
 router.put('/project/clear/:projectid', auth.sess, checkIfStopped, checkIfUser, checkIfProject, (req, res, next) => {
     current_project = undefined;
-    return res.status(200);
+    return res.sendStatus(200);
 });
 
 router.put('/start', auth.sess, checkIfSerial, checkIfUser, checkIfProject, checkIfStopped, (req, res, next) => {
@@ -602,23 +657,23 @@ router.put('/start', auth.sess, checkIfSerial, checkIfUser, checkIfProject, chec
     let projectid = req.params.projectid;
     //Find project in DB
     controllerEventLoopChan.publish("notification.start", {user: current_user, project: current_project});
-    return res.status(200);
+    return res.sendStatus(200);
 });
 
     
 router.put('/resume', auth.sess, checkIfSerial, checkIfUser, checkIfProject, checkIfPaused, (req, res, next) => {
     controllerEventLoopChan.publish("notification.resume", {user: current_user, project: current_project});
-    return;
+    return res.sendStatus(200);
 });
 
 router.put('/pause', auth.sess, checkIfSerial, checkIfUser, checkIfProject, checkIfRunning, (req, res, next) => {
     controllerEventLoopChan.publish("notification.pause", {user: current_user, project: current_project});
-    return;
+    return res.sendStatus(200);
 });
 
 router.put('/stop', auth.sess, checkIfSerial, checkIfUser, checkIfProject, checkIfRunning, (req, res, next) => {
     controllerEventLoopChan.publish("notification.stop", {user: current_user, project: current_project});
-    return;
+    return res.sendStatus(200);
 });
 
 module.exports = router;

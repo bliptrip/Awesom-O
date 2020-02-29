@@ -20,6 +20,7 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
 import React from 'react';
+import {connect} from 'react-redux';
 import clsx from 'clsx';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -32,6 +33,7 @@ import HomeIcon from '@material-ui/icons/Home';
 import PlayCircleOutlineIcon from '@material-ui/icons/PlayCircleOutline';
 import PauseCircleOutlineIcon from '@material-ui/icons/PauseCircleOutline';
 import StopIcon from '@material-ui/icons/Stop';
+import CameraIcon from '@material-ui/icons/Camera';
 import {Tooltip} from '@material-ui/core/';
 
 import AccountMenu from './UserMenu';
@@ -42,21 +44,9 @@ import RouteMenu from './RouteMenu';
 import StorageMenu from './StorageMenu';
 import StatusIndicator from './StatusIndicator';
 
-import {CONTROLLER_RUNNING_STATUS_STOPPED} from '../actions';
+import {CONTROLLER_RUNNING_STATUS_STOPPED,controllerMoveHome,controllerStart,controllerPause,controllerResume,controllerStop,cameraCapture} from '../actions';
 
-function Navbar({classes, openDrawer, closeDrawer, openState}) {
-    const handleRouteHome = () => {
-    };
-
-    const handleRoutePlay = () => {
-    };
-
-    const handleRoutePause = () => {
-    };
-
-    const handleRouteStop = () => {
-    };
-
+function Navbar({classes, openDrawer, closeDrawer, openState, status, location, currentUserId, currentProjectId, moveHome, start, pause, resume, stop, capture}) {
     return (
             <AppBar 
                 color="transparent"
@@ -87,27 +77,39 @@ function Navbar({classes, openDrawer, closeDrawer, openState}) {
                     <Typography variant="h6" className={classes.title}>
                         AwesomO  
                     </Typography>
-                    <StatusIndicator className={classes.menuButton} activeUser='bliptrip' activeStatus={CONTROLLER_RUNNING_STATUS_STOPPED} />
+                    <StatusIndicator className={classes.menuButton} activeUser='bliptrip' activeStatus={status} />
                     <Container />
                     <ButtonGroup>
+                        <Tooltip title="Capture Picture">
+                            <IconButton
+                                aria-controls="capture-manual"
+                                aria-label="manual capture picture"
+                                aria-haspopup="true"
+                                variant="contained"
+                                color="primary"
+                                onClick={capture}
+                            >
+                                <CameraIcon fontSize='large' />
+                            </IconButton>
+                        </Tooltip>
                         <Tooltip title="Send Camera Home">
                             <IconButton
                                 aria-controls="route-home"
                                 aria-haspopup="true"
                                 variant="contained"
                                 color="primary"
-                                onClick={handleRouteHome}
+                                onClick={moveHome}
                             >
                                 <HomeIcon fontSize='large' />
                             </IconButton>
                         </Tooltip>
                         <Tooltip title="Start Timelapse Capture Loop">
                             <IconButton
-                                aria-controls="route-play"
+                                aria-controls="route-start"
                                 aria-haspopup="true"
                                 variant="contained"
                                 color="primary"
-                                onClick={handleRoutePlay}
+                                onClick={start}
                             >
                                 <PlayCircleOutlineIcon fontSize='large' />
                             </IconButton>
@@ -118,7 +120,7 @@ function Navbar({classes, openDrawer, closeDrawer, openState}) {
                                 aria-haspopup="true"
                                 variant="contained"
                                 color="primary"
-                                onClick={handleRouteStop}
+                                onClick={stop}
                             >
                                 <StopIcon fontSize='large' />
                             </IconButton>
@@ -136,4 +138,21 @@ function Navbar({classes, openDrawer, closeDrawer, openState}) {
     );
 }
 
-export default Navbar;
+const mapStateToProps = (state) => ({
+    status: state.controller.status,
+    location: state.controller.location,
+    currentUserId: state.controller.currentUserId,
+    currentProjectId: state.controller.currentProjectId
+});
+
+
+const mapDispatchToProps = (dispatch) => ({
+    moveHome: () => dispatch(controllerMoveHome(true,true)),
+    start: () => dispatch(controllerStart()),
+    pause: () => dispatch(controllerPause()),
+    resume: () => dispatch(controllerResume()),
+    stop: () => dispatch(controllerStop()),
+    capture: () => dispatch(cameraCapture())
+});
+
+export default connect(mapStateToProps,mapDispatchToProps)(Navbar);

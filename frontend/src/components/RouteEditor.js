@@ -22,9 +22,12 @@ import React from 'react';
 import {connect} from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 
-import FileUploader from 'file-uploader';
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
+import Input from '@material-ui/core/Input';
+import InputLabel from '@material-ui/core/InputLabel';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
 import TextField from '@material-ui/core/TextField';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
@@ -53,21 +56,25 @@ const useStyles = makeStyles({
 function RouteEditor({route, interplateDelay, loopDelay, stepsPerCmX, stepsPerCmY, distanceX, distanceY, clearRoutes, addRoute, setInterplateDelay, setLoopDelay, setStepsPerCmX, setStepsPerCmY, setDistanceX, setDistanceY, closeDrawer }) {
     const classes = useStyles();
 
-    const importRoutes = (fileData) => {
-        const parser = parse({ delimiter: ',' });
-        clearRoutes(); //Clear previous routes
-        parser.on('readable', function(){
-            let record;
-            while (record = parser.read()) {
-              addRoute(record[0], record[1]);
-            }
-        });
-        //Catch any error
-        parser.on('error', function(err) {
-          console.error(err.message)
-        });
-        parser.write(fileData);
-    }
+    const importRoutes = (event) => {
+        const reader   = new FileReader();
+        reader.addEventListener("load", function () {
+            const parser = parse({ delimiter: ',' });
+            clearRoutes(); //Clear previous routes
+            parser.on('readable', function(){
+                let record;
+                while (record = parser.read()) {
+                    addRoute(record[0], record[1]);
+                }
+            });
+            //Catch any error
+            parser.on('error', function(err) {
+            console.error(err.message)
+            });
+            parser.write(reader.result);
+        }, false);
+        reader.readAsText(event.target.files[0]);
+    };
 
     return (
         <div
@@ -76,61 +83,72 @@ function RouteEditor({route, interplateDelay, loopDelay, stepsPerCmX, stepsPerCm
             onClick={closeDrawer}
             onKeyDown={closeDrawer}
         >
-            <Tooltip title="(seconds) Time delay between capture of subsequent plates in path.">
-                <TextField label="Interplate Delay" onChange={setInterplateDelay} value={interplateDelay} />
-            </Tooltip>
-            <Tooltip title="(seconds) Time delay between route cycles.">
-                <TextField label="Interloop Delay" onChange={setLoopDelay} value={loopDelay}/>
-            </Tooltip>
-            <Tooltip title="X-axis stepper motor steps per centimeter travel.">
-                <TextField label="X-axis steps/cm" onChange={setStepsPerCmX} value={stepsPerCmX} />
-            </Tooltip>
-            <Tooltip title="Y-axis stepper motor steps per centimeter travel.">
-                <TextField label="Y-axis steps/cm" onChange={setStepsPerCmY} value={stepsPerCmY} />
-            </Tooltip>
-            <Tooltip title="(cm) X-axis interplate distance.">
-                <TextField label="X-axis Plate Distance" onChange={setDistanceX} value={distanceX} />
-            </Tooltip>
-            <Tooltip title="(cm) Y-axis interplate distance.">
-                <TextField label="Y-axis Plate Distance" onChange={setDistanceY} value={distanceY} />
-            </Tooltip>
-            <Tooltip title="Import Route from CSV file">
-                <FileUploader
-                    title="Import Route"
-                    uploadedFileCallback={e => {
-                        importRoutes(e);
-                    }}
-                    accept=".csv"
-                    fileSizeLimit="100000" // Note that size is in Bytes
-                    customLimitTextCSS={{ 'font-family': 'arial',
-                        'color': '#b00e05',
-                        'font-size': '14px'
-                    }}
-                />
-            </Tooltip>
-            <GridList cols={2} cellHeight='auto'>
-                <GridListTile> 
-                    <Typography variant='h3'>
-                        <b>Row</b>
-                    </Typography>
-                </GridListTile>
-                <GridListTile>
-                    <Typography variant='h3'>
-                        <b>Column</b>
-                    </Typography>
-                </GridListTile>
-                {route.map(r=> (
-                    <>
+            <List>
+                <ListItem>
+                    <Tooltip title="(seconds) Time delay between capture of subsequent plates in path.">
+                        <TextField label="Interplate Delay" onChange={setInterplateDelay} value={interplateDelay} />
+                    </Tooltip>
+                </ListItem>
+                <ListItem>
+                    <Tooltip title="(seconds) Time delay between route cycles.">
+                        <TextField label="Interloop Delay" onChange={setLoopDelay} value={loopDelay}/>
+                    </Tooltip>
+                </ListItem>
+                <ListItem>
+                    <Tooltip title="X-axis stepper motor steps per centimeter travel.">
+                        <TextField label="X-axis steps/cm" onChange={setStepsPerCmX} value={stepsPerCmX} />
+                    </Tooltip>
+                </ListItem>
+                <ListItem>
+                    <Tooltip title="Y-axis stepper motor steps per centimeter travel.">
+                        <TextField label="Y-axis steps/cm" onChange={setStepsPerCmY} value={stepsPerCmY} />
+                    </Tooltip>
+                </ListItem>
+                <ListItem>
+                    <Tooltip title="(cm) X-axis interplate distance.">
+                        <TextField label="X-axis Plate Distance" onChange={setDistanceX} value={distanceX} />
+                    </Tooltip>
+                </ListItem>
+                <ListItem>
+                    <Tooltip title="(cm) Y-axis interplate distance.">
+                        <TextField label="Y-axis Plate Distance" onChange={setDistanceY} value={distanceY} />
+                    </Tooltip>
+                </ListItem>
+                <ListItem>
+                    <InputLabel>Import route</InputLabel>
+                    <Tooltip title="Import Route from CSV file">
+                        <Input
+                            onChange={(e) => importRoutes(e)}
+                            type="file"
+                            inputProps={{accept: ".csv"}}
+                        />
+                    </Tooltip>
+                </ListItem>
+                <ListItem>
+                    <GridList cols={2} cellHeight='auto'>
                         <GridListTile> 
-                            <Typography variant='body1'>{r.row}</Typography>
+                            <Typography variant='h6'>
+                                <b>Row</b>
+                            </Typography>
                         </GridListTile>
                         <GridListTile>
-                            <Typography variant='body1'>{r.col}</Typography>
+                            <Typography variant='h6'>
+                                <b>Column</b>
+                            </Typography>
                         </GridListTile>
-                    </>
-                ))}
-            </GridList>
-            
+                        {route.map(r=> (
+                            <>
+                                <GridListTile> 
+                                    <Typography variant='body1'>{r.row}</Typography>
+                                </GridListTile>
+                                <GridListTile>
+                                    <Typography variant='body1'>{r.col}</Typography>
+                                </GridListTile>
+                            </>
+                        ))}
+                    </GridList>
+                </ListItem>
+            </List>
         </div>
     );
 }

@@ -20,6 +20,7 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
 import React from 'react';
+import {connect} from 'react-redux';
 import clsx from 'clsx';
 import Editors from './Editors';
 import Navbar from './Navbar';
@@ -37,6 +38,8 @@ import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
+
+import {controllerMovePlate} from '../actions';
 
 const drawerWidth = 240;
 
@@ -104,7 +107,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 
-export default function MainView() {
+function MainView({movePlate}) {
   const classes = useStyles();
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
@@ -116,6 +119,10 @@ export default function MainView() {
   const handleDrawerClose = () => {
     setOpen(false);
   };
+    
+    const handleMove = (direction) => (event) => {
+        movePlate(direction,1);
+    }
 
   return (
     <div className={classes.root}>
@@ -150,12 +157,14 @@ export default function MainView() {
                     variant="contained"
                     color="primary"
                     edge="false"
+                    onClick={handleMove('north')}
                 >
                     <ArrowUpwardIcon fontSize='large' />
                 </IconButton>
             </Grid>
         </Grid>
         <Grid container alignContent='center' alignItems='center' justify='center' spacing={0}>
+            <Container />
             <Grid item xs={1}>
                 <IconButton
                     aria-controls="route-left"
@@ -163,11 +172,12 @@ export default function MainView() {
                     variant="contained"
                     color="primary"
                     edge="false"
+                    onClick={handleMove('west')}
                 >
                     <ArrowBackIcon fontSize='large' />
                 </IconButton>
             </Grid>
-            <Grid item xs={10}>
+            <Grid item xs={6}>
                 <VisibleViewport />
             </Grid>
             <Grid item xs={1}>
@@ -177,10 +187,12 @@ export default function MainView() {
                     variant="contained"
                     color="primary"
                     edge="false"
+                    onClick={handleMove('east')}
                 >
                     <ArrowForwardIcon fontSize='large' />
                 </IconButton>
             </Grid>
+            <Container />
         </Grid>
         <Grid container alignContent='center' alignItems='center' justify='center' spacing={0}>
             <Grid item xs={1}>
@@ -190,6 +202,7 @@ export default function MainView() {
                     variant="contained"
                     color="primary"
                     edge="false"
+                    onClick={handleMove('south')}
                 >
                     <ArrowDownwardIcon fontSize='large' />
                 </IconButton>
@@ -201,3 +214,9 @@ export default function MainView() {
     </div>
   );
 }
+
+const mapDispatchToProps = (dispatch) => ({
+    movePlate: (direction,numPlates) => dispatch(controllerMovePlate(direction,numPlates))
+});
+
+export default connect(null, mapDispatchToProps)(MainView);
