@@ -22,7 +22,12 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 import React, {useState} from 'react';
 import {connect} from 'react-redux';
 import { withStyles } from '@material-ui/core/styles';
-import clsx from 'clsx';
+import Button from '@material-ui/core/Button';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
 import IconButton from '@material-ui/core/IconButton';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -40,7 +45,7 @@ import FolderOpenTwoToneIcon from '@material-ui/icons/FolderOpenTwoTone';
 import SaveTwoToneIcon from '@material-ui/icons/SaveTwoTone';
 
 
-import {projectCreate, projectLoadSaved, projectSetEditorOpen} from '../actions';
+import {projectCreate, projectLoadSaved, projectSave, projectFetchSuccess, projectSetLoadDialogOpen, projectSetEditorOpen} from '../actions';
 
 const StyledMenu = withStyles({
       paper: {
@@ -73,41 +78,68 @@ const StyledMenuItem = withStyles(theme => ({
             },
 }))(MenuItem);
 
-function ProjectSavedProjects({activate, savedProjects}) {
-    let [open, setOpen] = useState(activate);
-    let [selectedProject, setSelectedProject] = useState(undefined);
 
-    const handleSelect = event => {
-        setOpen(false);
-    }
+const mapDialogStateToProps = (state) => ({
+    userId: state.user._id,
+    savedProjects: state.project.savedProjects,
+    open: state.project.isLoadDialogOpen
+});
 
-    const toValue = project => (project._id+"_"+project.short)
+const mapDialogDispatchToProps = (dispatch) => ({
+    setEditorOpen: (e) => dispatch(projectSetEditorOpen(true)),
+    projectSetCurrent: (project) => dispatch(projectFetchSuccess(project)),
+    setOpen: (isOpen) => dispatch(projectSetLoadDialogOpen(isOpen))
+});
+
+function ProjectLoadSavedDialog({open, savedProjects, setOpen, setEditorOpen, projectSetCurrent}) {
+    const [selectedProject, setSelectedProject] = useState(undefined);
+
+    const handleClose = () => {
+            setOpen(false);
+          };
+
+    const toValue = project => (project._id+"_"+project.shortDescription)
 
     const changeSelectChoice = event => {
         setSelectedProject(event.target.value);
     }
 
-    if( savedProjects && (savedProjects.length > 0) ) {
-        return (
-            <List>
-                <ListItem>
-                    <Select
-                        value={toValue(savedProjects[0])}
-                        onChange={(e) => {changeSelectChoice(e)}}
-                        color="primary"
-                        label="Open Saved Project"
-                    >
-                        {savedProjects.map((p) => (<MenuItem value={toValue(p)}>{p.short}</MenuItem>))}
-                    </Select>
-                </ListItem>
-            </List> );
-    } else {
-        return ( <>
-                 </> );
+    const loadSelectedChoice = event => {
+        projectSetCurrent(selectedProject);
+        setEditorOpen(true);
+        setOpen(false);
     }
+
+    return (
+            <div>
+              <Dialog open={open} onClose={handleClose} aria-labelledby="project-load-dialog-title">
+                <DialogTitle id="project-load-dialog-title">Load Project</DialogTitle>
+                <DialogContent>
+                    <Select
+                        value={selectedProject}
+                        onChange={changeSelectChoice}
+                        color="primary"
+                        label="Load Project"
+                    >
+                        {savedProjects.map((p) => (<MenuItem value={p}>{p.shortDescription}</MenuItem>))}
+                    </Select>
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={handleClose} color="primary">
+                    Cancel
+                  </Button>
+                  <Button onClick={loadSelectedChoice} color="primary">
+                    Load
+                  </Button>
+                </DialogActions>
+              </Dialog>
+            </div>
+          );
 }
 
-function ProjectMenu({userId, savedProjects, addProject, setEditorOpen, loadSaved}) {
+const ConnectedProjectLoadSavedDialog = connect(mapDialogStateToProps, mapDialogDispatchToProps)(ProjectLoadSavedDialog);
+
+function ProjectMenu({userId, currProject, addProject, setEditorOpen, setDialogOpen, loadSaved, pSave}) {
       const [anchorEl, setAnchorEl] = useState(null);
 
       const handleClick = event => {
@@ -117,6 +149,15 @@ function ProjectMenu({userId, savedProjects, addProject, setEditorOpen, loadSave
       const handleClose = () => {
               setAnchorEl(null);
             };
+
+      const handleLoad = (e) => {
+              loadSaved(userId);
+              setDialogOpen(true);
+            };
+
+    const handleSave = (e) => {
+        pSave(currProject);
+    }
 
       return (
               <div>
@@ -154,7 +195,7 @@ function ProjectMenu({userId, savedProjects, addProject, setEditorOpen, loadSave
                         <ListItemText primary="Edit Current Project" />
                     </ListItem>
                   </StyledMenuItem>
-                  <StyledMenuItem onClick={loadSaved(userId)}>
+                  <StyledMenuItem onClick={handleLoad}>
                     <ListItemIcon>
                       <FolderOpenTwoToneIcon fontSize="large" />
                     </ListItemIcon>
@@ -162,7 +203,7 @@ function ProjectMenu({userId, savedProjects, addProject, setEditorOpen, loadSave
                         <ListItemText primary="Load Saved Project" />
                     </ListItem>
                   </StyledMenuItem>
-                  <StyledMenuItem>
+                  <StyledMenuItem onClick={handleSave}>
                     <ListItemIcon>
                       <SaveTwoToneIcon fontSize="large" />
                     </ListItemIcon>
@@ -171,19 +212,22 @@ function ProjectMenu({userId, savedProjects, addProject, setEditorOpen, loadSave
                     </ListItem>
                   </StyledMenuItem>
                 </StyledMenu>
+                <ConnectedProjectLoadSavedDialog />
               </div>
             );
 };
 
 const mapStateToProps = (state) => ({
     userId: state.user._id,
-    savedProjects: state.projects.savedProjects
+    currProject: state.project
 });
 
 const mapDispatchToProps = (dispatch) => ({
     addProject: (id) => (e) => {dispatch(projectCreate(id)); dispatch(projectSetEditorOpen(true))},
     setEditorOpen: (e) => dispatch(projectSetEditorOpen(true)),
-    loadSaved: (id) => (e) => {projectLoadSaved(id)}
+    setDialogOpen: (open) => dispatch(projectSetLoadDialogOpen(open)),
+    loadSaved: (id) => dispatch(projectLoadSaved(id)),
+    pSave: (project) => dispatch(projectSave(project))
 });
 
 export default connect(mapStateToProps,mapDispatchToProps)(ProjectMenu);

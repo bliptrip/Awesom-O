@@ -111,8 +111,8 @@ router.put('/set/:index', auth.sess, (req, res, next) => {
 });
 
 //Get settings retrieves the current settings for a camera
-router.get('/settings', auth.sess, (req, res, next) => {
-    camera.getConfig( (err, settings) => {
+router.get('/settings/:camIndex', auth.sess, (req, res, next) => {
+    camera_list[req.params.camIndex].getConfig( (err, settings) => {
         if( err ) {
             res.sendStatus(400);
         } else {
@@ -125,12 +125,11 @@ router.get('/settings', auth.sess, (req, res, next) => {
 router.post('/settings', auth.sess, (req, res, next) => {
     let camIndex = req.body.camIndex;
     let tentativeUpdates  = req.body.updates;
-    let updates           = [];
+    let updates           = tentativeUpdates.map( u => (u.id) );
+    let lcamera           = camera_list[camIndex];
     tentativeUpdates.forEach( config => {
-        camera.setConfigValue(config.name, config.value, (err) => {
-            if(!err) {
-                updates.push(config.id);
-            }
+        lcamera.setConfigValue(config.name, config.value, (err) => {
+            updates = updates.filter(id => (id !== config.id));
         });
     });
     res.status(200).json(updates);
@@ -299,5 +298,14 @@ router.get('/remove/:_id', auth.sess, (req, res, next) => {
     return(res.status(422).json({ errors: "Unsupported operation" }));
 });
 
+router.get('/load/:userId', auth.sess, (req, res, next) => {
+    CameraConfig.find( { users: { "$elemMatch": { "$eq": req.params.userId }}}, (err, cams) => {
+        if( err ) {
+            return(res.status(422).json({ errors: err }));
+        } else {
+            return(res.status(200).json(cams));
+        }
+    })
+});
 
 module.exports = router;

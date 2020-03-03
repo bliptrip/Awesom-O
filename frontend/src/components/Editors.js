@@ -83,18 +83,18 @@ function Editors({userEOpen, projectEOpen, cameraEOpen, experimentEOpen, storage
                 >
                     <RouteEditor />
                 </SwipeableDrawer>
-          </div>
-      );
-      return (
-              <div>
                 <SwipeableDrawer
                   anchor="right"
                   open={cameraEOpen}
                   onClose={e => dispatch(cameraConfigSetEditorOpen(false))}
-                  onOpen={dispatch(cameraConfigSetEditorOpen(true))}
+                  onOpen={e => dispatch(cameraConfigSetEditorOpen(true))}
                 >
                     <CameraEditor />
                 </SwipeableDrawer>
+          </div>
+      );
+      return (
+              <div>
               </div>
             );
 }

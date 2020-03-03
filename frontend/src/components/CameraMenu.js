@@ -20,7 +20,14 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
 import React, {useState} from 'react';
+import {connect} from 'react-redux';
 import { withStyles } from '@material-ui/core/styles';
+import Button from '@material-ui/core/Button';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
 import IconButton from '@material-ui/core/IconButton';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -34,8 +41,10 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import SettingsApplicationsIcon from '@material-ui/icons/SettingsApplications';
 import SettingsApplicationsTwoToneIcon from '@material-ui/icons/SettingsApplicationsTwoTone';
 import SaveTwoToneIcon from '@material-ui/icons/SaveTwoTone';
-import {Tooltip} from '@material-ui/core/';
+import Tooltip from '@material-ui/core/Tooltip';
+import Select from '@material-ui/core/Select';
 
+import {cameraConfigCreate, cameraConfigLoadSaved, cameraConfigLoadSettings, cameraConfigApplySettings, cameraConfigSave, cameraConfigFetchSuccess, cameraConfigSetLoadDialogOpen, cameraConfigSetEditorOpen} from '../actions';
 
 const StyledMenu = withStyles({
       paper: {
@@ -68,7 +77,67 @@ const StyledMenuItem = withStyles(theme => ({
             },
 }))(MenuItem);
 
-function CameraMenu() {
+const mapDialogStateToProps = (state) => ({
+    userId: state.user._id,
+    savedCameraConfigs: state.camera.savedCameraConfigs,
+    open: state.camera.isLoadDialogOpen
+});
+
+const mapDialogDispatchToProps = (dispatch) => ({
+    setEditorOpen: (e) => dispatch(cameraConfigSetEditorOpen(true)),
+    cameraConfigSetCurrent: (camera) => dispatch(cameraConfigFetchSuccess(camera)),
+    setOpen: (isOpen) => dispatch(cameraConfigSetLoadDialogOpen(isOpen))
+});
+
+function CameraLoadSavedDialog({open, savedCameraConfigs, setOpen, setEditorOpen, cameraConfigSetCurrent}) {
+    const [selectedCamera, setSelectedCamera] = useState(undefined);
+
+    const handleClose = () => {
+            setOpen(false);
+          };
+
+    const toValue = camera => (camera._id+"_"+camera.shortDescription)
+
+    const changeSelectChoice = event => {
+        setSelectedCamera(event.target.value);
+    }
+
+    const loadSelectedChoice = event => {
+        cameraConfigSetCurrent(selectedCamera);
+        setEditorOpen(true);
+        setOpen(false);
+    }
+
+    return (
+            <div>
+              <Dialog open={open} onClose={handleClose} aria-labelledby="camera-load-dialog-title">
+                <DialogTitle id="camera-load-dialog-title">Load Camera</DialogTitle>
+                  <DialogContent>
+                    <Select
+                        value={selectedCamera}
+                        onChange={changeSelectChoice}
+                        color="primary"
+                        label="Load Camera Configuration"
+                    >
+                        {savedCameraConfigs.map((p) => (<MenuItem value={p}>{p.shortDescription}</MenuItem>))}
+                    </Select>
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={handleClose} color="primary">
+                    Cancel
+                  </Button>
+                  <Button onClick={loadSelectedChoice} color="primary">
+                    Load
+                  </Button>
+                </DialogActions>
+              </Dialog>
+            </div>
+          );
+}
+
+const ConnectedCameraLoadSavedDialog = connect(mapDialogStateToProps, mapDialogDispatchToProps)(CameraLoadSavedDialog);
+
+function CameraMenu({loadSaved,loadSettings,applySettings,userId,setDialogOpen,cSave,currCameraConfig,addCameraConfig,camConfigs,projectId,setEditorOpen}) {
       const [anchorEl, setAnchorEl] = useState(null);
 
       const handleClick = event => {
@@ -79,6 +148,20 @@ function CameraMenu() {
               setAnchorEl(null);
             };
 
+      const handleLoad = (e) => {
+              loadSaved(userId);
+              setDialogOpen(true);
+            };
+
+    const handleLoadSettings = (e) => {
+        loadSettings(0); //Just assume camera index 0 for now
+        setEditorOpen(true);
+    }
+
+    const handleSave = (e) => {
+        cSave(currCameraConfig);
+    }
+    
       return (
               <div>
                 <Tooltip title="Camera">
@@ -99,7 +182,7 @@ function CameraMenu() {
                   open={Boolean(anchorEl)}
                   onClose={handleClose}
                 >
-                  <StyledMenuItem>
+                  <StyledMenuItem onClick={addCameraConfig(userId,projectId)}>
                     <ListItemIcon>
                       <AddCircleTwoToneIcon fontSize="large" />
                     </ListItemIcon>
@@ -107,7 +190,7 @@ function CameraMenu() {
                         <ListItemText primary="New Camera Settings" />
                     </ListItem>
                   </StyledMenuItem>
-                  <StyledMenuItem>
+                  <StyledMenuItem onClick={handleLoad}>
                     <ListItemIcon>
                       <FolderOpenTwoToneIcon fontSize="large" />
                     </ListItemIcon>
@@ -115,23 +198,7 @@ function CameraMenu() {
                         <ListItemText primary="Load Saved Settings" />
                     </ListItem>
                   </StyledMenuItem>
-                  <StyledMenuItem>
-                    <ListItemIcon>
-                      <SettingsIcon fontSize="large" />
-                    </ListItemIcon>
-                    <ListItem button >
-                        <ListItemText primary="Load Active Camera Current Settings" />
-                    </ListItem>
-                  </StyledMenuItem>
-                  <StyledMenuItem>
-                    <ListItemIcon>
-                      <SettingsApplicationsIcon fontSize="large" />
-                    </ListItemIcon>
-                    <ListItem button >
-                        <ListItemText primary="Apply Current Settings to Active Camera" />
-                    </ListItem>
-                  </StyledMenuItem>
-                  <StyledMenuItem>
+                  <StyledMenuItem onClick={setEditorOpen}>
                     <ListItemIcon>
                       <SettingsApplicationsTwoToneIcon fontSize="large" />
                     </ListItemIcon>
@@ -139,7 +206,7 @@ function CameraMenu() {
                         <ListItemText primary="Edit Current Settings" />
                     </ListItem>
                   </StyledMenuItem>
-                  <StyledMenuItem>
+                  <StyledMenuItem onClick={handleSave}>
                     <ListItemIcon>
                       <SaveTwoToneIcon fontSize="large" />
                     </ListItemIcon>
@@ -147,9 +214,43 @@ function CameraMenu() {
                         <ListItemText primary="Save Current Settings" />
                     </ListItem>
                   </StyledMenuItem>
+                  <StyledMenuItem onClick={handleLoadSettings} >
+                    <ListItemIcon>
+                      <SettingsIcon fontSize="large" />
+                    </ListItemIcon>
+                    <ListItem button >
+                        <ListItemText primary="Load Active Camera Current Settings" />
+                    </ListItem>
+                  </StyledMenuItem>
+                  <StyledMenuItem onClick={applySettings(0,camConfigs)}>
+                    <ListItemIcon>
+                      <SettingsApplicationsIcon fontSize="large" />
+                    </ListItemIcon>
+                    <ListItem button >
+                        <ListItemText primary="Apply Current Settings to Active Camera" />
+                    </ListItem>
+                  </StyledMenuItem>
                 </StyledMenu>
+                <ConnectedCameraLoadSavedDialog />
               </div>
             );
 };
 
-export default CameraMenu;
+const mapStateToProps = (state) => ({
+    userId: state.user._id,
+    projectId: state.project._id,
+    currCameraConfig: state.camera,
+    camConfigs: state.camera.configs
+});
+
+const mapDispatchToProps = (dispatch) => ({
+    addCameraConfig: (id) => (e) => {dispatch(cameraConfigCreate(id)); dispatch(cameraConfigSetEditorOpen(true))},
+    setEditorOpen: (e) => dispatch(cameraConfigSetEditorOpen(true)),
+    setDialogOpen: (open) => dispatch(cameraConfigSetLoadDialogOpen(open)),
+    loadSaved: (id) => dispatch(cameraConfigLoadSaved(id)),
+    loadSettings: (camIndex) => dispatch(cameraConfigLoadSettings(camIndex)),
+    applySettings: (camIndex,camConfigs) => (e) => dispatch(cameraConfigApplySettings(camIndex,camConfigs)),
+    cSave: (cameraConfig) => dispatch(cameraConfigSave(cameraConfig))
+});
+
+export default connect(mapStateToProps,mapDispatchToProps)(CameraMenu);

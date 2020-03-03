@@ -81,6 +81,7 @@ router.post('/create', auth.sess, (req, res, next) => {
 
 router.post('/save', auth.sess, (req, res, next) => {
     let projectJSON  = req.body;
+    console.log( projectJSON );
     Projects.update({_id: projectJSON._id}, projectJSON, {upsert: false}, function(err, resp) {
         if( err ) {
             return(res.status(422).json({ errors: resp }));
@@ -123,7 +124,7 @@ router.get('/remove/:_id', auth.sess, (req, res, next) => {
     return(res.status(422).json({ errors: "Unsupported operation" }));
 });
 
-router.get('/list/:userId', auth.sess, (req, res, next) => {
+router.get('/load/:userId', auth.sess, (req, res, next) => {
     Projects.find( { users: { "$elemMatch": { "$eq": req.params.userId }}}, (err, projects) => {
         if( err ) {
             return(res.status(422).json({ errors: err }));

@@ -24,6 +24,7 @@ import {cameraConfigSetEntryValue, cameraConfigSetEditorOpen, cameraConfigSetSho
 
 import Checkbox from '@material-ui/core/Checkbox';
 import Divider from '@material-ui/core/Divider';
+import InputLabel from '@material-ui/core/InputLabel';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -41,12 +42,15 @@ const useStyles = makeStyles({
             },
 });
 
-const mapCameraConfigurationSettingsChildrenStateToProps  = (state,ownprops) => ({config: state.camera.configs[ownprops.id]});
-const mapCameraConfigurationSettingsChildrenStateDispatchToProps = (dispatch) => ({
-    setValue: (id, value) => cameraConfigSetEntryValue(id,value)
+const mapCameraConfigurationSettingsChildrenStateToProps  = (state,ownprops) => ({ 
+    config: state.camera.configs[ownprops.id] 
 });
 
-const preconnect = connect({mapStateToProps: mapCameraConfigurationSettingsChildrenStateToProps, mapDispatchToProps: mapCameraConfigurationSettingsChildrenStateDispatchToProps});
+const mapCameraConfigurationSettingsChildrenStateDispatchToProps = (dispatch) => ({
+    setValue: (id, value) => dispatch(cameraConfigSetEntryValue(id,value))
+});
+
+const preconnect = connect(mapCameraConfigurationSettingsChildrenStateToProps, mapCameraConfigurationSettingsChildrenStateDispatchToProps);
 
 const CameraConfigurationSettingsToggle = ({config, setValue}) => {
     let disabled = config.entry.readonly ? {"disabled": "disabled"} : {};
@@ -75,12 +79,13 @@ const CameraConfigurationSettingsChoice = ({config, setValue}) => {
 
     return (
         <ListItem>
+            <InputLabel id={"select-label-"+config.entry.label}>{config.entry.label}</InputLabel>
             <Select
+                labelId={"select-label-"+config.entry.label}
                 value={config.entry.value}
                 onChange={(e) => {changeSelectChoice(e)}}
                 {...disabled}
                 color={config.stale ? "secondary" : "primary"}
-                label={config.entry.label}
             >
                 {config.entry.choices.map((c) => (<MenuItem value={c}>{c}</MenuItem>))}
             </Select>
@@ -174,28 +179,34 @@ const CameraConfigurationSettings = ({gphoto2config, configs, rootid}) => {
         }
     }
 
-    return( 
-        <div>
-            {generateCameraSettingsTag(configs[rootid])}
-        </div>
-    );
+    if(configs && (configs !== {}) && rootid) {
+        return( 
+            <div>
+                {generateCameraSettingsTag(configs[rootid])}
+            </div>
+        );
+    } else {
+        return(
+            <>
+            </>);
+    }
 }
 
 const mapCameraConfigurationSettingsStateToProps = (state) => ({
-    gphoto2Config: state.camera.gphoto2Config
+    gphoto2Config: state.camera.gphoto2Config,
+    configs: state.camera.configs,
+    rootid: state.camera.rootid
 });
 
-const DynCameraConfigurationSettings = connect({mapStateToProps: mapCameraConfigurationSettingsStateToProps})(CameraConfigurationSettings); 
+const DynCameraConfigurationSettings = connect(mapCameraConfigurationSettingsStateToProps)(CameraConfigurationSettings); 
 
-function CameraEditor({cshort, cdescription, cmanufacturer, cmodel, cdeviceVersion, csn, configs, rootid, closeDrawer, setShort, setDescription}) {
+function CameraEditor({cshort, cdescription, cmanufacturer, cmodel, cdeviceVersion, csn, closeDrawer, setShort, setDescription}) {
     const classes = useStyles();
 
     return (
         <div
             className={classes.fullList}
             role="presentation"
-            onClick={closeDrawer}
-            onKeyDown={closeDrawer}
         >
             <List>
                 <ListItem>
@@ -218,7 +229,7 @@ function CameraEditor({cshort, cdescription, cmanufacturer, cmodel, cdeviceVersi
                 </ListItem>
                 <Divider />
                 <ListItem>
-                    <DynCameraConfigurationSettings configs={configs} rootid={rootid} />
+                    <DynCameraConfigurationSettings />
                 </ListItem>
             </List>
         </div>
@@ -226,14 +237,12 @@ function CameraEditor({cshort, cdescription, cmanufacturer, cmodel, cdeviceVersi
 }
 
 const mapStateToProps = (state) => ({
-    cshort: state.camera.short,
+    cshort: state.camera.shortDescription,
     cdescription: state.camera.description,
     cmanufacturer: state.camera.manufacturer,
     cmodel: state.camera.model,
     cdeviceVersion: state.camera.deviceVersion,
-    csn: state.camera.sn,
-    configs: state.camera.configs,
-    rootid: state.camera.rootid
+    csn: state.camera.sn
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -23,11 +23,14 @@ import * as cameraC from '../actions';
 
 const uuidv4 = require('uuid/v4');
 
+const cameraSettings2Gphoto2Config = (rootid, configs) => {
+};
+
 //NOTE: I am overwriting the state rather than making a shallow copy 
-const generateConfigurationEntries = (state, parentId, entry) => {
+const generateConfigurationEntries = (state, parentId, keyId, entry) => {
     let id = uuidv4();
     let ret = undefined;
-    state[id] = {id: id, parent: parentId, entry: entry, stale: true};
+    state[id] = {id: id, keyId: keyId, parent: parentId, entry: entry, stale: false};
     switch(entry.type) {
         case 'toggle':
         case 'string':
@@ -37,7 +40,7 @@ const generateConfigurationEntries = (state, parentId, entry) => {
             break;
         case 'section':
             //Loop through all children and generate new entries in local state
-            state[id] = {...state[id], children: Object.keys(entry.children).map( (key) => generateConfigurationEntries(state, id, entry.children[key]) )};
+            state[id] = {...state[id], children: Object.keys(entry.children).map( (key) => generateConfigurationEntries(state, id, key, entry.children[key]) )};
             ret = id;
             break;
         default:
@@ -68,9 +71,11 @@ const resetConfigurationStaleFlag = (configs,id) => {
 export const cameraConfigReducer = (state = {
         _id: undefined,
         isEditorOpen: false,
+        isLoadDialogOpen: false,
         isFetching: false,
         statusError: undefined,
         description: "",
+        shortDescription: "",
         manufacturer: "",
         model: "",
         deviceVersion: "",
@@ -78,7 +83,10 @@ export const cameraConfigReducer = (state = {
         gphoto2Config: "",
         config: undefined,
         users: [],
-        projects: []
+        projects: [],
+        savedCameraConfigs: [],
+        rootid: undefined,
+        configs: {}
     }, action) => {
     let newstate = state;
     let config;
@@ -99,7 +107,6 @@ export const cameraConfigReducer = (state = {
             break;
         case cameraC.CAMERA_CONFIG_FETCH_REQUEST:
             newstate = {...state,
-                _id: action.id,
                 isFetching: true,
                 statusError: undefined,
             };
@@ -112,6 +119,13 @@ export const cameraConfigReducer = (state = {
             break;
         case cameraC.CAMERA_CONFIG_CREATE_SUCCESS:
         case cameraC.CAMERA_CONFIG_FETCH_SUCCESS:
+            configs = {};
+            newstate = {...state};
+            if( action.cameraConfig.gphoto2Config && (action.cameraConfig.gphoto2Config !== "") ) {
+                rootid = generateConfigurationEntries(configs, undefined, 'main', JSON.parse(action.cameraConfig.gphoto2Config).main);
+                newstate.rootid = rootid;
+                newstate.configs = configs;
+            }
             newstate = {...state,
                 isFetching: false,
                 _id: action.cameraConfig._id, //TODO - check if _id matches request
@@ -143,6 +157,26 @@ export const cameraConfigReducer = (state = {
                 statusError: undefined
             };
             break;
+        case cameraC.CAMERA_CONFIG_LOAD_SAVED_REQUEST:
+            newstate = { ...state,
+                isFetching: true,
+                statusError: undefined,
+                savedCameraConfigs: []
+            };
+            break;
+        case cameraC.CAMERA_CONFIG_LOAD_SAVED_ERROR:
+            newstate = { ...state,
+                isFetching: false,
+                statusError: action.error
+            };
+            break;
+        case cameraC.CAMERA_CONFIG_LOAD_SAVED_SUCCESS:
+            newstate = { ...state,
+                isFetching: false,
+                statusError: undefined,
+                savedCameraConfigs: action.cameraConfigs
+            };
+            break;
         case cameraC.CAMERA_CONFIG_REMOVE_REQUEST:
             newstate = {...state,
                 isFetching: true,
@@ -163,45 +197,38 @@ export const cameraConfigReducer = (state = {
             break;
         case cameraC.CAMERA_CONFIG_SET_SHORT:
             newstate = {...state,
-                _id: action.id,
-                short: action.short
+                shortDescription: action.shortDescription
             };
             break;
         case cameraC.CAMERA_CONFIG_SET_DESCRIPTION:
             newstate = {...state,
-                _id: action.id,
                 description: action.description
             };
             break;
         case cameraC.CAMERA_CONFIG_SET_MANUFACTURER:
             newstate = {...state,
-                _id: action.id,
                 manufacturer: action.manufacturer
             };
             break;
         case cameraC.CAMERA_CONFIG_SET_MODEL:
             newstate = {...state,
-                _id: action.id,
                 model: action.model
             };
             break;
         case cameraC.CAMERA_CONFIG_SET_DEVICE_VERSION:
             newstate = {...state,
-                _id: action.id,
                 deviceVersion: action.deviceVersion
             };
             break;
         case cameraC.CAMERA_CONFIG_SET_SN:
             newstate = {...state,
-                _id: action.id,
                 sn: action.sn
             };
             break;
         case cameraC.CAMERA_CONFIG_SET_GPHOTO2_CONFIG:
             configs = {};
-            rootid = generateConfigurationEntries(configs, undefined, JSON.parse(action.gphoto2Config).main);
+            rootid = generateConfigurationEntries(configs, undefined, 'main', JSON.parse(action.gphoto2Config).main);
             newstate = {...state,
-                _id: action.id,
                 gphoto2Config: action.gphoto2Config,
                 configs,
                 rootid
@@ -210,6 +237,11 @@ export const cameraConfigReducer = (state = {
         case cameraC.CAMERA_CONFIG_SET_EDITOR_OPEN:
             newstate    = {...state,
                 isEditorOpen: action.isEditorOpen 
+            };
+            break;
+        case cameraC.CAMERA_CONFIG_SET_LOAD_DIALOG_OPEN:
+            newstate    = {...state,
+                isLoadDialogOpen: action.isLoadDialogOpen
             };
             break;
         case cameraC.CAMERA_CONFIG_SET_ENTRY_VALUE:
@@ -241,7 +273,7 @@ export const cameraConfigReducer = (state = {
             break;
         case cameraC.CAMERA_CONFIG_LOAD_SETTINGS_SUCCESS:
             configs = {};
-            rootid = generateConfigurationEntries(configs, undefined, action.settings.main);
+            rootid = generateConfigurationEntries(configs, undefined, 'main', action.settings.main);
             newstate    = { ...state,
                             isFetching: false,
                             statusError: undefined,

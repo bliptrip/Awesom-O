@@ -40,7 +40,7 @@ const useStyles = makeStyles({
             },
 });
 
-function ProjectEditor({closeDrawer, short, description, setShort, setDescription}) {
+function ProjectEditor({closeDrawer, shortDescription, description, setShortDescription, setDescription}) {
     const classes = useStyles();
 
     return (
@@ -54,7 +54,7 @@ function ProjectEditor({closeDrawer, short, description, setShort, setDescriptio
                     <Container />
                 </ListItem>
                 <ListItem>
-                    <TextField label="Short Description" value={short} onChange={setShort} />
+                    <TextField label="Short Description" value={shortDescription} onChange={setShortDescription} />
                 </ListItem>
                 <ListItem>
                     <TextField label="Description" value={description} onChange={setDescription} />
@@ -65,7 +65,7 @@ function ProjectEditor({closeDrawer, short, description, setShort, setDescriptio
 }
 
 const mapStateToProps = (state) => ({
-    short: state.project.short,
+    shortDescription: state.project.shortDescription,
     description: state.project.description
 });
 
@@ -76,7 +76,7 @@ const mapDispatchToProps = (dispatch) => ({
         }
         dispatch(projectSetEditorOpen(false));
     },
-    setShort: (event) => {console.log(event.target.value); dispatch(projectSetShort(event.target.value))},
+    setShortDescription: (event) => dispatch(projectSetShort(event.target.value)),
     setDescription: (event) => dispatch(projectSetDescription(event.target.value))
 });
 

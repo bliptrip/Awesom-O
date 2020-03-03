@@ -340,9 +340,8 @@ export const projectFetchSuccess = (project) => ({
 });
 
 export const PROJECT_SAVE_REQUEST = 'PROJECT_SAVE_REQUEST';
-export const projectSaveRequest = (project) => ({
+export const projectSaveRequest = () => ({
     type: PROJECT_SAVE_REQUEST,
-    project
 });
 
 export const PROJECT_SAVE_ERROR = 'PROJECT_SAVE_ERROR';
@@ -352,63 +351,54 @@ export const projectSaveError = (error) => ({
 });
 
 export const PROJECT_SAVE_SUCCESS = 'PROJECT_SAVE_SUCCESS';
-export const projectSaveSuccess= (id) => ({
-    type: PROJECT_SAVE_SUCCESS,
-    id
+export const projectSaveSuccess= () => ({
+    type: PROJECT_SAVE_SUCCESS
 });
 
 export const PROJECT_SET_SHORT = "PROJECT_SET_SHORT";
-export const projectSetShort = (id, description) => ({
-    type: PROJECT_SET_DESCRIPTION,
-    id, //Project ID
-    short: description 
+export const projectSetShort = (shortDescription) => ({
+    type: PROJECT_SET_SHORT,
+    shortDescription: shortDescription 
 });
 
 export const PROJECT_SET_DESCRIPTION = "PROJECT_SET_DESCRIPTION";
-export const projectSetDescription = (id, description) => ({
+export const projectSetDescription = (description) => ({
     type: PROJECT_SET_DESCRIPTION,
-    id, //Project ID
     description
 });
 
 export const PROJECT_SET_CAMERA_CONFIG = "PROJECT_SET_CAMERA_CONFIG";
-export const projectSetCameraConfig= (id, cameraId) => ({
+export const projectSetCameraConfig= (cameraId) => ({
     type: PROJECT_SET_CAMERA_CONFIG,
-    id, //Project ID
     cameraId
 });
 
 export const PROJECT_SET_EXPERIMENT_CONFIG = "PROJECT_SET_EXPERIMENT_CONFIG";
-export const projectSetExperimentConfig = (id, experimentId) => ({
+export const projectSetExperimentConfig = (experimentId) => ({
     type: PROJECT_SET_EXPERIMENT_CONFIG,
-    id, //Project ID
     experimentId
 });
 
 export const PROJECT_ADD_STORAGE_CONFIG = "PROJECT_ADD_STORAGE_CONFIG";
-export const projectAddStorageConfig = (id, storageId) => ({
+export const projectAddStorageConfig = (storageId) => ({
     type: PROJECT_ADD_STORAGE_CONFIG,
-    id, //Project ID
     storageId
 });
 
 export const PROJECT_REMOVE_STORAGE_CONFIG = "PROJECT_REMOVE_STORAGE_CONFIG";
-export const projectRemoveStorageConfig = (id, storageId) => ({
+export const projectRemoveStorageConfig = (storageId) => ({
     type: PROJECT_REMOVE_STORAGE_CONFIG,
-    id, //Project ID
     storageId
 });
 
 export const PROJECT_CLEAR_STORAGE_CONFIG = "PROJECT_CLEAR_STORAGE_CONFIG";
-export const projectClearStorageConfig = (id) => ({
+export const projectClearStorageConfig = () => ({
     type: PROJECT_CLEAR_STORAGE_CONFIG,
-    id //Project ID
 });
 
 export const PROJECT_SET_ROUTE_CONFIG = "PROJECT_SET_ROUTE_CONFIG";
-export const projectSetRouteConfig = (id, routeId) => ({
+export const projectSetRouteConfig = (routeId) => ({
     type: PROJECT_SET_ROUTE_CONFIG,
-    id, //Project ID
     routeId
 });
 
@@ -416,6 +406,12 @@ export const PROJECT_SET_EDITOR_OPEN = "PROJECT_SET_EDITOR_OPEN";
 export const projectSetEditorOpen = (open) => ({
     type: PROJECT_SET_EDITOR_OPEN,
     isEditorOpen: open
+});
+
+export const PROJECT_SET_LOAD_DIALOG_OPEN = "PROJECT_SET_LOAD_DIALOG_OPEN";
+export const projectSetLoadDialogOpen = (open) => ({
+    type: PROJECT_SET_LOAD_DIALOG_OPEN,
+    isLoadDialogOpen: open
 });
 
 export const PROJECT_LOAD_SAVED_REQUEST = 'PROJECT_LOAD_SAVED_REQUEST';
@@ -499,20 +495,20 @@ export const projectFetch = _id => dispatch => {
 };
 
 export const projectSave = project => dispatch => {
-    dispatch(projectSaveRequest(project));
+    console.log("projectSave()");
+    dispatch(projectSaveRequest());
     return(fetchAwesomO({
         url: '/api/project/save/', 
         method: 'POST', 
         body: project})
-    .then(  response => response.json(),
-            error => dispatch(projectSaveError(error)) )
-    .then(json => dispatch(projectSaveSuccess(json._id))));
+    .then(  response => dispatch(projectSaveSuccess()),
+            error => dispatch(projectSaveError(error)) ));
     
 }
 
 export const projectLoadSaved = userId => dispatch => {
     dispatch(projectLoadSavedRequest());
-    return(fetchAwesomO({url: '/api/project/list/'+userId})
+    return(fetchAwesomO({url: '/api/project/load/'+userId})
     .then( response => response.json(),
         // Do not use catch, because that will also catch
         // any errors in the dispatch and resulting render,
@@ -564,9 +560,8 @@ export const cameraConfigRemoveSuccess = (_id) => ({
 });
 
 export const CAMERA_CONFIG_FETCH_REQUEST = 'CAMERA_CONFIG_FETCH_REQUEST';
-export const cameraConfigFetchRequest = (_id) => ({
+export const cameraConfigFetchRequest = () => ({
     type: CAMERA_CONFIG_FETCH_REQUEST,
-    _id,
 });
 
 export const CAMERA_CONFIG_FETCH_ERROR = 'CAMERA_CONFIG_FETCH_ERROR';
@@ -582,51 +577,44 @@ export const cameraConfigFetchSuccess = (cameraConfig) => ({
 });
 
 export const CAMERA_CONFIG_SET_SHORT = 'CAMERA_CONFIG_SET_SHORT';
-export const cameraConfigSetShort = (id, description) => ({
+export const cameraConfigSetShort = (description) => ({
     type: CAMERA_CONFIG_SET_SHORT,
-    id,
-    short: description
+    shortDescription: description
 });
 
 export const CAMERA_CONFIG_SET_DESCRIPTION = 'CAMERA_CONFIG_SET_DESCRIPTION';
-export const cameraConfigSetDescription = (id, description) => ({
+export const cameraConfigSetDescription = (description) => ({
     type: CAMERA_CONFIG_SET_DESCRIPTION,
-    id,
     description,
 });
 
 export const CAMERA_CONFIG_SET_MANUFACTURER = 'CAMERA_CONFIG_SET_MANUFACTURER';
-export const cameraConfigSetManufacturer = (id, manufacturer) => ({
+export const cameraConfigSetManufacturer = (manufacturer) => ({
     type: CAMERA_CONFIG_SET_MANUFACTURER,
-    id,
     manufacturer,
 });
 
 export const CAMERA_CONFIG_SET_MODEL = 'CAMERA_CONFIG_SET_MODEL';
-export const cameraConfigSetModel = (id,model) => ({
+export const cameraConfigSetModel = (model) => ({
     type: CAMERA_CONFIG_SET_MODEL,
-    id,
     model,
 });
 
 export const CAMERA_CONFIG_SET_DEVICE_VERSION = 'CAMERA_CONFIG_SET_DEVICE_VERSION';
-export const cameraConfigSetDeviceVersion = (id,deviceVersion) => ({
+export const cameraConfigSetDeviceVersion = (deviceVersion) => ({
     type: CAMERA_CONFIG_SET_DEVICE_VERSION,
-    id,
     deviceVersion,
 });
 
 export const CAMERA_CONFIG_SET_SN = 'CAMERA_CONFIG_SET_SN';
-export const cameraConfigSetSN = (id,sn) => ({
+export const cameraConfigSetSN = (sn) => ({
     type: CAMERA_CONFIG_SET_SN,
-    id,
     sn,
 });
 
 export const CAMERA_CONFIG_SET_GPHOTO2_CONFIG = 'CAMERA_CONFIG_SET_GPHOTO2_CONFIG';
-export const cameraConfigSetGphoto2Config = (id,gphoto2Config) => ({
+export const cameraConfigSetGphoto2Config = (gphoto2Config) => ({
     type: CAMERA_CONFIG_SET_GPHOTO2_CONFIG,
-    id,
     gphoto2Config,
 });
 
@@ -648,10 +636,33 @@ export const cameraConfigSaveSuccess = (_id) => ({
     _id
 });
 
+export const CAMERA_CONFIG_LOAD_SAVED_REQUEST = 'CAMERA_CONFIG_LOAD_SAVED_REQUEST';
+export const cameraConfigLoadSavedRequest = () => ({
+    type: CAMERA_CONFIG_LOAD_SAVED_REQUEST,
+});
+
+export const CAMERA_CONFIG_LOAD_SAVED_ERROR = 'CAMERA_CONFIG_LOAD_SAVED_ERROR';
+export const cameraConfigLoadSavedError = (error) => ({
+    type: CAMERA_CONFIG_LOAD_SAVED_ERROR,
+    error
+});
+
+export const CAMERA_CONFIG_LOAD_SAVED_SUCCESS = 'CAMERA_CONFIG_LOAD_SAVED_SUCCESS';
+export const cameraConfigLoadSavedSuccess = (cameraConfigs) => ({
+    type: CAMERA_CONFIG_LOAD_SAVED_SUCCESS,
+    cameraConfigs 
+});
+
 export const CAMERA_CONFIG_SET_EDITOR_OPEN = 'CAMERA_CONFIG_SET_EDITOR_OPEN';
 export const cameraConfigSetEditorOpen = (open) => ({
     type: CAMERA_CONFIG_SET_EDITOR_OPEN,
     isEditorOpen: open
+});
+
+export const CAMERA_CONFIG_SET_LOAD_DIALOG_OPEN = "CAMERA_CONFIG_SET_LOAD_DIALOG_OPEN";
+export const cameraConfigSetLoadDialogOpen = (open) => ({
+    type: CAMERA_CONFIG_SET_LOAD_DIALOG_OPEN,
+    isLoadDialogOpen: open
 });
 
 export const CAMERA_CONFIG_SET_ENTRY_VALUE = 'CAMERA_CONFIG_SET_ENTRY_VALUE';
@@ -751,6 +762,23 @@ export const cameraConfigSave = (cameraConfig) => dispatch => {
     .then( _id => dispatch(cameraConfigSaveSuccess(_id))));
 };
 
+export const cameraConfigLoadSaved = userId => dispatch => {
+    dispatch(cameraConfigLoadSavedRequest());
+    return(fetchAwesomO({url: '/api/camera/load/'+userId})
+    .then( response => response.json(),
+        // Do not use catch, because that will also catch
+        // any errors in the dispatch and resulting render,
+        // causing a loop of 'Unexpected batch number' errors.
+        // https://github.com/facebook/react/issues/6895
+        error => dispatch(cameraConfigLoadSavedError(error))
+    )
+    .then(cameraConfigs =>
+        // We can dispatch many times!
+        // Here, we update the app state with the results of the API call.
+        dispatch(cameraConfigLoadSavedSuccess(cameraConfigs))
+    ));
+};
+
 export const cameraConfigRemove = (_id, userId, projectId) => dispatch => {
     dispatch(cameraConfigRemoveRequest(_id));
     return(fetchAwesomO({
@@ -777,14 +805,14 @@ export const cameraConfigLoadSettings = (camIndex) => dispatch => {
 export const cameraConfigApplySettings = (camIndex,camConfigs) => dispatch => {
     dispatch(cameraConfigApplySettingsRequest(camIndex));
     /* Only update the entries marked 'stale' */
-    let updates = camConfigs
-                    .filter( c => c.stale )
-                    .map( c => ({ id: c.id,
-                                 name: c.entry.label,
-                                 value: c.entry.value }) );
+    let updates = Object.keys(camConfigs)
+                    .filter( k => camConfigs[k].stale )
+                    .map( k => ({ id: camConfigs[k].id,
+                                 name: camConfigs[k].keyId,
+                                 value: camConfigs[k].entry.value }) );
     return(fetchAwesomO({url: '/api/camera/settings',
                          method: 'POST',
-                         body: JSON.stringify({ camIndex: camIndex, updates: updates })})
+                         body: { camIndex: camIndex, updates: updates } })
                 .then(response => response.json(),
                       error => dispatch(cameraConfigApplySettingsError(error)))
                 .then(updateIds => {

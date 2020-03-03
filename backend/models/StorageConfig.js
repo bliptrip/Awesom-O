@@ -29,6 +29,7 @@ export const supported_params = { 'fs': [{'path': 'String'}] }
 
 const StorageConfigSchema = new Schema({
     version: Number, //Table Version ID
+    shortDescription: String,
     storageType: {
         type: String, //Storage type -- fs , box.com, dropbox.com, google drive, etc.
         enum: supported_types,

@@ -27,6 +27,7 @@ const RouteLocationSchema = new Schema({row: Number, col: Number}) //Plate coord
 
 const RouteConfigSchema = new Schema({
     version: Number,
+    shortDescription: String,
     interplateDelay: {
         type: Number, //In seconds
         default: 10

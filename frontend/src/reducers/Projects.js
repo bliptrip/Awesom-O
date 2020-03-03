@@ -22,6 +22,7 @@ import '../lib/fetch';
 import * as projectC from '../actions';
 
 export const project = (state = { isEditorOpen: false,
+                                  isLoadDialogOpen: false,
                                   statusError: undefined,
                                   savedProjects: [] }, 
                         action) => {
@@ -58,6 +59,7 @@ export const project = (state = { isEditorOpen: false,
                 isFetching: false,
                 _id: action.project._id, //TODO: Validate that ID returned is same as that requested
                 description: action.project.description,
+                shortDescription: action.project.shortDescription,
                 cameraConfig: action.project.cameraConfig,
                 experimentConfig: action.project.experimentConfig,
                 storageConfigs: action.project.storageConfigs,
@@ -87,7 +89,6 @@ export const project = (state = { isEditorOpen: false,
             newstate = { ...state,
                 areSaving: true, //TODO: Check that we aren't already processing a save or fetching request
                 statusError: undefined,
-                _id: action.project._id
             };
             break;
         case projectC.PROJECT_SAVE_ERROR:
@@ -98,13 +99,12 @@ export const project = (state = { isEditorOpen: false,
             break;
         case projectC.PROJECT_SAVE_SUCCESS:
             newstate = { ...state,
-                _id: action.id,
                 areSaving: false //TODO: Check that we aren't already processing a save or fetching request
             };
             break;
         case projectC.PROJECT_SET_SHORT:
             newstate = { ...state,
-                short: action.short
+                shortDescription: action.shortDescription
             };
             break;
         case projectC.PROJECT_SET_DESCRIPTION:
@@ -117,6 +117,11 @@ export const project = (state = { isEditorOpen: false,
                 isEditorOpen: action.isEditorOpen
             };
             break;
+        case projectC.PROJECT_SET_LOAD_DIALOG_OPEN:
+            newstate = { ...state,
+                isLoadDialogOpen: action.isLoadDialogOpen
+            };
+            break;
         case projectC.PROJECT_SET_CAMERA_CONFIG:
             newstate = { ...state,
                 cameraId: action.cameraId
@@ -126,7 +131,7 @@ export const project = (state = { isEditorOpen: false,
             newstate = { ...state,
                 isFetching: true,
                 statusError: undefined,
-                savedProject: []
+                savedProjects: []
             };
             break;
         case projectC.PROJECT_LOAD_SAVED_ERROR:
