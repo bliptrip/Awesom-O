@@ -19,6 +19,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 import {fetchAwesomO} from '../lib/fetch'; //Backwards-compatibility if fetch not supported by browser
+import {cameraSettings2Gphoto2Config} from '../lib/camera';
 
 /* Define our action creators here */
 export const USER_SET_LOGSTATE = 'USER_SET_LOGSTATE';
@@ -613,9 +614,8 @@ export const cameraConfigSetSN = (sn) => ({
 });
 
 export const CAMERA_CONFIG_SET_GPHOTO2_CONFIG = 'CAMERA_CONFIG_SET_GPHOTO2_CONFIG';
-export const cameraConfigSetGphoto2Config = (gphoto2Config) => ({
+export const cameraConfigSetGphoto2Config = () => ({
     type: CAMERA_CONFIG_SET_GPHOTO2_CONFIG,
-    gphoto2Config,
 });
 
 export const CAMERA_CONFIG_SAVE_REQUEST = 'CAMERA_CONFIG_SAVE_REQUEST';
@@ -752,13 +752,18 @@ export const cameraConfigFetch = _id => dispatch => {
 };
 
 export const cameraConfigSave = (cameraConfig) => dispatch => {
+    let gphoto2Config = JSON.stringify(undefined);
+    if( cameraConfig.configs && (cameraConfig.configs !== {}) ) {
+        gphoto2Config = JSON.stringify({ 'main': cameraSettings2Gphoto2Config(cameraConfig.configs, cameraConfig.rootid) });
+    }
     dispatch(cameraConfigSaveRequest());
     return(fetchAwesomO({
         url: '/api/camera/save',
         method: 'POST',
-        body: cameraConfig})
+        body: {...cameraConfig,
+               gphoto2Config: gphoto2Config }})
     .then(response => response.json(),
-          error => dispatch(cameraConfigSaveError(error)))
+        error => dispatch(cameraConfigSaveError(error)))
     .then( _id => dispatch(cameraConfigSaveSuccess(_id))));
 };
 

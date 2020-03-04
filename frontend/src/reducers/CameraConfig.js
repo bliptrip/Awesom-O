@@ -20,53 +20,7 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
 import * as cameraC from '../actions';
-
-const uuidv4 = require('uuid/v4');
-
-const cameraSettings2Gphoto2Config = (rootid, configs) => {
-};
-
-//NOTE: I am overwriting the state rather than making a shallow copy 
-const generateConfigurationEntries = (state, parentId, keyId, entry) => {
-    let id = uuidv4();
-    let ret = undefined;
-    state[id] = {id: id, keyId: keyId, parent: parentId, entry: entry, stale: false};
-    switch(entry.type) {
-        case 'toggle':
-        case 'string':
-        case 'date':
-        case 'choice':
-            ret = id;
-            break;
-        case 'section':
-            //Loop through all children and generate new entries in local state
-            state[id] = {...state[id], children: Object.keys(entry.children).map( (key) => generateConfigurationEntries(state, id, key, entry.children[key]) )};
-            ret = id;
-            break;
-        default:
-            break;
-    }
-    return ret;
-};
-
-const resetConfigurationStaleFlag = (configs,id) => {
-    let config = {...configs[id]};
-    switch(config.entry.type) {
-        case 'section':
-            config.stale = false;
-            config.children.map((cid) => resetConfigurationStaleFlag(configs,cid));
-            break;
-        case 'toggle':
-        case 'string':
-        case 'date':
-        case 'choice':
-            config.stale = false;
-            break;
-        default:
-            break;
-    }
-    configs[id] = config;
-}
+import {generateConfigurationEntries,resetConfigurationStaleFlag} from '../lib/camera';
 
 export const cameraConfigReducer = (state = {
         _id: undefined,
@@ -80,7 +34,6 @@ export const cameraConfigReducer = (state = {
         model: "",
         deviceVersion: "",
         sn: "",
-        gphoto2Config: "",
         config: undefined,
         users: [],
         projects: [],
@@ -126,15 +79,15 @@ export const cameraConfigReducer = (state = {
                 newstate.rootid = rootid;
                 newstate.configs = configs;
             }
-            newstate = {...state,
+            newstate = { ...newstate,
                 isFetching: false,
                 _id: action.cameraConfig._id, //TODO - check if _id matches request
+                shortDescription: action.cameraConfig.shortDescription,
                 description: action.cameraConfig.description,
                 manufacturer: action.cameraConfig.manufacturer,
                 model: action.cameraConfig.model,
                 deviceVersion: action.cameraConfig.deviceVersion,
                 sn: action.cameraConfig.sn,
-                gphoto2Config: action.cameraConfig.gphoto2Config, //Hydrate the rest of the state based on the string in here
                 users: action.cameraConfig.users,
                 projects: action.cameraConfig.projects
             };
@@ -225,15 +178,6 @@ export const cameraConfigReducer = (state = {
                 sn: action.sn
             };
             break;
-        case cameraC.CAMERA_CONFIG_SET_GPHOTO2_CONFIG:
-            configs = {};
-            rootid = generateConfigurationEntries(configs, undefined, 'main', JSON.parse(action.gphoto2Config).main);
-            newstate = {...state,
-                gphoto2Config: action.gphoto2Config,
-                configs,
-                rootid
-            };
-            break;
         case cameraC.CAMERA_CONFIG_SET_EDITOR_OPEN:
             newstate    = {...state,
                 isEditorOpen: action.isEditorOpen 
@@ -277,7 +221,6 @@ export const cameraConfigReducer = (state = {
             newstate    = { ...state,
                             isFetching: false,
                             statusError: undefined,
-                            gphoto2Config: JSON.stringify(action.settings),
                             configs,
                             rootid
                           };
