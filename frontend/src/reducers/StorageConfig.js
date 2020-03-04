@@ -21,9 +21,17 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 import '../lib/fetch';
 import * as storageC from '../actions';
 
-export const storage = (state = {isEditorOpen: false, 
+export const storage = (state = {isStale: false,
+                                 isEditorOpen: false, 
+                                 isLoadDialogOpen: false,
+                                 isFetching: false,
+                                 areSaving: false,
+                                 statusError: undefined,
+                                 savedStorageConfigs: [],
                                  supportedTypes: [], 
-                                 supportedParams: {}}, 
+                                 supportedParams: {},
+                                 storageType: "",
+                                 params: {}}, 
                         action) => {
     let newstate = state;
     switch( action.type ) {
@@ -41,7 +49,6 @@ export const storage = (state = {isEditorOpen: false,
             break;
         case storageC.STORAGE_CONFIG_REMOVE_REQUEST:
             newstate = {...state,
-                _id: action.id,
                 isFetching: true,
                 statusError: undefined
             }
@@ -77,15 +84,20 @@ export const storage = (state = {isEditorOpen: false,
             newstate = { ...state,
                 isFetching: false,
                 _id: action.storageConfig._id, //TODO: Validate that ID returned is same as that requested
+                shortDescription: action.storageConfig.shortDescription,
                 storageType: action.storageConfig.storageType,
                 params: action.storageConfig.params,
                 users: action.storageConfig.users,
                 projects: action.storageConfig.projects
             };
             break;
+        case storageC.STORAGE_CONFIG_SET_SHORT:
+            newstate = {...state,
+                shortDescription: action.shortDescription
+            };
+            break;
         case storageC.STORAGE_CONFIG_SAVE_REQUEST:
             newstate = { ...state,
-                _id: action._id,
                 areSaving: true, //TODO: Check that we aren't already processing a save or fetching request
                 statusError: undefined,
             };
@@ -93,16 +105,42 @@ export const storage = (state = {isEditorOpen: false,
         case storageC.STORAGE_CONFIG_SAVE_ERROR:
             newstate = { ...state,
                 areSaving: false,
-                statusError: action.error };
+                statusError: action.error 
+            };
             break;
         case storageC.STORAGE_CONFIG_SAVE_SUCCESS:
             newstate = { ...state,
                 areSaving: false,
-                _id: action.id };
+            };
+            break;
+        case storageC.STORAGE_CONFIG_LOAD_SAVED_REQUEST:
+            newstate = { ...state,
+                isFetching: true,
+                statusError: undefined,
+                savedStorageConfigs: []
+            };
+            break;
+        case storageC.STORAGE_CONFIG_LOAD_SAVED_ERROR:
+            newstate = { ...state,
+                isFetching: false,
+                statusError: action.error
+            };
+            break;
+        case storageC.STORAGE_CONFIG_LOAD_SAVED_SUCCESS:
+            newstate = { ...state,
+                isFetching: false,
+                statusError: undefined,
+                savedStorageConfigs: action.storageConfigs
+            };
             break;
         case storageC.STORAGE_CONFIG_SET_EDITOR_OPEN:
             newstate = { ...state,
                 isEditorOpen: action.isEditorOpen };
+            break;
+        case storageC.STORAGE_CONFIG_SET_LOAD_DIALOG_OPEN:
+            newstate    = {...state,
+                isLoadDialogOpen: action.isLoadDialogOpen
+            };
             break;
         case storageC.STORAGE_CONFIG_GET_SUPPORTED_TYPES_REQUEST:
             newstate = { ...state,

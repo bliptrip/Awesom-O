@@ -890,6 +890,12 @@ export const experimentConfigFetchSuccess = (experimentConfig) => ({
     experimentConfig,
 });
 
+export const EXPERIMENT_CONFIG_SET_SHORT = 'EXPERIMENT_CONFIG_SET_SHORT';
+export const experimentConfigSetShort = (description) => ({
+    type: EXPERIMENT_CONFIG_SET_SHORT,
+    shortDescription: description
+});
+
 export const EXPERIMENT_CONFIG_SET_DATETIME = 'EXPERIMENT_CONFIG_SET_DATETIME';
 export const experimentConfigSetDatetime = (appendDT) => ({
     type: EXPERIMENT_CONFIG_SET_DATETIME,
@@ -970,10 +976,33 @@ export const experimentConfigSaveSuccess = (id) => ({
     id,
 });
 
+export const EXPERIMENT_CONFIG_LOAD_SAVED_REQUEST = 'EXPERIMENT_CONFIG_LOAD_SAVED_REQUEST';
+export const experimentConfigLoadSavedRequest = () => ({
+    type: EXPERIMENT_CONFIG_LOAD_SAVED_REQUEST,
+});
+
+export const EXPERIMENT_CONFIG_LOAD_SAVED_ERROR = 'EXPERIMENT_CONFIG_LOAD_SAVED_ERROR';
+export const experimentConfigLoadSavedError = (error) => ({
+    type: EXPERIMENT_CONFIG_LOAD_SAVED_ERROR,
+    error
+});
+
+export const EXPERIMENT_CONFIG_LOAD_SAVED_SUCCESS = 'EXPERIMENT_CONFIG_LOAD_SAVED_SUCCESS';
+export const experimentConfigLoadSavedSuccess = (experimentConfigs) => ({
+    type: EXPERIMENT_CONFIG_LOAD_SAVED_SUCCESS,
+    experimentConfigs 
+});
+
 export const EXPERIMENT_CONFIG_SET_EDITOR_OPEN = 'EXPERIMENT_CONFIG_SET_EDITOR_OPEN';
 export const experimentConfigSetEditorOpen = (open) => ({
     type: EXPERIMENT_CONFIG_SET_EDITOR_OPEN,
     isEditorOpen: open
+});
+
+export const EXPERIMENT_CONFIG_SET_LOAD_DIALOG_OPEN = "EXPERIMENT_CONFIG_SET_LOAD_DIALOG_OPEN";
+export const experimentConfigSetLoadDialogOpen = (open) => ({
+    type: EXPERIMENT_CONFIG_SET_LOAD_DIALOG_OPEN,
+    isLoadDialogOpen: open
 });
 
 /* Experimental Configuration Thunks */
@@ -1024,15 +1053,26 @@ export const experimentConfigFetch = (_id) => dispatch => {
 };
 
 export const experimentConfigSave = (experimentConfig) => dispatch => {
-    dispatch(experimentConfigSaveRequest(experimentConfig._id));
+    dispatch(experimentConfigSaveRequest());
     return(fetchAwesomO({
         url: '/api/experiment/save/', 
         method: 'POST', 
         body: experimentConfig})
     .then(  response => response.json(),
             error => dispatch(experimentConfigSaveError(error)) )
-    .then(_id => dispatch(experimentConfigSaveSuccess(experimentConfig._id))));
+    .then(_id => dispatch(experimentConfigSaveSuccess())));
 }
+
+export const experimentConfigLoadSaved = userId => dispatch => {
+    dispatch(experimentConfigLoadSavedRequest());
+    return(fetchAwesomO({url: '/api/experiment/load/'+userId})
+    .then( response => response.json(),
+        error => dispatch(experimentConfigLoadSavedError(error))
+    )
+    .then(experimentConfigs =>
+        dispatch(experimentConfigLoadSavedSuccess(experimentConfigs))
+    ));
+};
 
 export const experimentConfigRemove = (_id, userId, projectId) => dispatch => {
     dispatch(experimentConfigRemoveRequest(_id));
@@ -1103,6 +1143,12 @@ export const storageConfigFetchSuccess = (storageConfig) => ({
     storageConfig
 });
 
+export const STORAGE_CONFIG_SET_SHORT = 'STORAGE_CONFIG_SET_SHORT';
+export const storageConfigSetShort = (description) => ({
+    type: STORAGE_CONFIG_SET_SHORT,
+    shortDescription: description
+});
+
 export const STORAGE_CONFIG_SET_TYPE = 'STORAGE_CONFIG_SET_TYPE';
 export const storageConfigSetType = (storageType) => ({
     type: STORAGE_CONFIG_SET_TYPE,
@@ -1133,10 +1179,33 @@ export const storageConfigSaveSuccess = (id) => ({
     id
 });
 
+export const STORAGE_CONFIG_LOAD_SAVED_REQUEST = 'STORAGE_CONFIG_LOAD_SAVED_REQUEST';
+export const storageConfigLoadSavedRequest = () => ({
+    type: STORAGE_CONFIG_LOAD_SAVED_REQUEST,
+});
+
+export const STORAGE_CONFIG_LOAD_SAVED_ERROR = 'STORAGE_CONFIG_LOAD_SAVED_ERROR';
+export const storageConfigLoadSavedError = (error) => ({
+    type: STORAGE_CONFIG_LOAD_SAVED_ERROR,
+    error
+});
+
+export const STORAGE_CONFIG_LOAD_SAVED_SUCCESS = 'STORAGE_CONFIG_LOAD_SAVED_SUCCESS';
+export const storageConfigLoadSavedSuccess = (storageConfigs) => ({
+    type: STORAGE_CONFIG_LOAD_SAVED_SUCCESS,
+    storageConfigs 
+});
+
 export const STORAGE_CONFIG_SET_EDITOR_OPEN = 'STORAGE_CONFIG_SET_EDITOR_OPEN';
 export const storageConfigSetEditorOpen = (open) => ({
     type: STORAGE_CONFIG_SET_EDITOR_OPEN,
     isEditorOpen: open 
+});
+
+export const STORAGE_CONFIG_SET_LOAD_DIALOG_OPEN = "STORAGE_CONFIG_SET_LOAD_DIALOG_OPEN";
+export const storageConfigSetLoadDialogOpen = (open) => ({
+    type: STORAGE_CONFIG_SET_LOAD_DIALOG_OPEN,
+    isLoadDialogOpen: open
 });
 
 export const STORAGE_CONFIG_GET_SUPPORTED_TYPES_REQUEST = 'STORAGE_CONFIG_GET_SUPPORTED_TYPES_REQUEST';
@@ -1175,6 +1244,7 @@ export const storageConfigGetSupportedParamsSuccess = (params) => ({
 
 
 /* StorageConfig Thunks */
+
 export const storageConfigCreate = (userId, projectId, templateId = undefined) => dispatch => {
     dispatch(storageConfigCreateRequest());
     return(fetchAwesomO({
@@ -1214,6 +1284,17 @@ export const storageConfigFetch = (_id) => dispatch => {
         dispatch(storageConfigFetchSuccess(storageConfig))
     ));
 }
+
+export const storageConfigLoadSaved = userId => dispatch => {
+    dispatch(storageConfigLoadSavedRequest());
+    return(fetchAwesomO({url: '/api/storage/load/'+userId})
+    .then( response => response.json(),
+        error => dispatch(storageConfigLoadSavedError(error))
+    )
+    .then(storageConfigs =>
+        dispatch(storageConfigLoadSavedSuccess(storageConfigs))
+    ));
+};
 
 export const storageConfigSave = (storageConfig) => dispatch => {
     dispatch(storageConfigSaveRequest(storageConfig._id));
@@ -1312,6 +1393,12 @@ export const routeConfigFetchSuccess = (routeConfig) => ({
     routeConfig
 });
 
+export const ROUTE_CONFIG_SET_SHORT = 'ROUTE_CONFIG_SET_SHORT';
+export const routeConfigSetShort = (description) => ({
+    type: ROUTE_CONFIG_SET_SHORT,
+    shortDescription: description
+});
+
 export const ROUTE_CONFIG_SET_INTERPLATE_DELAY = 'ROUTE_CONFIG_SET_INTERPLATE_DELAY';
 export const routeConfigSetInterplateDelay = (seconds) => ({
     type: ROUTE_CONFIG_SET_INTERPLATE_DELAY,
@@ -1408,10 +1495,33 @@ export const routeConfigResetStaleFlag = () => ({
     type: ROUTE_CONFIG_RESET_STALE_FLAG
 });
 
+export const ROUTE_CONFIG_LOAD_SAVED_REQUEST = 'ROUTE_CONFIG_LOAD_SAVED_REQUEST';
+export const routeConfigLoadSavedRequest = () => ({
+    type: ROUTE_CONFIG_LOAD_SAVED_REQUEST,
+});
+
+export const ROUTE_CONFIG_LOAD_SAVED_ERROR = 'ROUTE_CONFIG_LOAD_SAVED_ERROR';
+export const routeConfigLoadSavedError = (error) => ({
+    type: ROUTE_CONFIG_LOAD_SAVED_ERROR,
+    error
+});
+
+export const ROUTE_CONFIG_LOAD_SAVED_SUCCESS = 'ROUTE_CONFIG_LOAD_SAVED_SUCCESS';
+export const routeConfigLoadSavedSuccess = (routeConfigs) => ({
+    type: ROUTE_CONFIG_LOAD_SAVED_SUCCESS,
+    routeConfigs 
+});
+
 export const ROUTE_CONFIG_SET_EDITOR_OPEN = 'ROUTE_CONFIG_SET_EDITOR_OPEN';
 export const routeConfigSetEditorOpen = (open) => ({
     type: ROUTE_CONFIG_SET_EDITOR_OPEN,
     isEditorOpen: open
+});
+
+export const ROUTE_CONFIG_SET_LOAD_DIALOG_OPEN = "ROUTE_CONFIG_SET_LOAD_DIALOG_OPEN";
+export const routeConfigSetLoadDialogOpen = (open) => ({
+    type: ROUTE_CONFIG_SET_LOAD_DIALOG_OPEN,
+    isLoadDialogOpen: open
 });
 
 /* Route thunks */
@@ -1454,8 +1564,19 @@ export const routeConfigSave = (routeConfig) => dispatch => {
         body: routeConfig})
         .then(  response => response.json(),
                 error => dispatch(routeConfigSaveError(error)) )
-        .then(routeConfig => dispatch(routeConfigSaveSuccess(routeConfig))));
+        .then(route => dispatch(routeConfigSaveSuccess(routeConfig))));
 }
+
+export const routeConfigLoadSaved = userId => dispatch => {
+    dispatch(routeConfigLoadSavedRequest());
+    return(fetchAwesomO({url: '/api/route/load/'+userId})
+    .then( response => response.json(),
+        error => dispatch(routeConfigLoadSavedError(error))
+    )
+    .then(routeConfigs =>
+        dispatch(routeConfigLoadSavedSuccess(routeConfigs))
+    ));
+};
 
 export const routeConfigRemove = (_id, userId, projectId) => dispatch => {
     dispatch(routeConfigRemoveRequest(_id));

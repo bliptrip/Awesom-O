@@ -25,7 +25,7 @@ const {Schema} = mongoose;
 
 //Right now only support local paths
 export const supported_types = [ 'fs' ];
-export const supported_params = { 'fs': [{'path': 'String'}] }
+export const supported_params = { 'fs': {'path': 'String'} }
 
 const StorageConfigSchema = new Schema({
     version: Number, //Table Version ID

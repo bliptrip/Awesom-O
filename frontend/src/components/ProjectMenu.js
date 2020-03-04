@@ -98,8 +98,6 @@ function ProjectLoadSavedDialog({open, savedProjects, setOpen, setEditorOpen, pr
             setOpen(false);
           };
 
-    const toValue = project => (project._id+"_"+project.shortDescription)
-
     const changeSelectChoice = event => {
         setSelectedProject(event.target.value);
     }

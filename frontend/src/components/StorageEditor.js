@@ -22,8 +22,7 @@ import React from 'react';
 import {connect} from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 
-import FileUploader from 'file-uploader';
-
+import Divider from '@material-ui/core/Divider';
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import List from '@material-ui/core/List';
@@ -37,6 +36,7 @@ import Typography from '@material-ui/core/Typography';
 import parse from 'csv-parse';
 
 import {storageConfigSetEditorOpen,
+        storageConfigSetShort,
         storageConfigSetType,
         storageConfigSetParams} from '../actions';
 
@@ -49,11 +49,11 @@ const useStyles = makeStyles({
     }
 });
 
-function StorageEditor({closeDrawer, storageType, params, supportedTypes, supportedParams, setType, setParams}) {
+function StorageEditor({sshort, closeDrawer, storageType, params, supportedTypes, supportedParams, setShort, setType, setParams}) {
     const classes = useStyles();
     let disableOptions = (!supportedTypes || (supportedTypes === [])) ? "disabled" : "";
     let sparams = {};
-    if( storageType ) {
+    if( storageType && Object.keys(supportedParams).includes(storageType) ) {
         sparams = supportedParams[storageType];
     }
 
@@ -73,7 +73,7 @@ function StorageEditor({closeDrawer, storageType, params, supportedTypes, suppor
                     onChange={onChangeParam(key)} 
                     color='primary'
                     label={key} 
-                    defaultValue="" />);
+                    defaultValue={params[key]} />);
                 break;
             default:
                 return;
@@ -85,10 +85,14 @@ function StorageEditor({closeDrawer, storageType, params, supportedTypes, suppor
         <div
             className={classes.fullList}
             role="presentation"
-            onClick={closeDrawer}
-            onKeyDown={closeDrawer}
         >
             <List>
+                <ListItem>
+                    <Tooltip title="Short description of this Storage Configuration">
+                        <TextField label="Title" onChange={setShort} value={sshort} />
+                    </Tooltip>
+                </ListItem>
+                <Divider />
                 <ListItem>
                     <Tooltip title="Choose one of the supported storage types.">
                         <Select
@@ -112,6 +116,7 @@ function StorageEditor({closeDrawer, storageType, params, supportedTypes, suppor
 
 const mapStateToProps = (state) => ({
     storageType: state.storage.storageType,
+    sshort: state.storage.shortDescription,
     params: state.storage.params,
     supportedTypes: state.storage.supportedTypes,
     supportedParams: state.storage.supportedParams
@@ -124,6 +129,7 @@ const mapDispatchToProps = (dispatch) => ({
         }
         dispatch(storageConfigSetEditorOpen(false));
     },
+    setShort: (e) => dispatch(storageConfigSetShort(e.target.value)),
     setType: (type) => dispatch(storageConfigSetType(type)),
     setParams: (params) => dispatch(storageConfigSetParams(params))
 });

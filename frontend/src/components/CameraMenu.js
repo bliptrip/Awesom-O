@@ -96,8 +96,6 @@ function CameraLoadSavedDialog({open, savedCameraConfigs, setOpen, setEditorOpen
             setOpen(false);
           };
 
-    const toValue = camera => (camera._id+"_"+camera.shortDescription)
-
     const changeSelectChoice = event => {
         setSelectedCamera(event.target.value);
     }
@@ -148,19 +146,27 @@ function CameraMenu({loadSaved,loadSettings,applySettings,userId,setDialogOpen,c
               setAnchorEl(null);
             };
 
-      const handleLoad = (e) => {
-              loadSaved(userId);
-              setDialogOpen(true);
-            };
-
-    const handleLoadSettings = (e) => {
-        loadSettings(0); //Just assume camera index 0 for now
+    const handleAdd = (userId, projectId) => (e) => {
+        addCameraConfig(userId, projectId);
         setEditorOpen(true);
-    }
+        handleClose();
+    };
+
+    const handleLoad = (e) => {
+        loadSaved(userId);
+        setDialogOpen(true);
+        handleClose();
+    };
+
+    const handleEdit = (e) => {
+        setEditorOpen(true);
+        handleClose();
+    };
 
     const handleSave = (e) => {
         cSave(currCameraConfig);
-    }
+        handleClose();
+    };
     
       return (
               <div>
@@ -182,7 +188,7 @@ function CameraMenu({loadSaved,loadSettings,applySettings,userId,setDialogOpen,c
                   open={Boolean(anchorEl)}
                   onClose={handleClose}
                 >
-                  <StyledMenuItem onClick={addCameraConfig(userId,projectId)}>
+                  <StyledMenuItem onClick={handleAdd(userId,projectId)}>
                     <ListItemIcon>
                       <AddCircleTwoToneIcon fontSize="large" />
                     </ListItemIcon>
@@ -198,12 +204,12 @@ function CameraMenu({loadSaved,loadSettings,applySettings,userId,setDialogOpen,c
                         <ListItemText primary="Load Saved Settings" />
                     </ListItem>
                   </StyledMenuItem>
-                  <StyledMenuItem onClick={setEditorOpen}>
+                  <StyledMenuItem onClick={handleEdit}>
                     <ListItemIcon>
                       <SettingsApplicationsTwoToneIcon fontSize="large" />
                     </ListItemIcon>
                     <ListItem button >
-                        <ListItemText primary="Edit Current Settings" />
+                        <ListItemText primary="Edit Settings" />
                     </ListItem>
                   </StyledMenuItem>
                   <StyledMenuItem onClick={handleSave}>
@@ -211,23 +217,7 @@ function CameraMenu({loadSaved,loadSettings,applySettings,userId,setDialogOpen,c
                       <SaveTwoToneIcon fontSize="large" />
                     </ListItemIcon>
                     <ListItem button >
-                        <ListItemText primary="Save Current Settings" />
-                    </ListItem>
-                  </StyledMenuItem>
-                  <StyledMenuItem onClick={handleLoadSettings} >
-                    <ListItemIcon>
-                      <SettingsIcon fontSize="large" />
-                    </ListItemIcon>
-                    <ListItem button >
-                        <ListItemText primary="Load Active Camera Current Settings" />
-                    </ListItem>
-                  </StyledMenuItem>
-                  <StyledMenuItem onClick={applySettings(0,camConfigs)}>
-                    <ListItemIcon>
-                      <SettingsApplicationsIcon fontSize="large" />
-                    </ListItemIcon>
-                    <ListItem button >
-                        <ListItemText primary="Apply Current Settings to Active Camera" />
+                        <ListItemText primary="Save Settings" />
                     </ListItem>
                   </StyledMenuItem>
                 </StyledMenu>
@@ -244,7 +234,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    addCameraConfig: (id) => (e) => {dispatch(cameraConfigCreate(id)); dispatch(cameraConfigSetEditorOpen(true))},
+    addCameraConfig: (uid, pid) => dispatch(cameraConfigCreate(uid, pid)),
     setEditorOpen: (e) => dispatch(cameraConfigSetEditorOpen(true)),
     setDialogOpen: (open) => dispatch(cameraConfigSetLoadDialogOpen(open)),
     loadSaved: (id) => dispatch(cameraConfigLoadSaved(id)),

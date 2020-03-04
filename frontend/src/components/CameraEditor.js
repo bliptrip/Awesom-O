@@ -20,7 +20,7 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 import React from 'react';
 import {connect} from 'react-redux';
-import {cameraConfigSetEntryValue, cameraConfigSetEditorOpen, cameraConfigSetShort, cameraConfigSetDescription} from '../actions';
+import {cameraConfigSetEntryValue, cameraConfigSetEditorOpen, cameraConfigSetShort, cameraConfigSetDescription, cameraConfigLoadSettings, cameraConfigApplySettings} from '../actions';
 
 import Checkbox from '@material-ui/core/Checkbox';
 import Divider from '@material-ui/core/Divider';
@@ -32,6 +32,10 @@ import {makeStyles} from '@material-ui/core/styles';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
+import Tooltip from '@material-ui/core/Tooltip';
+
+import SettingsIcon from '@material-ui/icons/Settings';
+import SettingsApplicationsIcon from '@material-ui/icons/SettingsApplications';
 
 const useStyles = makeStyles({
       list: {
@@ -200,7 +204,7 @@ const mapCameraConfigurationSettingsStateToProps = (state) => ({
 
 const DynCameraConfigurationSettings = connect(mapCameraConfigurationSettingsStateToProps)(CameraConfigurationSettings); 
 
-function CameraEditor({cshort, cdescription, cmanufacturer, cmodel, cdeviceVersion, csn, closeDrawer, setShort, setDescription}) {
+function CameraEditor({cshort, cdescription, camConfigs, closeDrawer, setShort, setDescription, loadSettings, applySettings}) {
     const classes = useStyles();
 
     return (
@@ -215,19 +219,15 @@ function CameraEditor({cshort, cdescription, cmanufacturer, cmodel, cdeviceVersi
                 <ListItem>
                     <TextField label="Description" onChange={setDescription} value={cdescription} />
                 </ListItem>
-                <ListItem>
-                    <TextField label="Manufacturer" disabled='true' value={cmanufacturer} />
-                </ListItem>
-                <ListItem>
-                    <TextField label="Model" disabled='true' value={cmodel} />
-                </ListItem>
-                <ListItem>
-                    <TextField label="Version" disabled='true' value={cdeviceVersion} />
-                </ListItem>
-                <ListItem>
-                    <TextField label="Serial Number" disabled='true' value={csn} />
-                </ListItem>
                 <Divider />
+                <ListItem>
+                    <Tooltip title="Load Active Settings from Camera">
+                        <SettingsIcon fontSize="large" onClick={loadSettings(0)} />
+                    </Tooltip>
+                    <Tooltip title="Apply Current Settings to Camera">
+                        <SettingsApplicationsIcon fontSize="large" onClick={applySettings(0,camConfigs)} />
+                    </Tooltip>
+                </ListItem>
                 <ListItem>
                     <DynCameraConfigurationSettings />
                 </ListItem>
@@ -242,7 +242,8 @@ const mapStateToProps = (state) => ({
     cmanufacturer: state.camera.manufacturer,
     cmodel: state.camera.model,
     cdeviceVersion: state.camera.deviceVersion,
-    csn: state.camera.sn
+    csn: state.camera.sn,
+    camConfigs: state.camera.configs,
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -254,6 +255,8 @@ const mapDispatchToProps = (dispatch) => ({
     },
     setShort: (event) => dispatch(cameraConfigSetShort(event.target.value)),
     setDescription: (event) => dispatch(cameraConfigSetDescription(event.target.value)),
+    loadSettings: (camIndex) => (e) => dispatch(cameraConfigLoadSettings(camIndex)),
+    applySettings: (camIndex,camConfigs) => (e) => dispatch(cameraConfigApplySettings(camIndex,camConfigs)),
 });
 
 export default connect(mapStateToProps,mapDispatchToProps)(CameraEditor);

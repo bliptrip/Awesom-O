@@ -25,15 +25,18 @@ import * as experimentC from '../actions';
 export const experiment = (state = { 
         _id: undefined,
         isEditorOpen: false,
+        isLoadDialogOpen: false,
         isFetching: false,
         statusError: undefined,
+        shortDescription: "",
         datetime: false,
         rename: false,
         imageMeta: false,
         filenameFields: [],
         plateMeta: [],
         users: [],
-        projects: []
+        projects: [],
+        savedExperimentConfigs: []
     }, action) => {
     let newstate = state;
     switch(action.type) {
@@ -69,6 +72,11 @@ export const experiment = (state = {
                 statusError: undefined
             };
             break;
+        case experimentC.EXPERIMENT_CONFIG_SET_SHORT:
+            newstate = {...state,
+                shortDescription: action.shortDescription
+            };
+            break;
         case experimentC.EXPERIMENT_CONFIG_FETCH_REQUEST:
             newstate = {...state,
                 isFetching: true,
@@ -87,6 +95,7 @@ export const experiment = (state = {
             newstate = {...state,
                 isFetching: false,
                 _id: action.experimentConfig._id, //TODO - check if _id matches request
+                shortDescription: action.experimentConfig.shortDescription,
                 datetime: action.experimentConfig.datetime,
                 rename: action.experimentConfig.rename,
                 imageMeta: action.experimentConfig.imageMeta,
@@ -118,6 +127,7 @@ export const experiment = (state = {
             break;
         case experimentC.EXPERIMENT_CONFIG_ADD_FILENAME_FIELD:
             newstate = {...state};
+            newstate.filenameFields = [...newstate.filenameFields];
             newstate.filenameFields.push(action.field);
             break;
         case experimentC.EXPERIMENT_CONFIG_REMOVE_FILENAME_FIELD:
@@ -130,6 +140,7 @@ export const experiment = (state = {
             break;
         case experimentC.EXPERIMENT_CONFIG_ADD_PLATE:
             newstate = {...state};
+            newstate.plateMeta = [...newstate.plateMeta];
             newstate.plateMeta.push({
                 row: action.row,
                 col: action.col,
@@ -147,9 +158,7 @@ export const experiment = (state = {
         case experimentC.EXPERIMENT_CONFIG_SAVE_REQUEST:
             newstate = { ...state,
                 areSaving: true, //TODO: Check that we aren't already processing a save or fetching request
-                statusError: undefined,
-                _id: action._id
-            };
+                statusError: undefined };
             break;
         case experimentC.EXPERIMENT_CONFIG_SAVE_ERROR:
             newstate = { ...state,
@@ -158,12 +167,36 @@ export const experiment = (state = {
             break;
         case experimentC.EXPERIMENT_CONFIG_SAVE_SUCCESS:
             newstate = { ...state,
-                areSaving: false,
-                _id: action._id };
+                areSaving: false };
+            break;
+        case experimentC.EXPERIMENT_CONFIG_LOAD_SAVED_REQUEST:
+            newstate = { ...state,
+                isFetching: true,
+                statusError: undefined,
+                savedExperimentConfigs: []
+            };
+            break;
+        case experimentC.EXPERIMENT_CONFIG_LOAD_SAVED_ERROR:
+            newstate = { ...state,
+                isFetching: false,
+                statusError: action.error
+            };
+            break;
+        case experimentC.EXPERIMENT_CONFIG_LOAD_SAVED_SUCCESS:
+            newstate = { ...state,
+                isFetching: false,
+                statusError: undefined,
+                savedExperimentConfigs: action.experimentConfigs
+            };
             break;
         case experimentC.EXPERIMENT_CONFIG_SET_EDITOR_OPEN:
             newstate = { ...state,
                 isEditorOpen: action.isEditorOpen };
+            break;
+        case experimentC.EXPERIMENT_CONFIG_SET_LOAD_DIALOG_OPEN:
+            newstate    = {...state,
+                isLoadDialogOpen: action.isLoadDialogOpen
+            };
             break;
         default:
             break;

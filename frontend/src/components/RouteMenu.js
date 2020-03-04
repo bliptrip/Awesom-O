@@ -20,7 +20,14 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
 import React, {useState} from 'react';
+import {connect} from 'react-redux';
 import { withStyles } from '@material-ui/core/styles';
+import Button from '@material-ui/core/Button';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
 import IconButton from '@material-ui/core/IconButton';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -32,8 +39,10 @@ import AddCircleTwoToneIcon from '@material-ui/icons/AddCircleTwoTone';
 import FolderOpenTwoToneIcon from '@material-ui/icons/FolderOpenTwoTone';
 import SettingsApplicationsTwoToneIcon from '@material-ui/icons/SettingsApplicationsTwoTone';
 import SaveTwoToneIcon from '@material-ui/icons/SaveTwoTone';
-import {Tooltip} from '@material-ui/core/';
+import Tooltip from '@material-ui/core/Tooltip';
+import Select from '@material-ui/core/Select';
 
+import {routeConfigCreate, routeConfigLoadSaved, routeConfigSave, routeConfigSetEditorOpen, routeConfigFetchSuccess, routeConfigSetLoadDialogOpen} from '../actions';
 
 
 const StyledMenu = withStyles({
@@ -67,7 +76,65 @@ const StyledMenuItem = withStyles(theme => ({
             },
 }))(MenuItem);
 
-function RouteMenu() {
+const mapDialogStateToProps = (state) => ({
+    userId: state.user._id,
+    savedRouteConfigs: state.route.savedRouteConfigs,
+    open: state.route.isLoadDialogOpen
+});
+
+const mapDialogDispatchToProps = (dispatch) => ({
+    setEditorOpen: (e) => dispatch(routeConfigSetEditorOpen(true)),
+    routeConfigSetCurrent: (route) => dispatch(routeConfigFetchSuccess(route)),
+    setOpen: (isOpen) => dispatch(routeConfigSetLoadDialogOpen(isOpen))
+});
+
+function RouteLoadSavedDialog({open, savedRouteConfigs, setOpen, setEditorOpen, routeConfigSetCurrent}) {
+    const [selectedRoute, setSelectedRoute] = useState(undefined);
+
+    const handleClose = () => {
+            setOpen(false);
+          };
+
+    const changeSelectChoice = event => {
+        setSelectedRoute(event.target.value);
+    }
+
+    const loadSelectedChoice = event => {
+        routeConfigSetCurrent(selectedRoute);
+        setEditorOpen(true);
+        setOpen(false);
+    }
+
+    return (
+            <div>
+              <Dialog open={open} onClose={handleClose} aria-labelledby="route-load-dialog-title">
+                <DialogTitle id="route-load-dialog-title">Load Route</DialogTitle>
+                  <DialogContent>
+                    <Select
+                        value={selectedRoute}
+                        onChange={changeSelectChoice}
+                        color="primary"
+                        label="Load Route Configuration"
+                    >
+                        {savedRouteConfigs.map((e) => (<MenuItem value={e}>{e.shortDescription}</MenuItem>))}
+                    </Select>
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={handleClose} color="primary">
+                    Cancel
+                  </Button>
+                  <Button onClick={loadSelectedChoice} color="primary">
+                    Load
+                  </Button>
+                </DialogActions>
+              </Dialog>
+            </div>
+          );
+}
+
+const ConnectedRouteLoadSavedDialog = connect(mapDialogStateToProps, mapDialogDispatchToProps)(RouteLoadSavedDialog);
+
+function RouteMenu({addRouteConfig,setEditorOpen,setDialogOpen,loadSaved,rSave,userId,projectId,currRouteConfig}) {
       const [anchorEl, setAnchorEl] = useState(null);
 
       const handleClick = event => {
@@ -77,6 +144,28 @@ function RouteMenu() {
       const handleClose = () => {
               setAnchorEl(null);
             };
+
+    const handleAdd = (userId, projectId) => (e) => {
+        addRouteConfig(userId, projectId);
+        setEditorOpen(true);
+        handleClose();
+    };
+
+    const handleLoad = (e) => {
+        loadSaved(userId);
+        setDialogOpen(true);
+        handleClose();
+    };
+
+    const handleEdit = (e) => {
+        setEditorOpen(true);
+        handleClose();
+    };
+
+    const handleSave = (e) => {
+        rSave(currRouteConfig);
+        handleClose();
+    };
 
       return (
               <div>
@@ -98,7 +187,7 @@ function RouteMenu() {
                   open={Boolean(anchorEl)}
                   onClose={handleClose}
                 >
-                  <StyledMenuItem>
+                  <StyledMenuItem onClick={handleAdd(userId,projectId)}>
                     <ListItemIcon>
                       <AddCircleTwoToneIcon fontSize="large" />
                     </ListItemIcon>
@@ -106,7 +195,7 @@ function RouteMenu() {
                         <ListItemText primary="Add Route" />
                     </ListItem>
                   </StyledMenuItem>
-                  <StyledMenuItem>
+                  <StyledMenuItem onClick={handleLoad}>
                     <ListItemIcon>
                       <FolderOpenTwoToneIcon fontSize="large" />
                     </ListItemIcon>
@@ -114,7 +203,7 @@ function RouteMenu() {
                         <ListItemText primary="Load Saved Route" />
                     </ListItem>
                   </StyledMenuItem>
-                  <StyledMenuItem>
+                  <StyledMenuItem onClick={handleEdit}>
                     <ListItemIcon>
                       <SettingsApplicationsTwoToneIcon fontSize="large" />
                     </ListItemIcon>
@@ -122,7 +211,7 @@ function RouteMenu() {
                         <ListItemText primary="Edit Current Route" />
                     </ListItem>
                   </StyledMenuItem>
-                  <StyledMenuItem>
+                  <StyledMenuItem onClick={handleSave}>
                     <ListItemIcon>
                       <SaveTwoToneIcon fontSize="large" />
                     </ListItemIcon>
@@ -131,8 +220,23 @@ function RouteMenu() {
                     </ListItem>
                   </StyledMenuItem>
                 </StyledMenu>
+                <ConnectedRouteLoadSavedDialog />
               </div>
             );
 };
 
-export default RouteMenu;
+const mapStateToProps = (state) => ({
+    userId: state.user._id,
+    projectId: state.project._id,
+    currRouteConfig: state.route
+});
+
+const mapDispatchToProps = (dispatch) => ({
+    addRouteConfig: (uid, pid) => dispatch(routeConfigCreate(uid, pid)),
+    setEditorOpen: (open) => dispatch(routeConfigSetEditorOpen(open)),
+    setDialogOpen: (open) => dispatch(routeConfigSetLoadDialogOpen(open)),
+    loadSaved: (id) => dispatch(routeConfigLoadSaved(id)),
+    rSave: (routeConfig) => dispatch(routeConfigSave(routeConfig))
+});
+
+export default connect(mapStateToProps,mapDispatchToProps)(RouteMenu);

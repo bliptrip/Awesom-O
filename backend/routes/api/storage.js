@@ -139,5 +139,14 @@ router.get('/remove/:_id', auth.sess, (req, res, next) => {
     return(res.status(422).json({ errors: "Unsupported operation" }));
 });
 
+router.get('/load/:userId', auth.sess, (req, res, next) => {
+    StorageConfig.find( { users: { "$elemMatch": { "$eq": req.params.userId }}}, (err, storages) => {
+        if( err ) {
+            return(res.status(422).json({ errors: err }));
+        } else {
+            return(res.status(200).json(storages));
+        }
+    })
+});
 
 module.exports = router;

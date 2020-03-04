@@ -82,6 +82,7 @@ router.post('/create', auth.sess, (req, res, next) => {
 
 router.post('/save', auth.sess, (req, res, next) => {
     let experimentConfigJSON  = req.body;
+    console.log(experimentConfigJSON);
     ExperimentConfig.update({_id: experimentConfigJSON._id}, experimentConfigJSON, {upsert: false}, function(err, resp) {
         if( err ) {
             return(res.status(422).json({ errors: resp }));
@@ -124,5 +125,14 @@ router.get('/remove/:_id', auth.sess, (req, res, next) => {
     return(res.status(422).json({ errors: "Unsupported operation" }));
 });
 
+router.get('/load/:userId', auth.sess, (req, res, next) => {
+    ExperimentConfig.find( { users: { "$elemMatch": { "$eq": req.params.userId }}}, (err, experiments) => {
+        if( err ) {
+            return(res.status(422).json({ errors: err }));
+        } else {
+            return(res.status(200).json(experiments));
+        }
+    })
+});
 
 module.exports = router;

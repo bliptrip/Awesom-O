@@ -20,7 +20,14 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
 import React, {useState} from 'react';
+import {connect} from 'react-redux';
 import { withStyles } from '@material-ui/core/styles';
+import Button from '@material-ui/core/Button';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
 import IconButton from '@material-ui/core/IconButton';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -33,6 +40,9 @@ import FolderOpenTwoToneIcon from '@material-ui/icons/FolderOpenTwoTone';
 import SettingsApplicationsTwoToneIcon from '@material-ui/icons/SettingsApplicationsTwoTone';
 import SaveTwoToneIcon from '@material-ui/icons/SaveTwoTone';
 import {Tooltip} from '@material-ui/core/';
+import Select from '@material-ui/core/Select';
+
+import {experimentConfigCreate,experimentConfigSetEditorOpen,experimentConfigSetLoadDialogOpen,experimentConfigLoadSaved,experimentConfigSave, experimentConfigFetchSuccess} from '../actions';
 
 const StyledMenu = withStyles({
       paper: {
@@ -65,7 +75,65 @@ const StyledMenuItem = withStyles(theme => ({
             },
 }))(MenuItem);
 
-function ExperimentMenu() {
+const mapDialogStateToProps = (state) => ({
+    userId: state.user._id,
+    savedExperimentConfigs: state.experiment.savedExperimentConfigs,
+    open: state.experiment.isLoadDialogOpen
+});
+
+const mapDialogDispatchToProps = (dispatch) => ({
+    setEditorOpen: (e) => dispatch(experimentConfigSetEditorOpen(true)),
+    experimentConfigSetCurrent: (experiment) => dispatch(experimentConfigFetchSuccess(experiment)),
+    setOpen: (isOpen) => dispatch(experimentConfigSetLoadDialogOpen(isOpen))
+});
+
+function ExperimentLoadSavedDialog({open, savedExperimentConfigs, setOpen, setEditorOpen, experimentConfigSetCurrent}) {
+    const [selectedExperiment, setSelectedExperiment] = useState(undefined);
+
+    const handleClose = () => {
+            setOpen(false);
+          };
+
+    const changeSelectChoice = event => {
+        setSelectedExperiment(event.target.value);
+    }
+
+    const loadSelectedChoice = event => {
+        experimentConfigSetCurrent(selectedExperiment);
+        setEditorOpen(true);
+        setOpen(false);
+    }
+
+    return (
+            <div>
+              <Dialog open={open} onClose={handleClose} aria-labelledby="experiment-load-dialog-title">
+                <DialogTitle id="experiment-load-dialog-title">Load Experiment</DialogTitle>
+                  <DialogContent>
+                    <Select
+                        value={selectedExperiment}
+                        onChange={changeSelectChoice}
+                        color="primary"
+                        label="Load Experiment Configuration"
+                    >
+                        {savedExperimentConfigs.map((e) => (<MenuItem value={e}>{e.shortDescription}</MenuItem>))}
+                    </Select>
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={handleClose} color="primary">
+                    Cancel
+                  </Button>
+                  <Button onClick={loadSelectedChoice} color="primary">
+                    Load
+                  </Button>
+                </DialogActions>
+              </Dialog>
+            </div>
+          );
+}
+
+const ConnectedExperimentLoadSavedDialog = connect(mapDialogStateToProps, mapDialogDispatchToProps)(ExperimentLoadSavedDialog);
+
+function ExperimentMenu({userId, projectId, currExperimentConfig, addExperimentConfig, loadSaved, setEditorOpen, setDialogOpen, eSave}) {
       const [anchorEl, setAnchorEl] = useState(null);
 
       const handleClick = event => {
@@ -76,6 +144,27 @@ function ExperimentMenu() {
               setAnchorEl(null);
             };
 
+    const handleAdd = (userId, projectId) => (e) => {
+        addExperimentConfig(userId, projectId);
+        setEditorOpen(true);
+        handleClose();
+    };
+
+    const handleLoad = (e) => {
+        loadSaved(userId);
+        setDialogOpen(true);
+        handleClose();
+    };
+
+    const handleEdit = (e) => {
+        setEditorOpen(true);
+        handleClose();
+    };
+
+    const handleSave = (e) => {
+        eSave(currExperimentConfig);
+        handleClose();
+    };
       return (
               <div>
                 <Tooltip title="Experiment Metadata">
@@ -96,15 +185,15 @@ function ExperimentMenu() {
                   open={Boolean(anchorEl)}
                   onClose={handleClose}
                 >
-                  <StyledMenuItem>
+                  <StyledMenuItem onClick={handleAdd(userId,projectId)}>
                     <ListItemIcon>
                       <AddCircleTwoToneIcon fontSize="large" />
                     </ListItemIcon>
                     <ListItem button >
-                        <ListItemText primary="Add Camera Settings" />
+                        <ListItemText primary="Add Experiment Settings" />
                     </ListItem>
                   </StyledMenuItem>
-                  <StyledMenuItem>
+                  <StyledMenuItem onClick={handleLoad}>
                     <ListItemIcon>
                       <FolderOpenTwoToneIcon fontSize="large" />
                     </ListItemIcon>
@@ -112,7 +201,7 @@ function ExperimentMenu() {
                         <ListItemText primary="Load Saved Settings" />
                     </ListItem>
                   </StyledMenuItem>
-                  <StyledMenuItem>
+                  <StyledMenuItem onClick={handleEdit}>
                     <ListItemIcon>
                       <SettingsApplicationsTwoToneIcon fontSize="large" />
                     </ListItemIcon>
@@ -120,7 +209,7 @@ function ExperimentMenu() {
                         <ListItemText primary="Edit Current Settings" />
                     </ListItem>
                   </StyledMenuItem>
-                  <StyledMenuItem>
+                  <StyledMenuItem onClick={handleSave}>
                     <ListItemIcon>
                       <SaveTwoToneIcon fontSize="large" />
                     </ListItemIcon>
@@ -129,8 +218,24 @@ function ExperimentMenu() {
                     </ListItem>
                   </StyledMenuItem>
                 </StyledMenu>
+                <ConnectedExperimentLoadSavedDialog />
               </div>
             );
 };
 
-export default ExperimentMenu;
+
+const mapStateToProps = (state) => ({
+    userId: state.user._id,
+    projectId: state.project._id,
+    currExperimentConfig: state.experiment
+});
+
+const mapDispatchToProps = (dispatch) => ({
+    addExperimentConfig: (uid, pid) => dispatch(experimentConfigCreate(uid, pid)),
+    setEditorOpen: (open) => dispatch(experimentConfigSetEditorOpen(open)),
+    setDialogOpen: (open) => dispatch(experimentConfigSetLoadDialogOpen(open)),
+    loadSaved: (id) => dispatch(experimentConfigLoadSaved(id)),
+    eSave: (experimentConfig) => dispatch(experimentConfigSave(experimentConfig))
+});
+
+export default connect(mapStateToProps,mapDispatchToProps)(ExperimentMenu);

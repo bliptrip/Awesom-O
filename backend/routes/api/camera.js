@@ -35,13 +35,45 @@ const CameraConfig = mongoose.model('CameraConfig');
 const auth = require('../../lib/passport').auth;
 var currentPicture = undefined; //Keeps track of 
 
+var preview_timer = undefined;
 var   gphoto = new gphoto2.GPhoto2();
 gphoto.setLogLevel(1);
 gphoto.on('log', function (level, domain, message) {
       console.log(domain, message);
 });
 var camera = undefined;
-var camera_list = [];
+var camera_list = undefined; 
+
+const checkIfPreview= (req, res, next) => {
+    if( preview_timer === undefined ) {
+        res.status(409).json({errors:
+            {message: "Preview timer not started."}
+        }); 
+        return;
+    }
+    next();
+};
+
+const checkIfNotPreview = (req, res, next) => {
+    if( preview_timer !== undefined ) {
+        res.status(409).json({errors:
+            {message: "Preview timer already started."}
+        }); 
+        return;
+    }
+    next();
+};
+
+const checkIfCameraList = (req, res, next) => {
+    if( camera_list === undefined ) {
+        res.status(409).json({errors:
+            {message: "Camera list not populated."}
+        }); 
+        return;
+    }
+    next();
+}
+
 var subscription = postal.subscribe({
     channel: "camera",
     topic: "route.move",
@@ -185,20 +217,67 @@ router.get('/current', auth.sess, (req, res, next) => {
 });
 
 //Preview
+//
+//For a reference to howto do preview, view comments from
+//https://github.com/lwille/node-gphoto2/issues/64#issuecomment-76967057
 router.get('/preview', auth.sess, (req, res, next) => {
     // Take picture and keep image on camera
     camera.takePicture({
-        preview: true,
-        download: true
+          preview: true,
+          targetPath: '/tmp/fooXXXXXX'
+    }, function(err, tmp) {
+          fs.readFile(tmp, (err, data) => {
+            if( err ) {
+                return(res.status(404).json({error: err}));
+            } else {
+                fs.unlinkSync(tmp);
+                let edata = encodeImage(data);
+                wss.broadcast(edata);
+                res.sendStatus(200);
+            }
+          })
+    });
+    /*
+    camera.takePicture({
+        preview: true
     }, function (err, data) {
         if( err ) {
             res.sendStatus(400);
         } else {
             let edata = encodeImage(data);
+            console.log(edata);
             wss.broadcast(edata);
             res.sendStatus(200);
         }
     });
+    */
+});
+
+
+
+router.get('/preview/start/:camIndex', auth.sess, checkIfCameraList, checkIfNotPreview, (req, res, next) => {
+    preview_timer = setInterval( (camIndex) => {
+        camera_list[camIndex].takePicture({
+            preview: true,
+            targetPath: '/tmp/fooXXXXXX'
+        }, function(err, tmp) {
+            if( !err ) {
+                fs.readFile(tmp, (err, data) => {
+                    if( !err ) {
+                        fs.unlinkSync(tmp);
+                        let edata = encodeImage(data);
+                        wss.broadcast(edata);
+                    }
+                });
+            }
+        });
+    }, 500, [req.params.camIndex] );
+    res.sendStatus(200);
+});
+
+router.get('/preview/stop/:camIndex', auth.sess, checkIfPreview, (req, res, next) => {
+    preview_timer = clearInterval(preview_timer);
+    res.sendStatus(200);
 });
 
 //Create a new user -- NOTE: Eventually will want an admin to approve this

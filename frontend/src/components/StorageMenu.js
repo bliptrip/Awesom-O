@@ -20,7 +20,14 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
 import React, {useState} from 'react';
+import {connect} from 'react-redux';
 import { withStyles } from '@material-ui/core/styles';
+import Button from '@material-ui/core/Button';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
 import IconButton from '@material-ui/core/IconButton';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -32,7 +39,10 @@ import AddCircleTwoToneIcon from '@material-ui/icons/AddCircleTwoTone';
 import FolderOpenTwoToneIcon from '@material-ui/icons/FolderOpenTwoTone';
 import SettingsApplicationsTwoToneIcon from '@material-ui/icons/SettingsApplicationsTwoTone';
 import SaveTwoToneIcon from '@material-ui/icons/SaveTwoTone';
-import {Tooltip} from '@material-ui/core/';
+import Tooltip from '@material-ui/core/Tooltip';
+import Select from '@material-ui/core/Select';
+
+import {storageConfigCreate, storageConfigLoadSaved, storageConfigSave, storageConfigSetEditorOpen, storageConfigFetchSuccess, storageConfigSetLoadDialogOpen} from '../actions';
 
 const StyledMenu = withStyles({
       paper: {
@@ -65,7 +75,65 @@ const StyledMenuItem = withStyles(theme => ({
             },
 }))(MenuItem);
 
-function StorageMenu() {
+const mapDialogStateToProps = (state) => ({
+    userId: state.user._id,
+    savedStorageConfigs: state.storage.savedStorageConfigs,
+    open: state.storage.isLoadDialogOpen
+});
+
+const mapDialogDispatchToProps = (dispatch) => ({
+    setEditorOpen: (e) => dispatch(storageConfigSetEditorOpen(true)),
+    storageConfigSetCurrent: (storage) => dispatch(storageConfigFetchSuccess(storage)),
+    setOpen: (isOpen) => dispatch(storageConfigSetLoadDialogOpen(isOpen))
+});
+
+function StorageLoadSavedDialog({open, savedStorageConfigs, setOpen, setEditorOpen, storageConfigSetCurrent}) {
+    const [selectedStorage, setSelectedStorage] = useState(undefined);
+
+    const handleClose = () => {
+            setOpen(false);
+          };
+
+    const changeSelectChoice = event => {
+        setSelectedStorage(event.target.value);
+    }
+
+    const loadSelectedChoice = event => {
+        storageConfigSetCurrent(selectedStorage);
+        setEditorOpen(true);
+        setOpen(false);
+    }
+
+    return (
+            <div>
+              <Dialog open={open} onClose={handleClose} aria-labelledby="storage-load-dialog-title">
+                <DialogTitle id="storage-load-dialog-title">Load Storage</DialogTitle>
+                  <DialogContent>
+                    <Select
+                        value={selectedStorage}
+                        onChange={changeSelectChoice}
+                        color="primary"
+                        label="Load Storage Configuration"
+                    >
+                        {savedStorageConfigs.map((s) => (<MenuItem value={s}>{s.shortDescription}</MenuItem>))}
+                    </Select>
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={handleClose} color="primary">
+                    Cancel
+                  </Button>
+                  <Button onClick={loadSelectedChoice} color="primary">
+                    Load
+                  </Button>
+                </DialogActions>
+              </Dialog>
+            </div>
+          );
+}
+
+const ConnectedStorageLoadSavedDialog = connect(mapDialogStateToProps, mapDialogDispatchToProps)(StorageLoadSavedDialog);
+
+function StorageMenu({addStorageConfig,setEditorOpen,setDialogOpen,loadSaved,sSave,userId,projectId,currStorageConfig}) {
       const [anchorEl, setAnchorEl] = useState(null);
 
       const handleClick = event => {
@@ -75,6 +143,28 @@ function StorageMenu() {
       const handleClose = () => {
               setAnchorEl(null);
             };
+
+    const handleAdd = (userId, projectId) => (e) => {
+        addStorageConfig(userId, projectId);
+        setEditorOpen(true);
+        handleClose();
+    };
+
+    const handleLoad = (e) => {
+        loadSaved(userId);
+        setDialogOpen(true);
+        handleClose();
+    };
+
+    const handleEdit = (e) => {
+        setEditorOpen(true);
+        handleClose();
+    };
+
+    const handleSave = (e) => {
+        sSave(currStorageConfig);
+        handleClose();
+    };
 
       return (
               <div>
@@ -96,7 +186,7 @@ function StorageMenu() {
                   open={Boolean(anchorEl)}
                   onClose={handleClose}
                 >
-                  <StyledMenuItem>
+                  <StyledMenuItem onClick={handleAdd(userId,projectId)}>
                     <ListItemIcon>
                       <AddCircleTwoToneIcon fontSize="large" />
                     </ListItemIcon>
@@ -104,7 +194,7 @@ function StorageMenu() {
                         <ListItemText primary="Add Storage Configuration" />
                     </ListItem>
                   </StyledMenuItem>
-                  <StyledMenuItem>
+                  <StyledMenuItem onClick={handleLoad}>
                     <ListItemIcon>
                       <FolderOpenTwoToneIcon fontSize="large" />
                     </ListItemIcon>
@@ -112,7 +202,7 @@ function StorageMenu() {
                         <ListItemText primary="Load Saved Storage Configuration" />
                     </ListItem>
                   </StyledMenuItem>
-                  <StyledMenuItem>
+                  <StyledMenuItem onClick={handleEdit}>
                     <ListItemIcon>
                       <SettingsApplicationsTwoToneIcon fontSize="large" />
                     </ListItemIcon>
@@ -120,7 +210,7 @@ function StorageMenu() {
                         <ListItemText primary="Edit Current Storage Configuration" />
                     </ListItem>
                   </StyledMenuItem>
-                  <StyledMenuItem>
+                  <StyledMenuItem onClick={handleSave}>
                     <ListItemIcon>
                       <SaveTwoToneIcon fontSize="large" />
                     </ListItemIcon>
@@ -129,8 +219,23 @@ function StorageMenu() {
                     </ListItem>
                   </StyledMenuItem>
                 </StyledMenu>
+                <ConnectedStorageLoadSavedDialog />
               </div>
             );
 };
 
-export default StorageMenu;
+const mapStateToProps = (state) => ({
+    userId: state.user._id,
+    projectId: state.project._id,
+    currStorageConfig: state.storage
+});
+
+const mapDispatchToProps = (dispatch) => ({
+    addStorageConfig: (uid, pid) => dispatch(storageConfigCreate(uid, pid)),
+    setEditorOpen: (open) => dispatch(storageConfigSetEditorOpen(open)),
+    setDialogOpen: (open) => dispatch(storageConfigSetLoadDialogOpen(open)),
+    loadSaved: (id) => dispatch(storageConfigLoadSaved(id)),
+    sSave: (storageConfig) => dispatch(storageConfigSave(storageConfig))
+});
+
+export default connect(mapStateToProps,mapDispatchToProps)(StorageMenu);

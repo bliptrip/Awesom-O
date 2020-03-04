@@ -22,19 +22,26 @@ import React from 'react';
 import {connect} from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 
-import GridList from '@material-ui/core/GridList';
-import GridListTile from '@material-ui/core/GridListTile';
+import Divider from '@material-ui/core/Divider';
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
+import Paper from '@material-ui/core/Paper';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableContainer from '@material-ui/core/TableContainer';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
 import TextField from '@material-ui/core/TextField';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 
 import parse from 'csv-parse';
 
-import {routeConfigSetEditorOpen,
+import {routeConfigSetShort,
+        routeConfigSetEditorOpen,
         routeConfigClearRoute,
         routeConfigAddRoute,
         routeConfigSetInterplateDelay,
@@ -45,15 +52,18 @@ import {routeConfigSetEditorOpen,
         routeConfigSetDistanceY} from '../actions';
 
 const useStyles = makeStyles({
-      list: {
-              width: 250,
-            },
-      fullList: {
-              width: 'auto',
-            },
+    list: {
+        width: 250,
+    },
+    fullList: {
+        width: 'auto',
+    },
+    table: {
+        minWidth: 450,
+    }
 });
 
-function RouteEditor({route, interplateDelay, loopDelay, stepsPerCmX, stepsPerCmY, distanceX, distanceY, clearRoutes, addRoute, setInterplateDelay, setLoopDelay, setStepsPerCmX, setStepsPerCmY, setDistanceX, setDistanceY, closeDrawer }) {
+function RouteEditor({route, rshort, interplateDelay, loopDelay, stepsPerCmX, stepsPerCmY, distanceX, distanceY, clearRoutes, setShort, addRoute, setInterplateDelay, setLoopDelay, setStepsPerCmX, setStepsPerCmY, setDistanceX, setDistanceY, closeDrawer }) {
     const classes = useStyles();
 
     const importRoutes = (event) => {
@@ -80,10 +90,14 @@ function RouteEditor({route, interplateDelay, loopDelay, stepsPerCmX, stepsPerCm
         <div
             className={classes.fullList}
             role="presentation"
-            onClick={closeDrawer}
-            onKeyDown={closeDrawer}
         >
             <List>
+                <ListItem>
+                    <Tooltip title="Short Descriptor of this Route">
+                        <TextField label="Short Description" onChange={setShort} value={rshort} />
+                    </Tooltip>
+                </ListItem>
+                <Divider />
                 <ListItem>
                     <Tooltip title="(seconds) Time delay between capture of subsequent plates in path.">
                         <TextField label="Interplate Delay" onChange={setInterplateDelay} value={interplateDelay} />
@@ -94,6 +108,7 @@ function RouteEditor({route, interplateDelay, loopDelay, stepsPerCmX, stepsPerCm
                         <TextField label="Interloop Delay" onChange={setLoopDelay} value={loopDelay}/>
                     </Tooltip>
                 </ListItem>
+                <Divider />
                 <ListItem>
                     <Tooltip title="X-axis stepper motor steps per centimeter travel.">
                         <TextField label="X-axis steps/cm" onChange={setStepsPerCmX} value={stepsPerCmX} />
@@ -114,6 +129,7 @@ function RouteEditor({route, interplateDelay, loopDelay, stepsPerCmX, stepsPerCm
                         <TextField label="Y-axis Plate Distance" onChange={setDistanceY} value={distanceY} />
                     </Tooltip>
                 </ListItem>
+                <Divider />
                 <ListItem>
                     <InputLabel>Import route</InputLabel>
                     <Tooltip title="Import Route from CSV file">
@@ -125,28 +141,24 @@ function RouteEditor({route, interplateDelay, loopDelay, stepsPerCmX, stepsPerCm
                     </Tooltip>
                 </ListItem>
                 <ListItem>
-                    <GridList cols={2} cellHeight='auto'>
-                        <GridListTile> 
-                            <Typography variant='h6'>
-                                <b>Row</b>
-                            </Typography>
-                        </GridListTile>
-                        <GridListTile>
-                            <Typography variant='h6'>
-                                <b>Column</b>
-                            </Typography>
-                        </GridListTile>
-                        {route.map(r=> (
-                            <>
-                                <GridListTile> 
-                                    <Typography variant='body1'>{r.row}</Typography>
-                                </GridListTile>
-                                <GridListTile>
-                                    <Typography variant='body1'>{r.col}</Typography>
-                                </GridListTile>
-                            </>
-                        ))}
-                    </GridList>
+                    <TableContainer component={Paper}>
+                        <Table className={classes.table} size="small" aria-label="a dense table">
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell align="right">Row</TableCell>
+                                    <TableCell align="right">Column</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {route.map( r => (
+                                    <TableRow>
+                                        <TableCell align="right">{r.row}</TableCell>
+                                        <TableCell align="right">{r.col}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
                 </ListItem>
             </List>
         </div>
@@ -154,6 +166,7 @@ function RouteEditor({route, interplateDelay, loopDelay, stepsPerCmX, stepsPerCm
 }
 
 const mapStateToProps = (state) => ({
+    rshort: state.route.shortDescription,
     interplateDelay: state.route.interplateDelay,
     loopDelay: state.route.loopDelay,
     stepsPerCmX: state.route.stepsPerCmX,
@@ -170,14 +183,15 @@ const mapDispatchToProps = (dispatch) => ({
         }
         dispatch(routeConfigSetEditorOpen(false));
     },
-    clearRoute: () => dispatch(routeConfigClearRoute()),
+    clearRoutes: () => dispatch(routeConfigClearRoute()),
+    setShort: (e) => dispatch(routeConfigSetShort(e.target.value)),
     addRoute: (row,col) => dispatch(routeConfigAddRoute(row,col)),
-    setInterplateDelay: (seconds) => dispatch(routeConfigSetInterplateDelay(seconds)),
-    setLoopDelay: (seconds) => dispatch(routeConfigSetLoopDelay(seconds)),
-    setStepsPerCmX: (steps) => dispatch(routeConfigSetStepsPerCmX(steps)),
-    setStepsPerCmY: (steps) => dispatch(routeConfigSetStepsPerCmY(steps)),
-    setDistanceX: (distance) => dispatch(routeConfigSetDistanceX(distance)),
-    setDistanceY: (distance) => dispatch(routeConfigSetDistanceY(distance))
+    setInterplateDelay: (e) => dispatch(routeConfigSetInterplateDelay(e.target.value)),
+    setLoopDelay: (e) => dispatch(routeConfigSetLoopDelay(e.target.value)),
+    setStepsPerCmX: (e) => dispatch(routeConfigSetStepsPerCmX(e.target.value)),
+    setStepsPerCmY: (e) => dispatch(routeConfigSetStepsPerCmY(e.target.value)),
+    setDistanceX: (e) => dispatch(routeConfigSetDistanceX(e.target.value)),
+    setDistanceY: (e) => dispatch(routeConfigSetDistanceY(e.target.value))
 });
 
 export default connect(mapStateToProps,mapDispatchToProps)(RouteEditor);
