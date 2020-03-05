@@ -21,20 +21,30 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 import '../lib/fetch';
 import * as storageC from '../actions';
 
-export const storage = (state = {isStale: false,
-                                 isEditorOpen: false, 
-                                 isLoadDialogOpen: false,
-                                 isFetching: false,
-                                 areSaving: false,
-                                 statusError: undefined,
-                                 savedStorageConfigs: [],
+const initState = {
+    _id: undefined,
+    shortDescription: "",
+    isStale: false,
+    isEditorOpen: false, 
+    isLoadDialogOpen: false,
+    isFetching: false,
+    areSaving: false,
+    statusError: undefined,
+    savedStorageConfigs: [],
+    storageType: "",
+    params: {}
+};
+
+export const storage = (state = {...initState,
                                  supportedTypes: [], 
-                                 supportedParams: {},
-                                 storageType: "",
-                                 params: {}}, 
+                                 supportedParams: {}},
                         action) => {
     let newstate = state;
     switch( action.type ) {
+        case storageC.STORAGE_CONFIG_INIT:
+            newstate = {...newstate,
+                        ...initState};
+            break;
         case storageC.STORAGE_CONFIG_CREATE_REQUEST:
             newstate = { ...state,
                 isFetching: true,
@@ -83,7 +93,7 @@ export const storage = (state = {isStale: false,
         case storageC.STORAGE_CONFIG_FETCH_SUCCESS:
             newstate = { ...state,
                 isFetching: false,
-                _id: action.storageConfig._id, //TODO: Validate that ID returned is same as that requested
+                _id: action.storageConfig._id,
                 shortDescription: action.storageConfig.shortDescription,
                 storageType: action.storageConfig.storageType,
                 params: action.storageConfig.params,
@@ -111,6 +121,7 @@ export const storage = (state = {isStale: false,
         case storageC.STORAGE_CONFIG_SAVE_SUCCESS:
             newstate = { ...state,
                 areSaving: false,
+                _id: action._id
             };
             break;
         case storageC.STORAGE_CONFIG_LOAD_SAVED_REQUEST:

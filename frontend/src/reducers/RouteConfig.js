@@ -19,17 +19,32 @@ You should have received a copy of the GNU Affero General Public License
 along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 import * as routeC from '../actions';
-export const route = (state = {
-                                _id: undefined,
-                                isFetching: false,
-                                statusError: undefined,
-                                areSaving: false,
-                                isEditorOpen: false,
-                                isLoadDialogOpen: false,
-                                savedRouteConfigs:[],
-                                route: [] }, action) => {
+
+const initState = {
+    _id: undefined,
+    isFetching: false,
+    areSaving: false,
+    statusError: undefined,
+    isEditorOpen: false,
+    isLoadDialogOpen: false,
+    savedRouteConfigs:[],
+    interplateDelay: 0,
+    loopDelay: 0,
+    previewHooks: undefined,
+    captureHooks: undefined,
+    stepsPerCmX: 0,
+    stepsPerCmY: 0,
+    distanceX: 0,
+    distanceY: 0,
+    route: []
+};
+
+export const route = (state = initState, action) => {
     let newstate = state;
     switch( action.type ) {
+        case routeC.ROUTE_CONFIG_INIT:
+            newstate = {...initState};
+            break;
         case routeC.ROUTE_CONFIG_REMOVE_REQUEST:
             newstate = { ...state,
                 isFetching: true,
@@ -153,7 +168,8 @@ export const route = (state = {
             break;
         case routeC.ROUTE_CONFIG_SAVE_SUCCESS:
             newstate = { ...state,
-                areSaving: false}
+                areSaving: false,
+                _id: action._id };
             break;
         case routeC.ROUTE_CONFIG_RESET_STALE_FLAG:
             newstate = { ...state,

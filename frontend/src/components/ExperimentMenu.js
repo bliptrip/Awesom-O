@@ -39,10 +39,11 @@ import AddCircleTwoToneIcon from '@material-ui/icons/AddCircleTwoTone';
 import FolderOpenTwoToneIcon from '@material-ui/icons/FolderOpenTwoTone';
 import SettingsApplicationsTwoToneIcon from '@material-ui/icons/SettingsApplicationsTwoTone';
 import SaveTwoToneIcon from '@material-ui/icons/SaveTwoTone';
+import SaveAltTwoToneIcon from '@material-ui/icons/SaveAltTwoTone';
 import {Tooltip} from '@material-ui/core/';
 import Select from '@material-ui/core/Select';
 
-import {experimentConfigCreate,experimentConfigSetEditorOpen,experimentConfigSetLoadDialogOpen,experimentConfigLoadSaved,experimentConfigSave, experimentConfigFetchSuccess} from '../actions';
+import {experimentConfigCreate,experimentConfigSetEditorOpen,experimentConfigSetLoadDialogOpen,experimentConfigLoadSaved,experimentConfigSave,experimentConfigSaveAs,experimentConfigLoad} from '../actions';
 
 const StyledMenu = withStyles({
       paper: {
@@ -83,7 +84,7 @@ const mapDialogStateToProps = (state) => ({
 
 const mapDialogDispatchToProps = (dispatch) => ({
     setEditorOpen: (e) => dispatch(experimentConfigSetEditorOpen(true)),
-    experimentConfigSetCurrent: (experiment) => dispatch(experimentConfigFetchSuccess(experiment)),
+    experimentConfigSetCurrent: (experiment) => dispatch(experimentConfigLoad(experiment)),
     setOpen: (isOpen) => dispatch(experimentConfigSetLoadDialogOpen(isOpen))
 });
 
@@ -133,7 +134,7 @@ function ExperimentLoadSavedDialog({open, savedExperimentConfigs, setOpen, setEd
 
 const ConnectedExperimentLoadSavedDialog = connect(mapDialogStateToProps, mapDialogDispatchToProps)(ExperimentLoadSavedDialog);
 
-function ExperimentMenu({userId, projectId, currExperimentConfig, addExperimentConfig, loadSaved, setEditorOpen, setDialogOpen, eSave}) {
+function ExperimentMenu({userId, projectId, currExperimentConfig, addExperimentConfig, loadSaved, setEditorOpen, setDialogOpen, eSave, eSaveAs}) {
       const [anchorEl, setAnchorEl] = useState(null);
 
       const handleClick = event => {
@@ -161,10 +162,15 @@ function ExperimentMenu({userId, projectId, currExperimentConfig, addExperimentC
         handleClose();
     };
 
-    const handleSave = (e) => {
-        eSave(currExperimentConfig);
+    const handleSave = (saveType) => (e) => {
+        if( saveType === "saveas" ) {
+            eSaveAs(currExperimentConfig);
+        } else {
+            eSave(currExperimentConfig);
+        }
         handleClose();
     };
+
       return (
               <div>
                 <Tooltip title="Experiment Metadata">
@@ -209,12 +215,20 @@ function ExperimentMenu({userId, projectId, currExperimentConfig, addExperimentC
                         <ListItemText primary="Edit Current Settings" />
                     </ListItem>
                   </StyledMenuItem>
-                  <StyledMenuItem onClick={handleSave}>
+                  <StyledMenuItem onClick={handleSave('save')}>
                     <ListItemIcon>
                       <SaveTwoToneIcon fontSize="large" />
                     </ListItemIcon>
                     <ListItem button >
                         <ListItemText primary="Save Current Settings" />
+                    </ListItem>
+                  </StyledMenuItem>
+                  <StyledMenuItem onClick={handleSave('saveas')}>
+                    <ListItemIcon>
+                      <SaveAltTwoToneIcon fontSize="large" />
+                    </ListItemIcon>
+                    <ListItem button >
+                        <ListItemText primary="Save As New Settings" />
                     </ListItem>
                   </StyledMenuItem>
                 </StyledMenu>
@@ -235,7 +249,8 @@ const mapDispatchToProps = (dispatch) => ({
     setEditorOpen: (open) => dispatch(experimentConfigSetEditorOpen(open)),
     setDialogOpen: (open) => dispatch(experimentConfigSetLoadDialogOpen(open)),
     loadSaved: (id) => dispatch(experimentConfigLoadSaved(id)),
-    eSave: (experimentConfig) => dispatch(experimentConfigSave(experimentConfig))
+    eSave: (experimentConfig) => dispatch(experimentConfigSave(experimentConfig)),
+    eSaveAs: (experimentConfig) => dispatch(experimentConfigSaveAs(experimentConfig))
 });
 
 export default connect(mapStateToProps,mapDispatchToProps)(ExperimentMenu);

@@ -43,9 +43,16 @@ import AddCircleTwoToneIcon from '@material-ui/icons/AddCircleTwoTone';
 import EditIcon from '@material-ui/icons/Edit';
 import FolderOpenTwoToneIcon from '@material-ui/icons/FolderOpenTwoTone';
 import SaveTwoToneIcon from '@material-ui/icons/SaveTwoTone';
+import SaveAltTwoToneIcon from '@material-ui/icons/SaveAltTwoTone';
 
 
-import {projectCreate, projectLoadSaved, projectSave, projectFetchSuccess, projectSetLoadDialogOpen, projectSetEditorOpen} from '../actions';
+import {projectCreate, 
+    projectLoadSaved, 
+    projectSave, 
+    projectSaveAs, 
+    projectFetch, 
+    projectSetLoadDialogOpen, 
+    projectSetEditorOpen} from '../actions';
 
 const StyledMenu = withStyles({
       paper: {
@@ -87,11 +94,16 @@ const mapDialogStateToProps = (state) => ({
 
 const mapDialogDispatchToProps = (dispatch) => ({
     setEditorOpen: (e) => dispatch(projectSetEditorOpen(true)),
-    projectSetCurrent: (project) => dispatch(projectFetchSuccess(project)),
+    projectSetCurrent: (project) => dispatch(projectFetch(project)),
     setOpen: (isOpen) => dispatch(projectSetLoadDialogOpen(isOpen))
 });
 
-function ProjectLoadSavedDialog({open, savedProjects, setOpen, setEditorOpen, projectSetCurrent}) {
+function ProjectLoadSavedDialog({open, 
+                                 savedProjects, 
+                                 setOpen, 
+                                 setEditorOpen, 
+                                 projectSetCurrent}) 
+{
     const [selectedProject, setSelectedProject] = useState(undefined);
 
     const handleClose = () => {
@@ -103,7 +115,7 @@ function ProjectLoadSavedDialog({open, savedProjects, setOpen, setEditorOpen, pr
     }
 
     const loadSelectedChoice = event => {
-        projectSetCurrent(selectedProject);
+        projectSetCurrent(selectedProject._id);
         setEditorOpen(true);
         setOpen(false);
     }
@@ -137,7 +149,7 @@ function ProjectLoadSavedDialog({open, savedProjects, setOpen, setEditorOpen, pr
 
 const ConnectedProjectLoadSavedDialog = connect(mapDialogStateToProps, mapDialogDispatchToProps)(ProjectLoadSavedDialog);
 
-function ProjectMenu({userId, currProject, addProject, setEditorOpen, setDialogOpen, loadSaved, pSave}) {
+function ProjectMenu({userId, currProject, addProject, setEditorOpen, setDialogOpen, loadSaved, pSave, pSaveAs}) {
       const [anchorEl, setAnchorEl] = useState(null);
 
       const handleClick = event => {
@@ -153,9 +165,15 @@ function ProjectMenu({userId, currProject, addProject, setEditorOpen, setDialogO
               setDialogOpen(true);
             };
 
-    const handleSave = (e) => {
-        pSave(currProject);
-    }
+    const handleSave = (saveType) => (e) => {
+        if( saveType === "saveas" ) {
+            pSaveAs(currProject);
+        } else {
+            pSave(currProject);
+        }
+        handleClose();
+    };
+
 
       return (
               <div>
@@ -182,7 +200,7 @@ function ProjectMenu({userId, currProject, addProject, setEditorOpen, setDialogO
                       <AddCircleTwoToneIcon fontSize="large" />
                     </ListItemIcon>
                     <ListItem button >
-                        <ListItemText primary="Add Project" />
+                        <ListItemText primary="New Project" />
                     </ListItem>
                   </StyledMenuItem>
                   <StyledMenuItem onClick={setEditorOpen}>
@@ -201,12 +219,20 @@ function ProjectMenu({userId, currProject, addProject, setEditorOpen, setDialogO
                         <ListItemText primary="Load Saved Project" />
                     </ListItem>
                   </StyledMenuItem>
-                  <StyledMenuItem onClick={handleSave}>
+                  <StyledMenuItem onClick={handleSave('save')}>
                     <ListItemIcon>
                       <SaveTwoToneIcon fontSize="large" />
                     </ListItemIcon>
                     <ListItem button >
                         <ListItemText primary="Save Current Project" />
+                    </ListItem>
+                  </StyledMenuItem>
+                  <StyledMenuItem onClick={handleSave('saveas')}>
+                    <ListItemIcon>
+                      <SaveAltTwoToneIcon fontSize="large" />
+                    </ListItemIcon>
+                    <ListItem button >
+                        <ListItemText primary="Save As New Project" />
                     </ListItem>
                   </StyledMenuItem>
                 </StyledMenu>
@@ -225,7 +251,8 @@ const mapDispatchToProps = (dispatch) => ({
     setEditorOpen: (e) => dispatch(projectSetEditorOpen(true)),
     setDialogOpen: (open) => dispatch(projectSetLoadDialogOpen(open)),
     loadSaved: (id) => dispatch(projectLoadSaved(id)),
-    pSave: (project) => dispatch(projectSave(project))
+    pSave: (project) => dispatch(projectSave(project)),
+    pSaveAs: (project) => dispatch(projectSaveAs(project))
 });
 
 export default connect(mapStateToProps,mapDispatchToProps)(ProjectMenu);

@@ -25,12 +25,30 @@ const {Schema} = mongoose;
 
 const CameraConfigSchema = new Schema({
     version: Number, //Table Version ID
-    shortDescription: String, //Camera shortDescription description string
-    description: String, //Camera description string
-    manufacturer: String, //Manufacturer
-    model: String, //Camera model
-    deviceVersion: String, //Camera device version
-    sn: String, //Camera serial number
+    shortDescription: {
+        type: String, //Camera shortDescription description string
+        default: "New Camera Configuration"
+    },
+    description: {
+        type: String, //Camera description string
+        default: ""
+    },
+    manufacturer: {
+        type: String, //Manufacturer
+        default: ""
+    },
+    model: {
+        type: String, //Camera model
+        default: ""
+    },
+    deviceVersion: {
+        type: String, //Camera device version
+        default: ""
+    },
+    sn: {
+        type: String, //Camera serial number
+        default: ""
+    },
     gphoto2Config: String, //JSONified string representation of the camera configuration, as recognized by gphoto2
     users: [{type: Schema.Types.ObjectId, ref: 'Users'}], //Users with access to this CameraConfig
     projects: [{type: Schema.Types.ObjectId, ref: 'Projects'}] //Projects with access to this CameraConfig

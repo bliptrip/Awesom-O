@@ -39,10 +39,11 @@ import AddCircleTwoToneIcon from '@material-ui/icons/AddCircleTwoTone';
 import FolderOpenTwoToneIcon from '@material-ui/icons/FolderOpenTwoTone';
 import SettingsApplicationsTwoToneIcon from '@material-ui/icons/SettingsApplicationsTwoTone';
 import SaveTwoToneIcon from '@material-ui/icons/SaveTwoTone';
+import SaveAltTwoToneIcon from '@material-ui/icons/SaveAltTwoTone';
 import Tooltip from '@material-ui/core/Tooltip';
 import Select from '@material-ui/core/Select';
 
-import {routeConfigCreate, routeConfigLoadSaved, routeConfigSave, routeConfigSetEditorOpen, routeConfigFetchSuccess, routeConfigSetLoadDialogOpen} from '../actions';
+import {routeConfigCreate, routeConfigLoadSaved, routeConfigSave, routeConfigSaveAs, routeConfigSetEditorOpen, routeConfigLoad, routeConfigSetLoadDialogOpen} from '../actions';
 
 
 const StyledMenu = withStyles({
@@ -84,7 +85,7 @@ const mapDialogStateToProps = (state) => ({
 
 const mapDialogDispatchToProps = (dispatch) => ({
     setEditorOpen: (e) => dispatch(routeConfigSetEditorOpen(true)),
-    routeConfigSetCurrent: (route) => dispatch(routeConfigFetchSuccess(route)),
+    routeConfigSetCurrent: (route) => dispatch(routeConfigLoad(route)),
     setOpen: (isOpen) => dispatch(routeConfigSetLoadDialogOpen(isOpen))
 });
 
@@ -134,7 +135,7 @@ function RouteLoadSavedDialog({open, savedRouteConfigs, setOpen, setEditorOpen, 
 
 const ConnectedRouteLoadSavedDialog = connect(mapDialogStateToProps, mapDialogDispatchToProps)(RouteLoadSavedDialog);
 
-function RouteMenu({addRouteConfig,setEditorOpen,setDialogOpen,loadSaved,rSave,userId,projectId,currRouteConfig}) {
+function RouteMenu({addRouteConfig,setEditorOpen,setDialogOpen,loadSaved,rSave,rSaveAs,userId,projectId,currRouteConfig}) {
       const [anchorEl, setAnchorEl] = useState(null);
 
       const handleClick = event => {
@@ -162,8 +163,12 @@ function RouteMenu({addRouteConfig,setEditorOpen,setDialogOpen,loadSaved,rSave,u
         handleClose();
     };
 
-    const handleSave = (e) => {
-        rSave(currRouteConfig);
+    const handleSave = (saveType) => (e) => {
+        if( saveType === "saveas" ) {
+            rSaveAs(currRouteConfig);
+        } else {
+            rSave(currRouteConfig);
+        }
         handleClose();
     };
 
@@ -211,12 +216,20 @@ function RouteMenu({addRouteConfig,setEditorOpen,setDialogOpen,loadSaved,rSave,u
                         <ListItemText primary="Edit Current Route" />
                     </ListItem>
                   </StyledMenuItem>
-                  <StyledMenuItem onClick={handleSave}>
+                  <StyledMenuItem onClick={handleSave('save')}>
                     <ListItemIcon>
                       <SaveTwoToneIcon fontSize="large" />
                     </ListItemIcon>
                     <ListItem button >
                         <ListItemText primary="Save Current Route" />
+                    </ListItem>
+                  </StyledMenuItem>
+                  <StyledMenuItem onClick={handleSave('saveas')}>
+                    <ListItemIcon>
+                      <SaveAltTwoToneIcon fontSize="large" />
+                    </ListItemIcon>
+                    <ListItem button >
+                        <ListItemText primary="Save As New Route Configuration" />
                     </ListItem>
                   </StyledMenuItem>
                 </StyledMenu>
@@ -236,7 +249,8 @@ const mapDispatchToProps = (dispatch) => ({
     setEditorOpen: (open) => dispatch(routeConfigSetEditorOpen(open)),
     setDialogOpen: (open) => dispatch(routeConfigSetLoadDialogOpen(open)),
     loadSaved: (id) => dispatch(routeConfigLoadSaved(id)),
-    rSave: (routeConfig) => dispatch(routeConfigSave(routeConfig))
+    rSave: (routeConfig) => dispatch(routeConfigSave(routeConfig)),
+    rSaveAs: (routeConfig) => dispatch(routeConfigSaveAs(routeConfig))
 });
 
 export default connect(mapStateToProps,mapDispatchToProps)(RouteMenu);

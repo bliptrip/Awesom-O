@@ -31,7 +31,7 @@ const auth = require('../../lib/passport').auth;
 //No auth required (session or local)
 router.post('/create', auth.sess, (req, res, next) => {
     let storageConfig;
-    const { userId, projectId, templateId } = req.body;
+    const { userId, projectId } = req.body;
 
     if(!userId) {
         return res.status(422).json({
@@ -49,42 +49,37 @@ router.post('/create', auth.sess, (req, res, next) => {
         });
     }
 
-    if(templateId) {
-        StorageConfig.findById(templateId), (tStorageConfig, err) => {
-            if(!tStorageConfig) {
-                return res.status(422).json({
-                    errors: {
-                        message: "Template storageConfig " + _id + " not found in DB."
-                    }
-                });
-            } else {
-                storageConfig = tStorageConfig.clone()
-                storageConfig.users    = [userId];
-                storageConfig.projects = [projectId];
-                return storageConfig.save()
-                    .then(() => res.json(storageConfig));
-            }
-        }
-    } else {
-        storageConfig = new StorageConfig({ 
-            version: 1.0,
-            params: {},
-            users: [userId],
-            projects: [projectId]});
-        return storageConfig.save()
-            .then(() => res.json(storageConfig));
-    }
+    storageConfig = new StorageConfig({ 
+        version: 1.0,
+        users: [userId],
+        projects: [projectId]});
+    return res.json(storageConfig);
 });
 
-router.post('/save', auth.sess, (req, res, next) => {
-    let storageConfigJSON  = req.body;
-    StorageConfig.update({_id: storageConfigJSON._id}, storageConfigJSON, {upsert: false}, function(err, resp) {
+const saveHelper = (res,storageConfig) => {
+    let queryId = storageConfig._id;
+    return(StorageConfig.updateOne({_id: queryId}, storageConfig, {upsert: true}, function(err, resp) {
         if( err ) {
             return(res.status(422).json({ errors: resp }));
         } else {
-            return(res.json({_id: storageConfigJSON._id}));
+            if( resp.upserted )
+                return(res.json({_id: resp.upserted[0]._id}));
+            else
+                return(res.json({_id: queryId}));
         }
-    });
+    }));
+}
+
+router.post('/save', auth.sess, (req, res, next) => {
+    let storageConfig = req.body;
+    return(saveHelper(res,storageConfig));
+});
+
+router.post('/saveas', auth.sess, (req, res, next) => {
+    let storageConfigPre  = req.body;
+    delete storageConfigPre._id; /* Remove the _id field. */
+    let storageConfig = new StorageConfig(storageConfigPre);
+    return(saveHelper(res,storageConfig));
 });
 
 router.get('/get/:_id', auth.sess, (req, res, next) => {

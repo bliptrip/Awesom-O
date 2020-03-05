@@ -352,8 +352,9 @@ export const projectSaveError = (error) => ({
 });
 
 export const PROJECT_SAVE_SUCCESS = 'PROJECT_SAVE_SUCCESS';
-export const projectSaveSuccess= () => ({
-    type: PROJECT_SAVE_SUCCESS
+export const projectSaveSuccess= (_id) => ({
+    type: PROJECT_SAVE_SUCCESS,
+    _id
 });
 
 export const PROJECT_SET_SHORT = "PROJECT_SET_SHORT";
@@ -380,6 +381,12 @@ export const projectSetExperimentConfig = (experimentId) => ({
     experimentId
 });
 
+export const PROJECT_SET_ROUTE_CONFIG = "PROJECT_SET_ROUTE_CONFIG";
+export const projectSetRouteConfig = (routeId) => ({
+    type: PROJECT_SET_ROUTE_CONFIG,
+    routeId
+});
+
 export const PROJECT_ADD_STORAGE_CONFIG = "PROJECT_ADD_STORAGE_CONFIG";
 export const projectAddStorageConfig = (storageId) => ({
     type: PROJECT_ADD_STORAGE_CONFIG,
@@ -392,15 +399,9 @@ export const projectRemoveStorageConfig = (storageId) => ({
     storageId
 });
 
-export const PROJECT_CLEAR_STORAGE_CONFIG = "PROJECT_CLEAR_STORAGE_CONFIG";
-export const projectClearStorageConfig = () => ({
-    type: PROJECT_CLEAR_STORAGE_CONFIG,
-});
-
-export const PROJECT_SET_ROUTE_CONFIG = "PROJECT_SET_ROUTE_CONFIG";
-export const projectSetRouteConfig = (routeId) => ({
-    type: PROJECT_SET_ROUTE_CONFIG,
-    routeId
+export const PROJECT_CLEAR_STORAGE_CONFIGS = "PROJECT_CLEAR_STORAGE_CONFIGS";
+export const projectClearStorageConfigs = () => ({
+    type: PROJECT_CLEAR_STORAGE_CONFIGS,
 });
 
 export const PROJECT_SET_EDITOR_OPEN = "PROJECT_SET_EDITOR_OPEN";
@@ -450,11 +451,15 @@ export const projectCreate = (userId,templateId=undefined) => dispatch => {
         // https://github.com/facebook/react/issues/6895
         error => dispatch(projectCreateError(error))
     )
-    .then(project =>
+    .then(project => {
         // We can dispatch many times!
         // Here, we update the app state with the results of the API call.
         dispatch(projectCreateSuccess(project))
-    ));
+        dispatch(cameraConfigInit());
+        dispatch(experimentConfigInit());
+        dispatch(routeConfigInit());
+        dispatch(storageConfigInit());
+    }));
 };
 
 export const projectRemove = (_id, userId) => dispatch => {
@@ -488,24 +493,43 @@ export const projectFetch = _id => dispatch => {
         // https://github.com/facebook/react/issues/6895
         error => dispatch(projectFetchError(error))
     )
-    .then(project =>
+    .then(project => {
         // We can dispatch many times!
         // Here, we update the app state with the results of the API call.
-        dispatch(projectFetchSuccess(project))
-    ));
+        dispatch(projectFetchSuccess(project));
+        if( project.cameraConfig ) {
+            dispatch(cameraConfigFetchSuccess(project.cameraConfig));
+        }
+        if( project.experimentConfig ) {
+            dispatch(experimentConfigFetchSuccess(project.experimentConfig));
+        }
+        if( project.routeConfig ) {
+            dispatch(routeConfigFetchSuccess(project.routeConfig));
+        }
+        if( project.storageConfigs && (project.storageConfigs.length > 0) ) {
+            dispatch(storageConfigFetchSuccess(project.storageConfigs[0]));
+        }
+    }));
 };
 
-export const projectSave = project => dispatch => {
-    console.log("projectSave()");
+const projectSaveHelper = (saveType,project,dispatch) => {
     dispatch(projectSaveRequest());
     return(fetchAwesomO({
-        url: '/api/project/save/', 
+        url: '/api/project/'+saveType, 
         method: 'POST', 
         body: project})
-    .then(  response => dispatch(projectSaveSuccess()),
-            error => dispatch(projectSaveError(error)) ));
-    
-}
+        .then(  response => response.json(),
+                error => dispatch(projectSaveError(error)) )
+        .then( project => dispatch(projectSaveSuccess(project._id))));
+};
+
+export const projectSave = (project) => dispatch => {
+    return(projectSaveHelper('save',project,dispatch));
+};
+
+export const projectSaveAs = (project) => dispatch => {
+    return(projectSaveHelper('saveas',project,dispatch));
+};
 
 export const projectLoadSaved = userId => dispatch => {
     dispatch(projectLoadSavedRequest());
@@ -525,6 +549,11 @@ export const projectLoadSaved = userId => dispatch => {
 };
 
 //Camera-configuration action-creators
+export const CAMERA_CONFIG_INIT = 'CAMERA_CONFIG_INIT';
+export const cameraConfigInit = () => ({
+    type: CAMERA_CONFIG_INIT,
+});
+
 export const CAMERA_CONFIG_CREATE_REQUEST = 'CAMERA_CONFIG_CREATE_REQUEST';
 export const cameraConfigCreateRequest = () => ({
     type: CAMERA_CONFIG_CREATE_REQUEST
@@ -751,21 +780,33 @@ export const cameraConfigFetch = _id => dispatch => {
     .then( cameraConfig => dispatch(cameraConfigFetchSuccess(cameraConfig))));
 };
 
-export const cameraConfigSave = (cameraConfig) => dispatch => {
+const cameraConfigSaveHelper = (saveType,cameraConfig,dispatch) => {
     let gphoto2Config = JSON.stringify(undefined);
     if( cameraConfig.configs && (cameraConfig.configs !== {}) ) {
         gphoto2Config = JSON.stringify({ 'main': cameraSettings2Gphoto2Config(cameraConfig.configs, cameraConfig.rootid) });
     }
     dispatch(cameraConfigSaveRequest());
     return(fetchAwesomO({
-        url: '/api/camera/save',
-        method: 'POST',
+        url: '/api/camera/'+saveType, 
+        method: 'POST', 
         body: {...cameraConfig,
-               gphoto2Config: gphoto2Config }})
-    .then(response => response.json(),
-        error => dispatch(cameraConfigSaveError(error)))
-    .then( _id => dispatch(cameraConfigSaveSuccess(_id))));
-};
+                gphoto2Config: gphoto2Config}})
+        .then(  response => response.json(),
+                error => dispatch(cameraConfigSaveError(error)) )
+        .then( cameraConfig => {
+            let camId = cameraConfig._id;
+            dispatch(cameraConfigSaveSuccess(camId)); 
+            dispatch(projectSetCameraConfig(camId));
+        }));
+}
+
+export const cameraConfigSave = (cameraConfig) => dispatch => {
+    return(cameraConfigSaveHelper('save',cameraConfig,dispatch));
+}
+
+export const cameraConfigSaveAs = (cameraConfig) => dispatch => {
+    return(cameraConfigSaveHelper('saveas',cameraConfig,dispatch));
+}
 
 export const cameraConfigLoadSaved = userId => dispatch => {
     dispatch(cameraConfigLoadSavedRequest());
@@ -783,6 +824,11 @@ export const cameraConfigLoadSaved = userId => dispatch => {
         dispatch(cameraConfigLoadSavedSuccess(cameraConfigs))
     ));
 };
+
+export const cameraConfigLoad = (camera) => dispatch => {
+    dispatch(cameraConfigFetchSuccess(camera)); 
+    dispatch(projectSetCameraConfig(camera._id));
+}
 
 export const cameraConfigRemove = (_id, userId, projectId) => dispatch => {
     dispatch(cameraConfigRemoveRequest(_id));
@@ -837,6 +883,11 @@ export const cameraCapture = () => dispatch => {
 }
 
 //Experimental Config
+export const EXPERIMENT_CONFIG_INIT = 'EXPERIMENT_CONFIG_INIT';
+export const experimentConfigInit = () => ({
+    type: EXPERIMENT_CONFIG_INIT,
+});
+
 export const EXPERIMENT_CONFIG_CREATE_REQUEST = 'EXPERIMENT_CONFIG_CREATE_REQUEST';
 export const experimentConfigCreateRequest = () => ({
     type: EXPERIMENT_CONFIG_CREATE_REQUEST
@@ -959,9 +1010,8 @@ export const experimentConfigClearPlateMeta = () => ({
 });
 
 export const EXPERIMENT_CONFIG_SAVE_REQUEST = 'EXPERIMENT_CONFIG_SAVE_REQUEST';
-export const experimentConfigSaveRequest = (experimentConfig) => ({
+export const experimentConfigSaveRequest = () => ({
     type: EXPERIMENT_CONFIG_SAVE_REQUEST,
-    experimentConfig,
 });
 
 export const EXPERIMENT_CONFIG_SAVE_ERROR = 'EXPERIMENT_CONFIG_SAVE_ERROR';
@@ -971,9 +1021,9 @@ export const experimentConfigSaveError = (error) => ({
 });
 
 export const EXPERIMENT_CONFIG_SAVE_SUCCESS = 'EXPERIMENT_CONFIG_SAVE_SUCCESS';
-export const experimentConfigSaveSuccess = (id) => ({
+export const experimentConfigSaveSuccess = (_id) => ({
     type: EXPERIMENT_CONFIG_SAVE_SUCCESS,
-    id,
+    _id,
 });
 
 export const EXPERIMENT_CONFIG_LOAD_SAVED_REQUEST = 'EXPERIMENT_CONFIG_LOAD_SAVED_REQUEST';
@@ -1052,16 +1102,28 @@ export const experimentConfigFetch = (_id) => dispatch => {
 
 };
 
-export const experimentConfigSave = (experimentConfig) => dispatch => {
+const experimentConfigSaveHelper = (saveType,experimentConfig,dispatch) => {
     dispatch(experimentConfigSaveRequest());
     return(fetchAwesomO({
-        url: '/api/experiment/save/', 
+        url: '/api/experiment/'+saveType, 
         method: 'POST', 
         body: experimentConfig})
-    .then(  response => response.json(),
-            error => dispatch(experimentConfigSaveError(error)) )
-    .then(_id => dispatch(experimentConfigSaveSuccess())));
-}
+        .then(  response => response.json(),
+                error => dispatch(experimentConfigSaveError(error)) )
+        .then( experimentConfig => {
+            let eId = experimentConfig._id;
+            dispatch(experimentConfigSaveSuccess(eId)); 
+            dispatch(projectSetExperimentConfig(eId));
+        }));
+};
+
+export const experimentConfigSave = (experimentConfig) => dispatch => {
+    return(experimentConfigSaveHelper('save',experimentConfig,dispatch));
+};
+
+export const experimentConfigSaveAs = (experimentConfig) => dispatch => {
+    return(experimentConfigSaveHelper('saveas',experimentConfig,dispatch));
+};
 
 export const experimentConfigLoadSaved = userId => dispatch => {
     dispatch(experimentConfigLoadSavedRequest());
@@ -1072,6 +1134,11 @@ export const experimentConfigLoadSaved = userId => dispatch => {
     .then(experimentConfigs =>
         dispatch(experimentConfigLoadSavedSuccess(experimentConfigs))
     ));
+};
+
+export const experimentConfigLoad = (experiment) => dispatch => {
+    dispatch(experimentConfigFetchSuccess(experiment)); 
+    dispatch(projectSetExperimentConfig(experiment._id));
 };
 
 export const experimentConfigRemove = (_id, userId, projectId) => dispatch => {
@@ -1090,6 +1157,11 @@ export const experimentConfigRemove = (_id, userId, projectId) => dispatch => {
 /*
  * Storage configuration
  */
+export const STORAGE_CONFIG_INIT = 'STORAGE_CONFIG_INIT';
+export const storageConfigInit = () => ({
+    type: STORAGE_CONFIG_INIT,
+});
+
 export const STORAGE_CONFIG_CREATE_REQUEST = 'STORAGE_CONFIG_CREATE_REQUEST';
 export const storageConfigCreateRequest = () => ({
     type: STORAGE_CONFIG_CREATE_REQUEST
@@ -1104,7 +1176,7 @@ export const storageConfigCreateError = (error) => ({
 export const STORAGE_CONFIG_CREATE_SUCCESS = 'STORAGE_CONFIG_CREATE_SUCCESS';
 export const storageConfigCreateSuccess = (storageConfig) => ({
     type: STORAGE_CONFIG_CREATE_SUCCESS,
-    ...storageConfig
+    storageConfig
 });
 
 export const STORAGE_CONFIG_REMOVE_REQUEST = 'STORAGE_CONFIG_REMOVE_REQUEST';
@@ -1162,9 +1234,8 @@ export const storageConfigSetParams = (params) => ({
 });
 
 export const STORAGE_CONFIG_SAVE_REQUEST = 'STORAGE_CONFIG_SAVE_REQUEST';
-export const storageConfigSaveRequest = (storageConfig) => ({
+export const storageConfigSaveRequest = () => ({
     type: STORAGE_CONFIG_SAVE_REQUEST,
-    storageConfig
 });
 
 export const STORAGE_CONFIG_SAVE_ERROR = 'STORAGE_CONFIG_SAVE_ERROR';
@@ -1174,9 +1245,9 @@ export const storageConfigSaveError = (error) => ({
 });
 
 export const STORAGE_CONFIG_SAVE_SUCCESS = 'STORAGE_CONFIG_SAVE_SUCCESS';
-export const storageConfigSaveSuccess = (id) => ({
+export const storageConfigSaveSuccess = (_id) => ({
     type: STORAGE_CONFIG_SAVE_SUCCESS,
-    id
+    _id
 });
 
 export const STORAGE_CONFIG_LOAD_SAVED_REQUEST = 'STORAGE_CONFIG_LOAD_SAVED_REQUEST';
@@ -1296,15 +1367,33 @@ export const storageConfigLoadSaved = userId => dispatch => {
     ));
 };
 
-export const storageConfigSave = (storageConfig) => dispatch => {
-    dispatch(storageConfigSaveRequest(storageConfig._id));
+export const storageConfigLoad = (storage) => dispatch => {
+    dispatch(storageConfigFetchSuccess(storage)); 
+    dispatch(projectClearStorageConfigs());
+    dispatch(projectAddStorageConfig(storage._id));
+};
+
+const storageConfigSaveHelper = (saveType,storageConfig,dispatch) => {
+    dispatch(storageConfigSaveRequest());
     return(fetchAwesomO({
-        url: '/api/storage/save', 
+        url: '/api/storage/'+saveType, 
         method: 'POST', 
         body: storageConfig})
         .then(  response => response.json(),
                 error => dispatch(storageConfigSaveError(error)) )
-        .then(json => dispatch(storageConfigSaveSuccess(json.id))));
+        .then( storageConfig => {
+            let sId = storageConfig._id;
+            dispatch(storageConfigSaveSuccess(sId)); 
+            dispatch(projectClearStorageConfigs());
+            dispatch(projectAddStorageConfig(sId));
+        }));
+}
+export const storageConfigSave = (storageConfig) => dispatch => {
+    return(storageConfigSaveHelper('save',storageConfig,dispatch));
+}
+
+export const storageConfigSaveAs = (storageConfig) => dispatch => {
+    return(storageConfigSaveHelper('saveas',storageConfig,dispatch));
 }
 
 export const storageConfigRemove = (_id,userId,projectId) => dispatch => {
@@ -1358,6 +1447,11 @@ export const storageConfigGetSupportedParams = () => dispatch => {
 /*
  * Route configuration
  */
+export const ROUTE_CONFIG_INIT = 'ROUTE_CONFIG_INIT';
+export const routeConfigInit = () => ({
+    type: ROUTE_CONFIG_INIT,
+});
+
 export const ROUTE_CONFIG_CREATE_REQUEST = 'ROUTE_CONFIG_CREATE_REQUEST';
 export const routeConfigCreateRequest = () => ({
     type: ROUTE_CONFIG_CREATE_REQUEST
@@ -1455,8 +1549,7 @@ export const routeConfigClearRoute = () => ({
 });
 
 export const ROUTE_CONFIG_SAVE_REQUEST = 'ROUTE_CONFIG_SAVE_REQUEST';
-export const routeConfigSaveRequest = (routeConfig) => ({
-    routeConfig,
+export const routeConfigSaveRequest = () => ({
     type: ROUTE_CONFIG_SAVE_REQUEST
 });
 
@@ -1468,8 +1561,8 @@ export const routeConfigSaveError = (error) => ({
 
 export const ROUTE_CONFIG_SAVE_SUCCESS = 'ROUTE_CONFIG_SAVE_SUCCESS';
 export const routeConfigSaveSuccess = (_id) => ({
-    _id,
-    type: ROUTE_CONFIG_SAVE_SUCCESS
+    type: ROUTE_CONFIG_SAVE_SUCCESS,
+    _id
 });
 
 export const ROUTE_CONFIG_REMOVE_REQUEST = 'ROUTE_CONFIG_REMOVE_REQUEST';
@@ -1556,15 +1649,26 @@ export const routeConfigFetch = (_id) => dispatch => {
     ));
 }
 
-export const routeConfigSave = (routeConfig) => dispatch => {
+const routeConfigSaveHelper = (saveType,routeConfig,dispatch) => {
     dispatch(routeConfigSaveRequest());
     return(fetchAwesomO({
-        url: '/api/route/save',
-        method: 'POST',
+        url: '/api/route/'+saveType, 
+        method: 'POST', 
         body: routeConfig})
         .then(  response => response.json(),
                 error => dispatch(routeConfigSaveError(error)) )
-        .then(route => dispatch(routeConfigSaveSuccess(routeConfig))));
+        .then( routeConfig => {
+            let rId = routeConfig._id;
+            dispatch(routeConfigSaveSuccess(rId)); 
+            dispatch(projectSetRouteConfig(rId));
+        }));
+}
+export const routeConfigSave = (routeConfig) => dispatch => {
+    return(routeConfigSaveHelper('save',routeConfig,dispatch));
+}
+
+export const routeConfigSaveAs = (routeConfig) => dispatch => {
+    return(routeConfigSaveHelper('saveas',routeConfig,dispatch));
 }
 
 export const routeConfigLoadSaved = userId => dispatch => {
@@ -1576,6 +1680,11 @@ export const routeConfigLoadSaved = userId => dispatch => {
     .then(routeConfigs =>
         dispatch(routeConfigLoadSavedSuccess(routeConfigs))
     ));
+};
+
+export const routeConfigLoad = (route) => dispatch => {
+    dispatch(routeConfigFetchSuccess(route)); 
+    dispatch(projectSetRouteConfig(route._id));
 };
 
 export const routeConfigRemove = (_id, userId, projectId) => dispatch => {

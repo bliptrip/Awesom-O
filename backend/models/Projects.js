@@ -25,8 +25,14 @@ const {Schema} = mongoose;
 
 const ProjectsSchema = new Schema({
     version: Number, //Table Version ID
-    shortDescription: String, //shortDescription description of project for fast viewing
-    description: String, //Project description as entered by user
+    shortDescription: {
+        type: String, //shortDescription description of project for fast viewing
+        default: "New Project"
+    },
+    description: {
+        type: String, //Project description as entered by user
+        default: ""
+    },
     cameraConfig: {type: Schema.Types.ObjectId, ref: 'CameraConfig'}, //Reference to camera configuration document associated with this project
     experimentConfig: {type: Schema.Types.ObjectId, ref: 'ExperimentConfig'}, //Reference to experimental configuration document associated with this project
     storageConfigs: [{type: Schema.Types.ObjectId, ref: 'StorageConfig'}], //Reference to storage configuration document associated with this project

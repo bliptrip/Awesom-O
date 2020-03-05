@@ -25,28 +25,38 @@ const {Schema} = mongoose;
 
 //Right now only support local paths
 export const supported_types = [ 'fs' ];
-export const supported_params = { 'fs': {'path': 'String'} }
+export const supported_params = { 'fs': {'path': 'String'} };
+export const supported_type_default = 'fs'; /* Default to local filesystem storage */
+export const supported_param_defaults = { 'fs': {'path': '/'} }; /* Default local filesystem path */
 
 const StorageConfigSchema = new Schema({
     version: Number, //Table Version ID
-    shortDescription: String,
+    shortDescription: {
+        type: String,
+        default: "New Storage Configuration"
+    },
     storageType: {
         type: String, //Storage type -- fs , box.com, dropbox.com, google drive, etc.
         enum: supported_types,
-        required: true },
+        default: supported_type_default,
+    },
     params: {
         type: Map, 
-        validate: {
-            validator: function(v) {
-                        let validKeys = Object.keys(supported_params[this.storageType]);
-                        return( Object.keys(v) in validKeys );
-            },
-            message: props => `${props.value} are not valid paramers for this storage type`
-        },
-        of: String }, //representation of parameters specific to each supported type of storage -- only support local storage for now
+        of: String,
+        default: supported_param_defaults[supported_type_default]}, //representation of parameters specific to each supported type of storage -- only support local storage for now
     users: [{type: Schema.Types.ObjectId, ref: 'Users'}], //Users with access to this StorageConfig
     projects: [{type: Schema.Types.ObjectId, ref: 'Projects'}] //Projects with access to this StorageConfig
 });
+
+/* New storage config params validator is giving me trouble.
+        validate: {
+            validator: function(v) {
+                        let validKeys = Object.keys(supported_params[this.storageType]);
+                        return( Object.keys(v).reduce( (valid, curr) => (valid && validKeys.includes(curr)), true ) );
+            },
+            message: props => `${props.value} are not valid parameters for this storage type`
+        },
+*/
 
 StorageConfigSchema.methods.saveFile = (filename, data) => {
     switch( this.type ) {

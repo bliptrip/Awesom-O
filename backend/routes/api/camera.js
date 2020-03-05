@@ -112,8 +112,21 @@ var subscription = postal.subscribe({
     }
 });
 
-const listCameras = () => { camera = null; return( gphoto.list( (list) => { camera_list = list; if( camera_list.length >
-    0 ) { camera = list[0]; } })); }
+const listCameras = (res) => {
+    camera = null;
+    return(
+        gphoto.list( (list) => {
+            camera_list = list;
+            if( camera_list.length > 0 ) {
+                camera = list[0];
+                if(res) {
+                    res.status(200).json(camera_list);
+                }
+            }
+        }));
+}
+
+listCameras(undefined); //At bootup, just grab list of cameras to fill global structures
 
 const encodeImage = (data) => {
     let edata;
@@ -125,10 +138,7 @@ const encodeImage = (data) => {
 //Retrieve/refresh cameras
 router.get('/list', auth.sess, (req, res, next) => {
     camera = null;
-    gphoto.list( (list) => {
-        camera_list = list;
-        return(res.status(200).json(camera_list));
-    });
+    listCameras(res);
 });
 
 //Set camera to a particular camera
@@ -143,7 +153,7 @@ router.put('/set/:index', auth.sess, (req, res, next) => {
 });
 
 //Get settings retrieves the current settings for a camera
-router.get('/settings/:camIndex', auth.sess, (req, res, next) => {
+router.get('/settings/:camIndex', auth.sess, checkIfCameraList, (req, res, next) => {
     camera_list[req.params.camIndex].getConfig( (err, settings) => {
         if( err ) {
             res.sendStatus(400);
@@ -154,7 +164,7 @@ router.get('/settings/:camIndex', auth.sess, (req, res, next) => {
 });
 
 //Put saves settings to camera
-router.post('/settings', auth.sess, (req, res, next) => {
+router.post('/settings', auth.sess, checkIfStopped, checkIfCameraList, (req, res, next) => {
     let camIndex = req.body.camIndex;
     let tentativeUpdates  = req.body.updates;
     let updates           = tentativeUpdates.map( u => (u.id) );
@@ -168,9 +178,7 @@ router.post('/settings', auth.sess, (req, res, next) => {
     return;
 });
 
-//Take a picture from camera and download image
-router.get('/capture', auth.sess, checkIfStopped, (req, res, next) => {
-    // Take picture and keep image on camera
+const captureHelper = (req, res, index) => {
     if( process.env.NODE_CAPTURE === "fs" ) {
         path = process.env.NODE_CAPTURE_PATH;
         fs.readdir( path, (err, items) => {
@@ -190,7 +198,7 @@ router.get('/capture', auth.sess, checkIfStopped, (req, res, next) => {
             }
         });
     } else {
-        camera.takePicture({
+        camera_list[index].takePicture({
             download: true,
             keep: false
         }, function (err, data) {
@@ -206,6 +214,16 @@ router.get('/capture', auth.sess, checkIfStopped, (req, res, next) => {
             }
         });
     }
+}
+
+//Take a picture from camera and download image
+router.get('/capture', auth.sess, checkIfStopped, checkIfCameraList, (req, res, next) => {
+    captureHelper(req,res,0);
+});
+
+router.get('/capture/:camIndex', auth.sess, checkIfStopped, checkIfCameraList, (req, res, next) => {
+    let camIndex = req.params.camIndex;
+    captureHelper(req,res,camIndex);
 });
 
 router.get('/current', auth.sess, (req, res, next) => {
@@ -220,9 +238,8 @@ router.get('/current', auth.sess, (req, res, next) => {
 //
 //For a reference to howto do preview, view comments from
 //https://github.com/lwille/node-gphoto2/issues/64#issuecomment-76967057
-router.get('/preview', auth.sess, (req, res, next) => {
-    // Take picture and keep image on camera
-    camera.takePicture({
+const capturePreview = (req, res, index) => {
+    camera_list[index].takePicture({
           preview: true,
           targetPath: '/tmp/fooXXXXXX'
     }, function(err, tmp) {
@@ -237,23 +254,16 @@ router.get('/preview', auth.sess, (req, res, next) => {
             }
           })
     });
-    /*
-    camera.takePicture({
-        preview: true
-    }, function (err, data) {
-        if( err ) {
-            res.sendStatus(400);
-        } else {
-            let edata = encodeImage(data);
-            console.log(edata);
-            wss.broadcast(edata);
-            res.sendStatus(200);
-        }
-    });
-    */
+}
+
+router.get('/preview', auth.sess, checkIfStopped, checkIfCameraList, (req, res, next) => {
+    capturePreview(req, res, 0);
 });
 
-
+router.get('/preview/:camIndex', auth.sess, checkIfStopped, checkIfCameraList, (req, res, next) => {
+    let camIndex = req.params.camIndex;
+    capturePreview(req, res, camIndex);
+});
 
 router.get('/preview/start/:camIndex', auth.sess, checkIfCameraList, checkIfNotPreview, (req, res, next) => {
     preview_timer = setInterval( (camIndex) => {
@@ -284,7 +294,7 @@ router.get('/preview/stop/:camIndex', auth.sess, checkIfPreview, (req, res, next
 //No auth required (session or local)
 router.post('/create', auth.sess, (req, res, next) => {
     let cameraConfig;
-    const { userId, projectId, templateId } = req.body;
+    const { userId, projectId } = req.body;
 
     if(!userId) {
         return res.status(422).json({
@@ -302,46 +312,38 @@ router.post('/create', auth.sess, (req, res, next) => {
         });
     }
 
-    if(templateId) {
-        CameraConfig.findById(templateId), (tCameraConfig, err) => {
-            if(!tCameraConfig) {
-                return res.status(422).json({
-                    errors: {
-                        message: "Template cameraConfig " + _id + " not found in DB."
-                    }
-                });
-            } else {
-                cameraConfig = tCameraConfig.clone()
-                cameraConfig.users    = [userId];
-                cameraConfig.projects = [projectId];
-                return cameraConfig.save()
-                    .then(() => res.json(cameraConfig));
-            }
-        }
-    } else {
-        cameraConfig = new CameraConfig({ version: 1.0 });
-        cameraConfig.description = "";
-        cameraConfig.manufacturer = "";
-        cameraConfig.model = "";
-        cameraConfig.deviceVersion = "";
-        cameraConfig.sn = "";
-        cameraConfig.gphoto2Config = "";
-        cameraConfig.users    = [userId];
-        cameraConfig.projects = [projectId];
-        return cameraConfig.save()
-            .then(() => res.json(cameraConfig));
-    }
+    cameraConfig = new CameraConfig({
+        version: 1.0,
+        users: [userId],
+        projects: [projectId]
+    });
+    return res.json(cameraConfig);
 });
 
-router.post('/save', auth.sess, (req, res, next) => {
-    let cameraConfigJSON  = req.body;
-    CameraConfig.update({_id: cameraConfigJSON._id}, cameraConfigJSON, {upsert: false}, function(err, resp) {
+const saveHelper = (res,cameraConfig) => {
+    let queryId = cameraConfig._id;
+    return(CameraConfig.updateOne({_id: queryId}, cameraConfig, {upsert: true}, function(err, resp) {
         if( err ) {
             return(res.status(422).json({ errors: resp }));
         } else {
-            return(res.json({_id: cameraConfigJSON._id}));
+            if( resp.upserted )
+                return(res.json({_id: resp.upserted[0]._id}));
+            else
+                return(res.json({_id: queryId}));
         }
-    });
+    }));
+}
+
+router.post('/save', auth.sess, (req, res, next) => {
+    let cameraConfig = req.body;
+    return(saveHelper(res,cameraConfig));
+});
+
+router.post('/saveas', auth.sess, (req, res, next) => {
+    let cameraConfigPre  = req.body;
+    delete cameraConfigPre._id; /* Remove the _id field. */
+    let cameraConfig = new CameraConfig(cameraConfigPre);
+    return(saveHelper(res,cameraConfig));
 });
 
 router.get('/get/:_id', auth.sess, (req, res, next) => {

@@ -22,30 +22,35 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 import * as cameraC from '../actions';
 import {generateConfigurationEntries,resetConfigurationStaleFlag} from '../lib/camera';
 
-export const cameraConfigReducer = (state = {
-        _id: undefined,
-        isEditorOpen: false,
-        isLoadDialogOpen: false,
-        isFetching: false,
-        statusError: undefined,
-        description: "",
-        shortDescription: "",
-        manufacturer: "",
-        model: "",
-        deviceVersion: "",
-        sn: "",
-        config: undefined,
-        users: [],
-        projects: [],
-        savedCameraConfigs: [],
-        rootid: undefined,
-        configs: {}
-    }, action) => {
+const initState = {
+    _id: undefined,
+    isEditorOpen: false,
+    isLoadDialogOpen: false,
+    isFetching: false,
+    statusError: undefined,
+    description: "",
+    shortDescription: "",
+    manufacturer: "",
+    model: "",
+    deviceVersion: "",
+    sn: "",
+    config: undefined,
+    users: [],
+    projects: [],
+    savedCameraConfigs: [],
+    rootid: undefined,
+    configs: {}
+}
+
+export const cameraConfigReducer = (state = initState, action) => {
     let newstate = state;
     let config;
     let configs;
     let rootid;
     switch(action.type) {
+        case cameraC.CAMERA_CONFIG_INIT:
+            newstate = {...initState};
+            break;
         case cameraC.CAMERA_CONFIG_CREATE_REQUEST:
             newstate = {...state,
                 isFetching: true,
@@ -106,6 +111,7 @@ export const cameraConfigReducer = (state = {
             break;
         case cameraC.CAMERA_CONFIG_SAVE_SUCCESS:
             newstate = {...state,
+                _id: action._id,
                 isFetching: false,
                 statusError: undefined
             };

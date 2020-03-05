@@ -39,16 +39,31 @@ gphoto.on('log', function (level, domain, message) {
 var camera = null;
 var camera_list = [];
 
-const listCameras = () => {
+var checkIfCameraList = (req,res,index) => (
+    new Promise( (resolve, reject) => {
+        if( camera_list && (camera_list.length > index) ) {
+            resolve();
+        } else {
+            reject(res.status(404).json({errors: {message: "Camera list not filled.  Refresh camera list manually."}}));
+        }
+    }) 
+);
+
+const listCameras = (res) => {
     camera = null;
     return(
         gphoto.list( (list) => {
             camera_list = list;
             if( camera_list.length > 0 ) {
                 camera = list[0];
+                if(res) {
+                    res.json(camera_list);
+                }
             }
         }));
 }
+
+listCameras(undefined); //At bootup, just grab list of cameras to fill global structures
 
 const encodeImage = (data, x=-1, y=-1) => {
     let edata;
@@ -66,17 +81,10 @@ const setWebsocketServer = (socket) => {
     wss = socket;
 }
 
-
 //Retrieve/refresh cameras
 router.get('/list', auth.req, (req, res, next) => {
     camera = null;
-    gphoto.list( (list) => {
-        camera_list = list;
-        if( camera_list.length > 0 ) {
-            camera = list[0];
-        }
-        res.json(camera_list);
-    });
+    return(listCameras(res));
 });
 
 //Set camera to a particular camera
@@ -101,6 +109,21 @@ router.get('/settings', auth.req, (req, res, next) => {
     });
 });
 
+//Get settings retrieves the current settings for a camera
+router.get('/settings/:index', auth.req, (req, res, next) => {
+    let index = req.params.index;
+    checkIfCameraList(req, res, index)
+    .then( () => {
+        camera_list[index].getConfig( (err, settings) => {
+            if( err ) {
+                res.sendStatus(400);
+            } else {
+                res.json(settings);
+            }
+        });
+    });
+});
+
 //Put saves settings to camera
 router.put('/settings', auth.req, (req, res, next) => {
     camera.setConfigValue(req.body.name, req.body.value, (err) => 
@@ -114,9 +137,22 @@ router.put('/settings', auth.req, (req, res, next) => {
     return;
 });
 
-//Take a picture from camera and download image
-router.get('/capture', auth.req, (req, res, next) => {
-    // Take picture and keep image on camera
+//Put saves settings to camera
+router.put('/settings/:index', auth.req, (req, res, next) => {
+    let index = req.params.index;
+    checkIfCameraList(req, res, index)
+    .then( () => {
+        camera.setConfigValue(req.body.name, req.body.value, (err) => {
+            if(err) {
+                res.status(404).send("setConfigValue failed with error code: " + JSON.stringify(err));
+            } else {
+                res.sendStatus(200);
+            }
+        });
+    });
+});
+
+const captureHelper = (req, res, index) => {
     if( process.env.NODE_CAPTURE === "fs" ) {
         path = process.env.NODE_CAPTURE_PATH;
         fs.readdir( path, (err, items) => {
@@ -136,7 +172,7 @@ router.get('/capture', auth.req, (req, res, next) => {
             }
         });
     } else {
-        camera.takePicture({
+        camera_list[index].takePicture({
             download: true,
             keep: false
         }, function (err, data) {
@@ -151,12 +187,27 @@ router.get('/capture', auth.req, (req, res, next) => {
             }
         });
     }
+};
+
+//Take a picture from camera and download image
+router.get('/capture/:index', auth.req, (req, res, next) => {
+    let index = req.params.index;
+    checkIfCameraList(req, res, index)
+    .then( () => {
+        captureHelper(req,res,index);
+    });
 });
 
-//Preview
-router.get('/preview', auth.req, (req, res, next) => {
+router.get('/capture', auth.req, (req, res, next) => {
+    checkIfCameraList(req, res, 0)
+    .then( () => {
+        captureHelper(req,res,0);
+    });
+});
+
+const previewPicture = (req,res,index) => {
     // Take picture and keep image on camera
-    camera.takePicture({
+    camera_list[index].takePicture({
         preview: true,
         download: true
     }, function (err, data) {
@@ -167,6 +218,22 @@ router.get('/preview', auth.req, (req, res, next) => {
             wss.broadcast(edata);
             res.sendStatus(200);
         }
+    });
+};
+
+//Preview
+router.get('/preview', auth.req, (req, res, next) => {
+    checkIfCameraList(req, res, 0)
+    .then( () => {
+        previewPicture(req,res,0);
+    });
+});
+
+router.get('/preview/:index', auth.req, (req, res, next) => {
+    let index = req.params.index;
+    checkIfCameraList(req, res, index)
+    .then( () => {
+        previewPicture(req,res,index);
     });
 });
 

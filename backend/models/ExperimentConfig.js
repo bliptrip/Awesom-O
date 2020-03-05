@@ -25,7 +25,10 @@ const {Schema} = mongoose;
 
 const ExperimentConfigSchema = new Schema({
     version: Number, //Table Version ID
-    shortDescription: String,
+    shortDescription: {
+        type: String,
+        default: "New Experiment Configuration"
+    },
     datetime: Boolean, //Append datetime suffix to files as they are created
     rename: Boolean, //Rename files from default
     imageMeta: Boolean, //Embed metadata in image file, if supported

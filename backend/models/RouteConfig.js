@@ -27,7 +27,10 @@ const RouteLocationSchema = new Schema({row: Number, col: Number}) //Plate coord
 
 const RouteConfigSchema = new Schema({
     version: Number,
-    shortDescription: String,
+    shortDescription: {
+        type: String,
+        default: "New Route Configuration"
+    },
     interplateDelay: {
         type: Number, //In seconds
         default: 10
@@ -54,7 +57,10 @@ const RouteConfigSchema = new Schema({
         type: Number, //Y distance in cm b/w plates
         default: 12
     },
-    route: [RouteLocationSchema],
+    route: {
+        type: [RouteLocationSchema],
+        default: []
+    },
     users: [{type: Schema.Types.ObjectId, ref: 'Users'}], //Users with access to this RouteConfig
     projects: [{type: Schema.Types.ObjectId, ref: 'Projects'}], //Projects with access to this RouteConfig
 });

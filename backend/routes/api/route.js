@@ -30,7 +30,7 @@ const auth = require('../../lib/passport').auth;
 //No auth required (session or local)
 router.post('/create', auth.sess, (req, res, next) => {
     let routeConfig;
-    const { userId, projectId, templateId } = req.body;
+    const { userId, projectId } = req.body;
 
     if(!userId) {
         return res.status(422).json({
@@ -48,51 +48,38 @@ router.post('/create', auth.sess, (req, res, next) => {
         });
     }
 
-    if(templateId) {
-        RouteConfig.findById(templateId), (tRouteConfig, err) => {
-            if(!tRouteConfig) {
-                return res.status(422).json({
-                    errors: {
-                        message: "Template routeConfig " + _id + " not found in DB."
-                    }
-                });
-            } else {
-                routeConfig = tRouteConfig.clone()
-                routeConfig.users    = [userId];
-                routeConfig.projects = [projectId];
-                return routeConfig.save()
-                    .then(() => res.json(routeConfig));
-            }
-        }
-    } else {
-        routeConfig = new RouteConfig({ 
-            version: 1.0,
-            interplateDelay: 30,
-            loopDelay: 14400,
-            previewHooks: [],
-            captureHooks: [],
-            stepsPerCmX: 28888,
-            stepsPerCmY: 28888,
-            distanceX: 100,
-            distanceY: 100,
-            route: [],
-            users: [userId],
-            projects: [projectId]
-        });
-        return routeConfig.save()
-            .then(() => res.json(routeConfig));
-    }
+    routeConfig = new RouteConfig({ 
+        version: 1.0,
+        users: [userId],
+        projects: [projectId]
+    });
+    return res.json(routeConfig);
 });
 
-router.post('/save', auth.sess, (req, res, next) => {
-    let routeConfigJSON  = req.body;
-    RouteConfig.update({_id: routeConfigJSON._id}, routeConfigJSON, {upsert: false}, function(err, resp) {
+const saveHelper = (res,routeConfig) => {
+    let queryId = routeConfig._id;
+    return(RouteConfig.updateOne({_id: queryId}, routeConfig, {upsert: true}, function(err, resp) {
         if( err ) {
             return(res.status(422).json({ errors: resp }));
         } else {
-            return(res.json({_id: routeConfigJSON._id}));
+            if( resp.upserted )
+                return(res.json({_id: resp.upserted[0]._id}));
+            else
+                return(res.json({_id: queryId}));
         }
-    });
+    }));
+}
+
+router.post('/save', auth.sess, (req, res, next) => {
+    let routeConfig = req.body;
+    return(saveHelper(res,routeConfig));
+});
+
+router.post('/saveas', auth.sess, (req, res, next) => {
+    let routeConfigPre  = req.body;
+    delete routeConfigPre._id; /* Remove the _id field. */
+    let routeConfig = new RouteConfig(routeConfigPre);
+    return(saveHelper(res,routeConfig));
 });
 
 router.get('/get/:_id', auth.sess, (req, res, next) => {

@@ -30,7 +30,7 @@ const auth = require('../../lib/passport').auth;
 //No auth required (session or local)
 router.post('/create', auth.sess, (req, res, next) => {
     let experimentConfig;
-    const { userId, projectId, templateId } = req.body;
+    const { userId, projectId } = req.body;
 
     if(!userId) {
         return res.status(422).json({
@@ -48,48 +48,38 @@ router.post('/create', auth.sess, (req, res, next) => {
         });
     }
 
-    if(templateId) {
-        ExperimentConfig.findById(templateId), (tExperimentConfig, err) => {
-            if(!tExperimentConfig) {
-                return res.status(422).json({
-                    errors: {
-                        message: "Template experimentConfig " + _id + " not found in DB."
-                    }
-                });
-            } else {
-                experimentConfig = tExperimentConfig.clone()
-                experimentConfig.users    = [userId];
-                experimentConfig.projects = [projectId];
-                return experimentConfig.save()
-                    .then(() => res.json(experimentConfig));
-            }
-        }
-    } else {
-        experimentConfig = new ExperimentConfig({  
-            version: 1.0,
-            datetime: false,
-            rename: false,
-            imageMeta: false,
-            filenameFields: [],
-            plateMeta: [],
-        });
-        experimentConfig.users    = [userId];
-        experimentConfig.projects = [projectId];
-        return experimentConfig.save()
-            .then(() => res.json(experimentConfig));
-    }
+    experimentConfig = new ExperimentConfig({  
+        version: 1.0,
+        users: [userId],
+        projects: [projectId]
+    });
+    return res.json(experimentConfig);
 });
 
-router.post('/save', auth.sess, (req, res, next) => {
-    let experimentConfigJSON  = req.body;
-    console.log(experimentConfigJSON);
-    ExperimentConfig.update({_id: experimentConfigJSON._id}, experimentConfigJSON, {upsert: false}, function(err, resp) {
+const saveHelper = (res,experimentConfig) => {
+    let queryId = experimentConfig._id;
+    return(ExperimentConfig.updateOne({_id: queryId}, experimentConfig, {upsert: true}, function(err, resp) {
         if( err ) {
             return(res.status(422).json({ errors: resp }));
         } else {
-            return(res.json({_id: experimentConfigJSON._id}));
+            if( resp.upserted )
+                return(res.json({_id: resp.upserted[0]._id}));
+            else
+                return(res.json({_id: queryId}));
         }
-    });
+    }));
+}
+
+router.post('/save', auth.sess, (req, res, next) => {
+    let experimentConfig = req.body;
+    return(saveHelper(res,experimentConfig));
+});
+
+router.post('/saveas', auth.sess, (req, res, next) => {
+    let experimentConfigPre  = req.body;
+    delete experimentConfigPre._id; /* Remove the _id field. */
+    let experimentConfig = new ExperimentConfig(experimentConfigPre);
+    return(saveHelper(res,experimentConfig));
 });
 
 router.get('/get/:_id', auth.sess, (req, res, next) => {

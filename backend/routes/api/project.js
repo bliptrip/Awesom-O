@@ -30,7 +30,7 @@ const auth = require('../../lib/passport').auth;
 //No auth required (session or local)
 router.post('/create', auth.sess, (req, res, next) => {
     let project;
-    const { userId, templateId } = req.body;
+    const { userId } = req.body;
 
     if(!userId) {
         return res.status(422).json({
@@ -40,55 +40,37 @@ router.post('/create', auth.sess, (req, res, next) => {
         });
     }
 
-    if(templateId) {
-        Projects.findById(templateId), (tproject, err) => {
-            if(!tproject) {
-                return res.status(422).json({
-                    errors: {
-                        message: "Template project " + _id + " not found in DB."
-                    }
-                });
-            } else {
-                project = tproject.clone()
-                project.populate('cameraConfig')
-                project.populate('experimentConfig')
-                project.populate('storageConfigs')
-                project.populate('routeConfig');
-                project.users                = [userId];
-                project.cameraConfig.users    = [userId];
-                project.cameraConfig.projects = [project._id];
-                project.experimentConfig.users    = [userId];
-                project.experimentConfig.projects = [project._id];
-                project.storageConfigs.forEach( (s) => {
-                                                    s.users = [userId]; 
-                                                    s.projects = [project._id]
-                });
-                project.routeConfig.users    = [userId];
-                project.routeConfig.projects = [project._id];
-                return project.save()
-                    .then(() => res.json(project));
-            }
-        }
-    } else {
-        project = new Projects({ version: 1.0,
-                                description: ""
-                             });
-        project.users   = [userId];
-        return project.save()
-            .then(() => res.json(project));
-    }
+    project = new Projects({ 
+        version: 1.0,
+        users: [userId]
+    });
+    return res.json(project);
 });
 
-router.post('/save', auth.sess, (req, res, next) => {
-    let projectJSON  = req.body;
-    console.log( projectJSON );
-    Projects.update({_id: projectJSON._id}, projectJSON, {upsert: false}, function(err, resp) {
+const saveHelper = (res,project) => {
+    let queryId = project._id;
+    return(Projects.updateOne({_id: queryId}, project, {upsert: true}, function(err, resp) {
         if( err ) {
             return(res.status(422).json({ errors: resp }));
         } else {
-            return(res.json({_id: projectJSON._id}));
+            if( resp.upserted )
+                return(res.json({_id: resp.upserted[0]._id}));
+            else
+                return(res.json({_id: queryId}));
         }
-    });
+    }));
+}
+
+router.post('/save', auth.sess, (req, res, next) => {
+    let project = req.body;
+    return(saveHelper(res,project));
+});
+
+router.post('/saveas', auth.sess, (req, res, next) => {
+    let projectPre  = req.body;
+    delete projectPre._id; /* Remove the _id field. */
+    let project = new Projects(projectPre);
+    return(saveHelper(res,project));
 });
 
 router.get('/get/:_id', auth.sess, (req, res, next) => {
@@ -102,22 +84,27 @@ router.get('/get/:_id', auth.sess, (req, res, next) => {
         });
     }
 
-    return Projects.findById(_id, (err, project) => {
-        if( err ) {
-            return res.status(422).json({
-                errors: err
-            });
-        }
-        if(!project) {
-            return res.status(422).json({
-                errors: {
-                    message: "Project '" + _id + "' not found."
-                }
-            });
-        }
-        //Strip off the parts of the user that we don't want to share
-        return res.json(project);
-    });
+    return(Projects.findById(_id)
+        .populate('cameraConfig')
+        .populate('experimentConfig')
+        .populate('routeConfig')
+        .populate('storageConfigs')
+        .exec( (err, project) => {
+            if( err ) {
+                return res.status(422).json({
+                    errors: err
+                });
+            }
+            if(!project) {
+                return res.status(422).json({
+                    errors: {
+                        message: "Project '" + _id + "' not found."
+                    }
+                });
+            }
+            //Strip off the parts of the user that we don't want to share
+            return res.json(project);
+        }));
 });
 
 router.get('/remove/:_id', auth.sess, (req, res, next) => {

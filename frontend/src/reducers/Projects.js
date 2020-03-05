@@ -21,7 +21,8 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 import '../lib/fetch';
 import * as projectC from '../actions';
 
-export const project = (state = { isEditorOpen: false,
+export const project = (state = { _id: undefined,
+                                  isEditorOpen: false,
                                   isLoadDialogOpen: false,
                                   statusError: undefined,
                                   savedProjects: [] }, 
@@ -99,7 +100,8 @@ export const project = (state = { isEditorOpen: false,
             break;
         case projectC.PROJECT_SAVE_SUCCESS:
             newstate = { ...state,
-                areSaving: false //TODO: Check that we aren't already processing a save or fetching request
+                areSaving: false, //TODO: Check that we aren't already processing a save or fetching request
+                _id: action._id
             };
             break;
         case projectC.PROJECT_SET_SHORT:
@@ -124,8 +126,31 @@ export const project = (state = { isEditorOpen: false,
             break;
         case projectC.PROJECT_SET_CAMERA_CONFIG:
             newstate = { ...state,
-                cameraId: action.cameraId
+                cameraConfig: {_id: action.cameraId}
             };
+            break;
+        case projectC.PROJECT_SET_EXPERIMENT_CONFIG:
+            newstate = { ...state,
+                experimentConfig: {_id: action.experimentId}
+            };
+            break;
+        case projectC.PROJECT_SET_ROUTE_CONFIG:
+            newstate = { ...state,
+                routeConfig: {_id: action.routeId}
+            };
+            break;
+        case projectC.PROJECT_ADD_STORAGE_CONFIG:
+            newstate = { ...state };
+            newstate.storageConfigs = [ ...newstate.storageConfigs ]; /* Make a copy */
+            newstate.storageConfigs.push({_id: action.storageId});
+            break;
+        case projectC.PROJECT_REMOVE_STORAGE_CONFIG:
+            newstate = { ...state,
+                        storageConfigs: state.storageConfigs.filter( sid => (sid._id !== action.storageId) ) }; //Not the most efficient way to remove an element from an array?
+            break;
+        case projectC.PROJECT_CLEAR_STORAGE_CONFIGS:
+            newstate = { ...state,
+                        storageConfigs: [] }; //Not the most efficient way to remove an element from an array?
             break;
         case projectC.PROJECT_LOAD_SAVED_REQUEST:
             newstate = { ...state,
