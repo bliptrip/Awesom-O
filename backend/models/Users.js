@@ -32,7 +32,12 @@ const UsersSchema = new Schema({
     email: String,
     hash: String,
     salt: String,
-    recents: [{type: Schema.Types.ObjectId, ref: 'Projects'}]
+    recents: [{type: Schema.Types.ObjectId, ref: 'Projects'}],
+    projects: [{type: Schema.Types.ObjectId, ref: 'Projects'}],
+    cameras: [{type: Schema.Types.ObjectId, ref: 'CameraConfig'}],
+    experiments: [{type: Schema.Types.ObjectId, ref: 'ExperimentConfig'}],
+    routes: [{type: Schema.Types.ObjectId, ref: 'RouteConfig'}],
+    storages: [{type: Schema.Types.ObjectId, ref: 'StorageConfig'}]
 });
 
 UsersSchema.methods.setPassword = function(password) {

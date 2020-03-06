@@ -23,22 +23,19 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const router = require('express').Router();
 const Projects = mongoose.model('Projects');
+const Users = mongoose.model('Users');
 
 const auth = require('../../lib/passport').auth;
+
+const addProjectToUser = (userId, fieldId) => {
+    return(Users.updateOne({_id: userId}, {"$addToSet": {projects: fieldId}}));
+}
 
 //Create a new user -- NOTE: Eventually will want an admin to approve this
 //No auth required (session or local)
 router.post('/create', auth.sess, (req, res, next) => {
     let project;
-    const { userId } = req.body;
-
-    if(!userId) {
-        return res.status(422).json({
-            errors: {
-                userId: 'is required'
-            }
-        });
-    }
+    const userId = req.user._id;
 
     project = new Projects({ 
         version: 1.0,
@@ -47,30 +44,37 @@ router.post('/create', auth.sess, (req, res, next) => {
     return res.json(project);
 });
 
-const saveHelper = (res,project) => {
+const saveHelper = (req, res, project) => {
     let queryId = project._id;
     return(Projects.updateOne({_id: queryId}, project, {upsert: true}, function(err, resp) {
         if( err ) {
             return(res.status(422).json({ errors: resp }));
         } else {
-            if( resp.upserted )
-                return(res.json({_id: resp.upserted[0]._id}));
-            else
+            if( resp.upserted ) {
+                let projectId = resp.upserted[0]._id;
+                addProjectToUser(req.user._id, projectId).exec( (err, user) => {
+                    if( err )
+                        return(res.status(404).json({errors: err}));
+                    else
+                        return(res.json({_id: projectId}));
+                });
+            } else {
                 return(res.json({_id: queryId}));
+            }
         }
     }));
 }
 
 router.post('/save', auth.sess, (req, res, next) => {
     let project = req.body;
-    return(saveHelper(res,project));
+    return(saveHelper(req,res,project));
 });
 
 router.post('/saveas', auth.sess, (req, res, next) => {
     let projectPre  = req.body;
     delete projectPre._id; /* Remove the _id field. */
     let project = new Projects(projectPre);
-    return(saveHelper(res,project));
+    return(saveHelper(req,res,project));
 });
 
 router.get('/get/:_id', auth.sess, (req, res, next) => {

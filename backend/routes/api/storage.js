@@ -24,8 +24,13 @@ const passport = require('passport');
 const router = require('express').Router();
 import {supported_types, supported_params} from '../../models/StorageConfig';
 const StorageConfig = mongoose.model('StorageConfig');
+const Users = mongoose.model('Users');
 
 const auth = require('../../lib/passport').auth;
+
+const addStorageToUser = (userId, fieldId) => {
+    return(Users.updateOne({_id: userId}, {"$addToSet": {storages: fieldId}}));
+}
 
 //Create a new user -- NOTE: Eventually will want an admin to approve this
 //No auth required (session or local)
@@ -56,30 +61,37 @@ router.post('/create', auth.sess, (req, res, next) => {
     return res.json(storageConfig);
 });
 
-const saveHelper = (res,storageConfig) => {
+const saveHelper = (req,res,storageConfig) => {
     let queryId = storageConfig._id;
     return(StorageConfig.updateOne({_id: queryId}, storageConfig, {upsert: true}, function(err, resp) {
         if( err ) {
             return(res.status(422).json({ errors: resp }));
         } else {
-            if( resp.upserted )
-                return(res.json({_id: resp.upserted[0]._id}));
-            else
+            if( resp.upserted ) {
+                let storageId = resp.upserted[0]._id;
+                addStorageToUser(req.user._id, storageId).exec( (err, user) => {
+                    if( err )
+                        return(res.status(404).json({errors: err}));
+                    else
+                        return(res.json({_id: storageId}));
+                });
+            } else {
                 return(res.json({_id: queryId}));
+            }
         }
     }));
 }
 
 router.post('/save', auth.sess, (req, res, next) => {
     let storageConfig = req.body;
-    return(saveHelper(res,storageConfig));
+    return(saveHelper(req,res,storageConfig));
 });
 
 router.post('/saveas', auth.sess, (req, res, next) => {
     let storageConfigPre  = req.body;
     delete storageConfigPre._id; /* Remove the _id field. */
     let storageConfig = new StorageConfig(storageConfigPre);
-    return(saveHelper(res,storageConfig));
+    return(saveHelper(req,res,storageConfig));
 });
 
 router.get('/get/:_id', auth.sess, (req, res, next) => {

@@ -23,8 +23,13 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const router = require('express').Router();
 const RouteConfig = mongoose.model('RouteConfig');
+const Users = mongoose.model('Users');
 
 const auth = require('../../lib/passport').auth;
+
+const addRouteToUser = (userId, fieldId) => {
+    return(Users.updateOne({_id: userId}, {"$addToSet": {routes: fieldId}}));
+}
 
 //Create a new user -- NOTE: Eventually will want an admin to approve this
 //No auth required (session or local)
@@ -56,30 +61,37 @@ router.post('/create', auth.sess, (req, res, next) => {
     return res.json(routeConfig);
 });
 
-const saveHelper = (res,routeConfig) => {
+const saveHelper = (req,res,routeConfig) => {
     let queryId = routeConfig._id;
     return(RouteConfig.updateOne({_id: queryId}, routeConfig, {upsert: true}, function(err, resp) {
         if( err ) {
             return(res.status(422).json({ errors: resp }));
         } else {
-            if( resp.upserted )
-                return(res.json({_id: resp.upserted[0]._id}));
-            else
+            if( resp.upserted ) {
+                let routeId = resp.upserted[0]._id;
+                addRouteToUser(req.user._id, routeId).exec( (err, user) => {
+                    if( err )
+                        return(res.status(404).json({errors: err}));
+                    else
+                        return(res.json({_id: routeId}));
+                });
+            } else {
                 return(res.json({_id: queryId}));
+            }
         }
     }));
 }
 
 router.post('/save', auth.sess, (req, res, next) => {
     let routeConfig = req.body;
-    return(saveHelper(res,routeConfig));
+    return(saveHelper(req,res,routeConfig));
 });
 
 router.post('/saveas', auth.sess, (req, res, next) => {
     let routeConfigPre  = req.body;
     delete routeConfigPre._id; /* Remove the _id field. */
     let routeConfig = new RouteConfig(routeConfigPre);
-    return(saveHelper(res,routeConfig));
+    return(saveHelper(req,res,routeConfig));
 });
 
 router.get('/get/:_id', auth.sess, (req, res, next) => {

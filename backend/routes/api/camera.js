@@ -31,6 +31,7 @@ const mongoose     = require('mongoose');
 const passport     = require('passport');
 const postal       = require('postal'); //Sending/receiving messages across different backend modules
 const CameraConfig = mongoose.model('CameraConfig');
+const Users        = mongoose.model('Users');
 
 const auth = require('../../lib/passport').auth;
 var currentPicture = undefined; //Keeps track of 
@@ -43,6 +44,10 @@ gphoto.on('log', function (level, domain, message) {
 });
 var camera = undefined;
 var camera_list = undefined; 
+
+const addCameraToUser = (userId, fieldId) => {
+    return(Users.updateOne({_id: userId}, {"$addToSet": {cameras: fieldId}}));
+}
 
 const checkIfPreview= (req, res, next) => {
     if( preview_timer === undefined ) {
@@ -320,30 +325,37 @@ router.post('/create', auth.sess, (req, res, next) => {
     return res.json(cameraConfig);
 });
 
-const saveHelper = (res,cameraConfig) => {
+const saveHelper = (req,res,cameraConfig) => {
     let queryId = cameraConfig._id;
     return(CameraConfig.updateOne({_id: queryId}, cameraConfig, {upsert: true}, function(err, resp) {
         if( err ) {
             return(res.status(422).json({ errors: resp }));
         } else {
-            if( resp.upserted )
-                return(res.json({_id: resp.upserted[0]._id}));
-            else
+            if( resp.upserted ) {
+                let cameraId = resp.upserted[0]._id;
+                addCameraToUser(req.user._id, cameraId).exec( (err, user) => {
+                    if( err )
+                        return(res.status(404).json({errors: err}));
+                    else
+                        return(res.json({_id: cameraId}));
+                });
+            } else {
                 return(res.json({_id: queryId}));
+            }
         }
     }));
 }
 
 router.post('/save', auth.sess, (req, res, next) => {
     let cameraConfig = req.body;
-    return(saveHelper(res,cameraConfig));
+    return(saveHelper(req,res,cameraConfig));
 });
 
 router.post('/saveas', auth.sess, (req, res, next) => {
     let cameraConfigPre  = req.body;
     delete cameraConfigPre._id; /* Remove the _id field. */
     let cameraConfig = new CameraConfig(cameraConfigPre);
-    return(saveHelper(res,cameraConfig));
+    return(saveHelper(req,res,cameraConfig));
 });
 
 router.get('/get/:_id', auth.sess, (req, res, next) => {
