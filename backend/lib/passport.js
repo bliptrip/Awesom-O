@@ -48,7 +48,7 @@ const init = (app) => {
     });
 
     passport.deserializeUser(function(_id, done) {
-        Users.findById(_id, function(err, user) {
+        Users.findById(_id, { username: true, email: true }, function(err, user) {
             done(err, user);
         });
     });
