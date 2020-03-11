@@ -27,10 +27,11 @@ const btoa         = require('btoa');
 const router       = require('express').Router();
 const fs           = require('fs');
 const gphoto2      = require('gphoto2');
+const Jimp         = require('jimp');
 const mongoose     = require('mongoose');
 const passport     = require('passport');
-const postal       = require('postal'); //Sending/receiving messages across different backend modules
 const CameraConfig = mongoose.model('CameraConfig');
+const StorageConfig = mongoose.model('StorageConfig');
 const Users        = mongoose.model('Users');
 
 const auth = require('../../lib/passport').auth;
@@ -79,23 +80,23 @@ const checkIfCameraList = (req, res, next) => {
     next();
 }
 
-var subscription = postal.subscribe({
-    channel: "camera",
-    topic: "route.move",
-    callback: function(data, envelope) {
-        // `data` is the data published by the publisher.
-        // `envelope` is a wrapper around the data & contains
-        // metadata about the message like the channel, topic,
-        // timestamp and any other data which might have been
-        // added by the sender.
-        let project     = data.project;
+export const snapShot = (user, project, row, col) => {
+    return new Promise((resolve,reject) => {
         //Derive filename for image
-        let prefix = 'R' + data.row.pad(2,'0')+'C'+data.col.pad(2,'0');
+        let prefix = 'R' + row + 'C' + col;
         //Add descriptor
-        let filename = prefix + "-" + project.experimentConfig.filenameFields.join('_');
+        //project.experimentConfig)
+        let meta = undefined;
+        //project.experimentConfig.plateMeta.forEach( (m) => console.log(m.meta) );
+        let metaMatches = project.experimentConfig.plateMeta.filter( m => ((m.row == row) && (m.col == col)) );
+        let filename = prefix;
+        if( metaMatches ) {
+            meta = metaMatches[0].meta;
+            filename = filename + "-" + project.experimentConfig.filenameFields.map(f => meta.get(f)).join('_');
+        }
         //Append datetime?
         if( project.experimentConfig.datetime ) {
-            filename   = prefix + '-' + new Date(Date.UTC());
+            filename   = filename + '-' + Date(Date.UTC());
         }
         //Append extension -- assume jpg for now -- need a way to poll for format
         filename = filename + '.jpg'
@@ -106,16 +107,21 @@ var subscription = postal.subscribe({
             keep: false
         }, function (err, pdata) {
             if( !err ) {
-                project.storageConfigs.foreach( (storage) => {
-                    storage.saveFile(filename, pdata);
+                project.storageConfigs.forEach( (storage) => {
+                    storage.saveFile(storage, user.username, filename, pdata);
                 });
-                edata = encodeImage(pdata);
-                wss.broadcast(edata);
+                encodeImage(pdata)
+                    .then( (edata) => {
+                        wss.broadcast(edata);
+                        resolve();
+                    });
+            } else {
+                reject(err);
             }
         });
         //post-process hooks
-    }
-});
+    });
+};
 
 const listCameras = (res) => {
     camera = null;
@@ -133,11 +139,26 @@ const listCameras = (res) => {
 
 listCameras(undefined); //At bootup, just grab list of cameras to fill global structures
 
-const encodeImage = (data) => {
-    let edata;
-    let src = 'data:image/jpeg;base64,' + btoa(data);
-    edata = JSON.stringify(viewportSetCurrentPicture(src));
-    return(edata);
+const encodeImage = (data,useJimp=false,rotateAngle=90) => {
+    const wrapup = image => {
+        let src = 'data:image/jpeg;base64,' + btoa(image);
+        let edata = JSON.stringify(viewportSetCurrentPicture(src));
+        return(edata);
+    }
+
+    if( useJimp ) {
+        return(Jimp.read(data)
+                .then(img => {
+                    return img.rotate(rotateAngle)
+                                .getBufferAsync(Jimp.MIME_JPEG)
+                                .then( image => wrapup(image) );
+                })
+                .catch(err => {
+                    console.log(err);
+                }))
+    } else {
+        return( new Promise( (resolve,reject) => (resolve(wrapup(data))) ) );
+    }
 };
 
 //Retrieve/refresh cameras
@@ -185,7 +206,8 @@ router.post('/settings', auth.sess, checkIfStopped, checkIfCameraList, (req, res
 
 const captureHelper = (req, res, index) => {
     if( process.env.NODE_CAPTURE === "fs" ) {
-        path = process.env.NODE_CAPTURE_PATH;
+        let path = process.env.NODE_CAPTURE_PATH;
+        console.log('FS Capture Path: ' + path);
         fs.readdir( path, (err, items) => {
             if( err ) {
                 return res.status(404).json({ errors:
@@ -195,13 +217,16 @@ const captureHelper = (req, res, index) => {
                 const numImages = items.length;
                 const imageIndex  = Math.floor(Math.random() * numImages);
                 const imageName = items[imageIndex];
-                const data = fs.readFileSync(path + "/" + imageName);
+                //const data = fs.readFileSync(path + "/" + imageName);
+                const data = path + "/" + imageName;
                 console.log("Capture FS Path: " + path + "/" + imageName);
-                edata = encodeImage(data);
-                wss.broadcast(edata);
-                return res.sendStatus(200);
+                return(encodeImage(data)
+                    .then( edata => {
+                        wss.broadcast(edata);
+                        return res.sendStatus(200);
+                    }));
             }
-        });
+        } );
     } else {
         camera_list[index].takePicture({
             download: true,
@@ -212,10 +237,11 @@ const captureHelper = (req, res, index) => {
                     { message: 'gphoto2 error ' + err }
                 });
             } else {
-                let edata = encodeImage(data);
-                currentPicture = edata;
-                wss.broadcast(edata);
-                return res.sendStatus(200);
+                return(encodeImage(data)
+                    .then( edata => {
+                        wss.broadcast(edata);
+                        return res.sendStatus(200);
+                    }));
             }
         });
     }
@@ -253,9 +279,11 @@ const capturePreview = (req, res, index) => {
                 return(res.status(404).json({error: err}));
             } else {
                 fs.unlinkSync(tmp);
-                let edata = encodeImage(data);
-                wss.broadcast(edata);
-                res.sendStatus(200);
+                return(encodeImage(data, true)
+                    .then( edata => {
+                        wss.broadcast(edata);
+                        return res.sendStatus(200);
+                    }));
             }
           })
     });
@@ -280,14 +308,16 @@ router.get('/preview/start/:camIndex', auth.sess, checkIfCameraList, checkIfNotP
                 fs.readFile(tmp, (err, data) => {
                     if( !err ) {
                         fs.unlinkSync(tmp);
-                        let edata = encodeImage(data);
-                        wss.broadcast(edata);
+                        return(encodeImage(data, true)
+                            .then( edata => {
+                                wss.broadcast(edata);
+                            }));
                     }
                 });
             }
         });
     }, 500, [req.params.camIndex] );
-    res.sendStatus(200);
+    return res.sendStatus(200);
 });
 
 router.get('/preview/stop/:camIndex', auth.sess, checkIfPreview, (req, res, next) => {
