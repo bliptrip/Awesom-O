@@ -1,12 +1,13 @@
 {
-  "name": "server.js",
+  "name": "A-O",
   "version": "1.0.0",
   "description": "The backend express.js node server application that manages current state of the system (current camera preview, last pictures taken, current location of camera on x-y plane, project-specific settings, database access, etc.)",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node -r esm app.js"
+    "start": "node -r esm app.js",
+    "inspect": "node inspect -r esm app.js"
   },
   "repository": {
     "type": "git",
@@ -36,6 +37,8 @@
     "express-session": "^1.15.6",
     "express-ws": "^4.0.0",
     "gphoto2": "^0.3.0",
+    "jimp": "^0.9.5",
+    "mkdirp": "^1.0.3",
     "mongoose": "^5.4.0",
     "morgan": "^1.9.1",
     "nan": "^2.12.1",
@@ -43,7 +46,6 @@
     "passport-local": "^1.0.0",
     "path": "^0.12.7",
     "pauseable": "^0.3.1",
-    "postal": "^2.0.5",
     "serialport": "^7.1.4",
     "uuid": "^3.3.2",
     "ws": "^6.1.2"
