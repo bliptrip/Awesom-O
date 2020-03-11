@@ -42,7 +42,7 @@ const TIMEOUT_INFINITE = 0;
 const ROUTE_INDEX_START = -1; /* Indicates taht we need to go 'home' */
 const SLEEP_INT   = 100; //sleep time in milliseconds between sending subcommands on serial port
 const STEPS_PER_CM = 9804; //motor steps per cm
-const DEFAULT_PATH = "/dev/ttyS0";
+const DEFAULT_SERIAL = "/dev/ttyS0";
 const HOME_TIMEOUT = 30000;
 const MOVE_TIMEOUT = 15000;
 
@@ -431,37 +431,33 @@ router.get('/list', checkIfStopped, (req, res, next) => {
                err => res.status(409).json({errors: {message: err}}) );
 });
 
+const openPortAndInit = (path) => {
+    return new Promise( (resolve,reject) => {
+        let results = openPort(path);
+        port = results.port;
+        parser = results.parser
+        if( port && parser ) {
+            sendCommandDriverInit() //Initialize driver settings/state
+                .then( () => resolve() )
+                .catch( (err) => reject(err) );
+        } else {
+            reject("Failed to open serial port and/or setup Readline parser for " + path);
+        }
+    });
+};
+
 //Open serial port
 router.put('/open', auth.sess, checkIfStopped, checkIfNotSerial, (req, res, next) => {
-    let results = openPort(DEFAULT_PATH);
-    port = results.port;
-    parser = results.parser
-    if( port && parser ) {
-        sendCommand('DL2');
-        sleep(SLEEP_INT);
-        //Accelerate rate 5
-        sendCommand('AC5');
-        sleep(SLEEP_INT);
-        //Decelerate rate 2
-        sendCommand('DE2');
-        res.sendStatus(200);
-        return;
-    } else {
-        res.sendStatus(400);
-        return;
-    }
+    return openPortAndInit(DEFAULT_SERIAL)
+           .then( () => res.sendStatus(200) )
+           .catch( (err) => res.status(409).json({errors: {message: err}}) );
 });
 
 
 router.put('/open/:path', auth.sess, checkIfStopped, checkIfNotSerial, (req, res, next) => {
-    port = openPort(req.params.path);
-    if( port ) {
-        res.sendStatus(200);
-        return;
-    } else {
-        res.sendStatus(400);
-        return;
-    }
+    return openPortAndInit(req.params.path)
+           .then( () => res.sendStatus(200) )
+           .catch( (err) => res.status(409).json({errors: {message: err}}) );
 });
 
 router.get('/current', (req, res, next) => {
@@ -725,9 +721,14 @@ router.put('/stop', auth.sess, checkIfNotStopped, checkIfUser, checkIfCurrentUse
         current_project_timer.clear();
         current_project_timer = undefined;
     }
+    current_state = CONTROLLER_RUNNING_STATUS_STOPPED;
+    sendRunningStatus(current_state);
     current_project = undefined;
     current_user = undefined;
     return res.sendStatus(200);
 });
+
+//For now, just open the default serial port connection on load
+openPortAndInit(DEFAULT_SERIAL);
 
 module.exports = router;
