@@ -1725,6 +1725,61 @@ export const viewportGetCurrentPictureSuccess = (src) => ({
     src
 });
 
+export const VIEWPORT_SET_PREVIEW_ENABLED = "VIEWPORT_SET_PREVIEW_ENABLED";
+export const viewportSetPreviewEnabled = (enabled) => ({
+    type: VIEWPORT_SET_PREVIEW_ENABLED,
+    enabled 
+});
+
+export const VIEWPORT_GET_PREVIEW_ENABLED_REQUEST = "VIEWPORT_GET_PREVIEW_ENABLED_REQUEST";
+export const viewportGetPreviewEnabledRequest = () => ({
+    type: VIEWPORT_GET_PREVIEW_ENABLED_REQUEST,
+});
+
+export const VIEWPORT_GET_PREVIEW_ENABLED_ERROR = "VIEWPORT_GET_PREVIEW_ENABLED_ERROR";
+export const viewportGetPreviewEnabledError = (error) => ({
+    type: VIEWPORT_GET_PREVIEW_ENABLED_ERROR,
+    error
+});
+
+export const VIEWPORT_GET_PREVIEW_ENABLED_SUCCESS = "VIEWPORT_GET_PREVIEW_ENABLED_SUCCESS";
+export const viewportGetPreviewEnabledSuccess = (enabled) => ({
+    type: VIEWPORT_GET_PREVIEW_ENABLED_SUCCESS,
+    enabled
+});
+
+export const VIEWPORT_PREVIEW_START_REQUEST = "VIEWPORT_PREVIEW_START_REQUEST";
+export const viewportPreviewStartRequest = () => ({
+    type: VIEWPORT_PREVIEW_START_REQUEST
+});
+
+export const VIEWPORT_PREVIEW_START_ERROR = "VIEWPORT_PREVIEW_START_ERROR";
+export const viewportPreviewStartError = (error) => ({
+    type: VIEWPORT_PREVIEW_START_ERROR,
+    error
+});
+
+export const VIEWPORT_PREVIEW_START_SUCCESS = "VIEWPORT_PREVIEW_START_SUCCESS";
+export const viewportPreviewStartSuccess = () => ({
+    type: VIEWPORT_PREVIEW_START_SUCCESS
+});
+
+export const VIEWPORT_PREVIEW_STOP_REQUEST = "VIEWPORT_PREVIEW_STOP_REQUEST";
+export const viewportPreviewStopRequest = () => ({
+    type: VIEWPORT_PREVIEW_STOP_REQUEST
+});
+
+export const VIEWPORT_PREVIEW_STOP_ERROR = "VIEWPORT_PREVIEW_STOP_ERROR";
+export const viewportPreviewStopError = (error) => ({
+    type: VIEWPORT_PREVIEW_STOP_ERROR,
+    error
+});
+
+export const VIEWPORT_PREVIEW_STOP_SUCCESS = "VIEWPORT_PREVIEW_STOP_SUCCESS";
+export const viewportPreviewStopSuccess = () => ({
+    type: VIEWPORT_PREVIEW_STOP_SUCCESS
+});
+
 /* Viewport thunks */
 export const viewportGetCurrentPicture = () => (dispatch) => {
     dispatch(viewportGetCurrentPictureRequest());
@@ -1740,6 +1795,30 @@ export const viewportGetCurrentPicture = () => (dispatch) => {
          })
     );
 }
+
+export const viewportGetPreviewEnabled = () => (dispatch) => {
+    dispatch(viewportGetPreviewEnabledRequest());
+    return(fetchAwesomO({ url: '/api/camera/preview/0' }) //Assume only one camera for now -- and index 0
+        .then(  response => response.json(), 
+                error => dispatch(viewportGetPreviewEnabledError(error)))
+        .then( preview => dispatch(viewportGetPreviewEnabledSuccess(preview.enabled))));
+};
+
+export const viewportPreviewStart = () => (dispatch) => {
+    dispatch(viewportPreviewStartRequest());
+    return(fetchAwesomO({ url: '/api/camera/preview/start/0', //Assume only one camera for now -- and index 0
+                          method: 'PUT' })
+        .then(  response => dispatch(viewportPreviewStartSuccess()),
+                error => dispatch(viewportPreviewStartError(error)) ));
+};
+
+export const viewportPreviewStop = () => (dispatch) => {
+    dispatch(viewportPreviewStopRequest());
+    return(fetchAwesomO({ url: '/api/camera/stop/0', //Assume only one camera for now -- and index 0
+                          method: 'PUT' })
+        .then(  response => dispatch(viewportPreviewStopSuccess()),
+                error => dispatch(viewportPreviewStopError(error))));
+};
 
 /* Controller actions */
 export const CONTROLLER_RUNNING_STATUS_RUNNING = 'CONTROLLER_RUNNING_STATUS_RUNNING';
@@ -2034,9 +2113,9 @@ export const controllerClearProject = (projectId) => dispatch => {
                 error => dispatch(controllerClearProjectError(error))));
 }
 
-export const controllerStart = () => dispatch => {
+export const controllerStart = (userId,projectId) => dispatch => {
     dispatch(controllerStartRequest());
-    return(fetchAwesomO({ url: '/api/controller/start', method: 'PUT' })
+    return(fetchAwesomO({ url: '/api/controller/start/'+userId+'/'+projectId, method: 'PUT' })
         .then(  response => dispatch(controllerStartSuccess()), 
                 error => dispatch(controllerStartError(error))));
 }
