@@ -26,22 +26,28 @@ import {createStore, applyMiddleware} from 'redux';
 import {connect, Provider} from 'react-redux';
 import thunkMiddleware from 'redux-thunk'; //Needed to dispatch thunk actions
 import * as serviceWorker from './serviceWorker';
-import {userCheckCurrent, storageConfigGetSupportedTypes, storageConfigGetSupportedParams, controllerGetCurrentStatus} from './actions';
 import {Route, Router} from 'react-router';
 import {createBrowserHistory} from 'history';
 import App from './App';
 import SignIn from './SignIn';
 import SignUp from './SignUp';
 
+import {userCheckCurrent, 
+        storageConfigGetSupportedTypes, 
+        storageConfigGetSupportedParams, 
+        controllerGetCurrentStatus,
+        viewportGetPreviewEnabled} from './actions';
+
 const store = createStore( rootReducer,
                            applyMiddleware(thunkMiddleware) );
 const browserHistory = createBrowserHistory();
 
-function ProviderWrapper({checkLogState, getSupportedTypes, getSupportedParams, getCurrentStatus}) {
+function ProviderWrapper({checkLogState, getSupportedTypes, getSupportedParams, getCurrentStatus, getPreviewEnabled}) {
     checkLogState(); //Dispatch a request to check current login state
     getSupportedTypes();
     getSupportedParams();
     getCurrentStatus();
+    getPreviewEnabled();
     return (
         <Router history={browserHistory}>
             <div>
@@ -57,7 +63,8 @@ const mapDispatchToProps = (dispatch) => ({
     checkLogState: () => dispatch(userCheckCurrent()),
     getSupportedTypes: () => dispatch(storageConfigGetSupportedTypes()),
     getSupportedParams: () => dispatch(storageConfigGetSupportedParams()),
-    getCurrentStatus: () => dispatch(controllerGetCurrentStatus())
+    getCurrentStatus: () => dispatch(controllerGetCurrentStatus()),
+    getPreviewEnabled: () => dispatch(viewportGetPreviewEnabled())
 });
 
 const VisibleProviderWrapper = connect(null, mapDispatchToProps)(ProviderWrapper);
