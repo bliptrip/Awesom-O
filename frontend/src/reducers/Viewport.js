@@ -23,7 +23,8 @@ import * as viewportC from '../actions';
 const viewport = (state = {
                     src: undefined,
                     isFetching: false,
-                    errorStatus: undefined
+                    errorStatus: undefined,
+                    previewEnabled: false
                   }, action) => {
     let newstate = state;
     switch( action.type ) {
@@ -44,8 +45,60 @@ const viewport = (state = {
         case viewportC.VIEWPORT_GET_CURRENT_PICTURE_SUCCESS:
             newstate = {...state,
                         isFetching: false,
-                        errorStatus: action.error,
+                        errorStatus: undefined,
                         src: action.src};
+            break;
+        case viewportC.VIEWPORT_SET_PREVIEW_ENABLED:
+            newstate = {...state,
+                        previewEnabled: action.enabled};
+            break;
+        case viewportC.VIEWPORT_GET_PREVIEW_ENABLED_REQUEST:
+            newstate = {...state,
+                        isFetching: true,
+                        errorStatus: undefined};
+            break;
+        case viewportC.VIEWPORT_GET_PREVIEW_ENABLED_ERROR:
+            newstate = {...state,
+                        isFetching: false,
+                        errorStatus: action.error};
+            break;
+        case viewportC.VIEWPORT_GET_PREVIEW_ENABLED_SUCCESS:
+            newstate = {...state,
+                        isFetching: false,
+                        errorStatus: undefined,
+                        previewEnabled: action.enabled};
+            break;
+        case viewportC.VIEWPORT_PREVIEW_START_REQUEST:
+            newstate = {...state,
+                        isFetching: true,
+                        errorStatus: undefined};
+            break;
+        case viewportC.VIEWPORT_PREVIEW_START_ERROR:
+            newstate = {...state,
+                        isFetching: false,
+                        errorStatus: action.error};
+            break;
+        case viewportC.VIEWPORT_PREVIEW_START_SUCCESS:
+            newstate = {...state,
+                        isFetching: false,
+                        errorStatus: undefined,
+                        previewEnabled: true};
+            break;
+        case viewportC.VIEWPORT_PREVIEW_STOP_REQUEST:
+            newstate = {...state,
+                        isFetching: true,
+                        errorStatus: undefined};
+            break;
+        case viewportC.VIEWPORT_PREVIEW_STOP_ERROR:
+            newstate = {...state,
+                        isFetching: false,
+                        errorStatus: action.error};
+            break;
+        case viewportC.VIEWPORT_PREVIEW_STOP_SUCCESS:
+            newstate = {...state,
+                        isFetching: false,
+                        errorStatus: undefined,
+                        previewEnabled: false};
             break;
         default:
             break;
