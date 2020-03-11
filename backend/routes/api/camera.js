@@ -19,7 +19,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
-import {viewportSetCurrentPicture} from '../../../frontend/src/actions'; 
+import {viewportSetCurrentPicture,viewportSetPreviewEnabled} from '../../../frontend/src/actions'; 
 import {wss} from '../../lib/websocket';
 import {checkIfStopped} from './controller';
 
@@ -79,6 +79,10 @@ const checkIfCameraList = (req, res, next) => {
     }
     next();
 }
+
+const sendPreviewEnabled = (enabled) => {
+    wss.broadcast(JSON.stringify(viewportSetPreviewEnabled(enabled)));
+};
 
 export const snapShot = (user, project, row, col) => {
     return new Promise((resolve,reject) => {
@@ -289,22 +293,28 @@ const capturePreview = (req, res, index) => {
     });
 }
 
-router.get('/preview', auth.sess, checkIfStopped, checkIfCameraList, (req, res, next) => {
+router.get('/preview/:camIndex', auth.sess, checkIfCameraList, (req, res, next) => {
+    let enabled = (preview_timer !== undefined) ? true: false;
+    return(res.status(200).json({enabled: enabled}));
+});
+
+router.put('/preview', auth.sess, checkIfStopped, checkIfCameraList, checkIfNotPreview, (req, res, next) => {
     capturePreview(req, res, 0);
 });
 
-router.get('/preview/:camIndex', auth.sess, checkIfStopped, checkIfCameraList, (req, res, next) => {
+router.put('/preview/:camIndex', auth.sess, checkIfStopped, checkIfCameraList, checkIfNotPreview, (req, res, next) => {
     let camIndex = req.params.camIndex;
     capturePreview(req, res, camIndex);
 });
 
-router.get('/preview/start/:camIndex', auth.sess, checkIfCameraList, checkIfNotPreview, (req, res, next) => {
+router.put('/preview/start/:camIndex', auth.sess, checkIfCameraList, checkIfNotPreview, (req, res, next) => {
     preview_timer = setInterval( (camIndex) => {
         camera_list[camIndex].takePicture({
             preview: true,
             targetPath: '/tmp/fooXXXXXX'
         }, function(err, tmp) {
             if( !err ) {
+                sendPreviewEnabled(true); //Notify that preview is enabled
                 fs.readFile(tmp, (err, data) => {
                     if( !err ) {
                         fs.unlinkSync(tmp);
@@ -314,14 +324,20 @@ router.get('/preview/start/:camIndex', auth.sess, checkIfCameraList, checkIfNotP
                             }));
                     }
                 });
+            } else {
+                clearInterval(preview_timer);
+                preview_timer = undefined;
+                sendPreviewEnabled(false); //We experienced an error.  Notify that preview stopped
             }
         });
     }, 500, [req.params.camIndex] );
     return res.sendStatus(200);
 });
 
-router.get('/preview/stop/:camIndex', auth.sess, checkIfPreview, (req, res, next) => {
-    preview_timer = clearInterval(preview_timer);
+router.put('/preview/stop/:camIndex', auth.sess, checkIfPreview, (req, res, next) => {
+    clearInterval(preview_timer);
+    preview_timer = undefined;
+    sendPreviewEnabled(false);
     res.sendStatus(200);
 });
 
