@@ -22,7 +22,7 @@ import * as ctrlC from '../actions';
 
 const controller = (state = {currentUserId: undefined,
                              currentProjectId: undefined,
-                             status: ctrlC.CONTROLLER_RUNNING_STATUS_STOPPED,
+                             currentStatus: ctrlC.CONTROLLER_RUNNING_STATUS_STOPPED,
                              location: {},
                              isFetching: false,
                              statusError: undefined
@@ -31,7 +31,7 @@ const controller = (state = {currentUserId: undefined,
     switch( action.type ) {
         case ctrlC.CONTROLLER_SET_RUNNING_STATUS:
             newstate = {...state,
-                        status: action.status,
+                        currentStatus: action.status,
                         currentUserId: action.userId};
             break;
         case ctrlC.CONTROLLER_SET_LOCATION:
@@ -223,7 +223,7 @@ const controller = (state = {currentUserId: undefined,
         case ctrlC.CONTROLLER_GET_CURRENT_STATUS_SUCCESS:
             newstate = {...state,
                         isFetching: false,
-                        status: action.status,
+                        currentStatus: action.status,
                         location: action.location,
                         currentUserId: action.userId,
                         currentProjectId: action.projectId};
