@@ -27,24 +27,32 @@ export const disableOnNotStopped = (controllerStatus) => {
     return false;
 };
 
-export const disableOnNotActiveUser = (controllerUser, activeUser) => {
-    if( controllerUser !== activeUser )
+export const disableOnNotActiveUser = (controllerUserId, activeUserId) => {
+    if( controllerUserId !== activeUserId )
         return true;
     return false;
 };
 
-export const disableOnNotStoppedNotActiveUser = (controllerStatus, controllerUser, activeUser) => {
+export const disableOnNotStoppedNotActiveProject = (controllerStatus, activeProjectId) => {
     if( controllerStatus !== CONTROLLER_RUNNING_STATUS_STOPPED )
         return true;
-    if(  controllerUser !== activeUser )
+    if( activeProjectId === undefined )
         return true;
     return false;
 };
 
-export const disableOnStoppedNotActiveUser = (controllerStatus, controllerUser, activeUser) => {
+export const disableOnNotStoppedNotActiveUser = (controllerStatus, controllerUserId, activeUserId) => {
+    if( controllerStatus !== CONTROLLER_RUNNING_STATUS_STOPPED )
+        return true;
+    if(  (controllerUserId != undefined) && (controllerUserId !== activeUserId) )
+        return true;
+    return false;
+};
+
+export const disableOnStoppedNotActiveUser = (controllerStatus, controllerUserId, activeUserId) => {
     if( controllerStatus === CONTROLLER_RUNNING_STATUS_STOPPED )
         return true;
-    if(  controllerUser !== activeUser )
+    if(  (controllerUserId != undefined) && (controllerUserId !== activeUserId) )
         return true;
     return false;
 };
