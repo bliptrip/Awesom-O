@@ -29,6 +29,7 @@ import ButtonGroup from '@material-ui/core/ButtonGroup';
 import IconButton from '@material-ui/core/IconButton';
 import SvgIcon from '@material-ui/core/SvgIcon';
 import Container from '@material-ui/core/Container';
+import DoubleArrowRoundedIcon from '@material-ui/icons/DoubleArrowRounded';
 import HomeIcon from '@material-ui/icons/Home';
 import PlayCircleOutlineIcon from '@material-ui/icons/PlayCircleOutline';
 import PauseCircleOutlineIcon from '@material-ui/icons/PauseCircleOutline';
@@ -43,10 +44,152 @@ import ExperimentMenu from './ExperimentMenu';
 import RouteMenu from './RouteMenu';
 import StorageMenu from './StorageMenu';
 import StatusIndicator from './StatusIndicator';
+import VisibilityIcon from '@material-ui/icons/Visibility';
+import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 
-import {CONTROLLER_RUNNING_STATUS_STOPPED,controllerMoveHome,controllerStart,controllerPause,controllerResume,controllerStop,cameraCapture} from '../actions';
 
-function Navbar({classes, openDrawer, closeDrawer, openState, status, location, currentUserId, currentProjectId, moveHome, start, pause, resume, stop, capture}) {
+import {CONTROLLER_RUNNING_STATUS_RUNNING,
+        CONTROLLER_RUNNING_STATUS_PAUSED,
+        CONTROLLER_RUNNING_STATUS_STOPPED,
+        viewportPreviewStart,
+        viewportPreviewStop,
+        controllerMoveHome,
+        controllerStart,
+        controllerPause,
+        controllerResume,
+        controllerStop,
+        cameraCapture} from '../actions';
+import {disableOnNotStopped, 
+        disableOnNotActiveUser,
+        disableOnNotStoppedNotActiveProject, 
+        disableOnStoppedNotActiveUser} from '../lib/controller';
+
+const mapPreviewStateToProps = (state) => ({
+    previewEnabled: state.camera.previewEnabled
+});
+
+const mapPreviewDispatchToProps = (dispatch) => ({
+    startPreview: () => dispatch(viewportPreviewStart()),
+    stopPreview: () => dispatch(viewportPreviewStop())
+});
+
+function Preview({previewEnabled,
+                  startPreview,
+                  stopPreview}) {
+    if( previewEnabled ) {
+        return( <Tooltip title="Stop Preview">
+                    <IconButton
+                        aria-controls="preview-disable"
+                        aria-label="disable camera preview"
+                        aria-haspopup="true"
+                        variant="contained"
+                        color="primary"
+                        onClick={stopPreview}
+                    >
+                        <VisibilityOffIcon fontSize='large' />
+                    </IconButton>
+                </Tooltip> );
+    } else {
+        return( <Tooltip title="Start Preview">
+                    <IconButton
+                        aria-controls="preview-enable"
+                        aria-label="enable camera preview"
+                        aria-haspopup="true"
+                        variant="contained"
+                        color="primary"
+                        onClick={startPreview}
+                    >
+                        <VisibilityIcon fontSize='large' />
+                    </IconButton>
+                </Tooltip> );
+    }
+}
+
+const PreviewButton = connect(mapPreviewStateToProps, mapPreviewDispatchToProps)(Preview);
+
+const mapStartPauseResumeStateToProps = (state) => ({
+    controllerStatus: state.controller.currentStatus,
+    controllerUserId: state.controller.currentUserId,
+    activeUserId: state.user._id,
+    activeProjectId: state.project._id
+});
+
+const mapStartPauseResumeDispatchToProps = (dispatch) => ({
+    start: (userId,projectId) => (e) => dispatch(controllerStart(userId,projectId)),
+    pause: (e) => dispatch(controllerPause()),
+    resume: (e) => dispatch(controllerResume()),
+});
+
+function StartPauseResume({controllerStatus,
+                           controllerUserId,
+                           activeUserId,
+                           activeProjectId,
+                           start,
+                           pause,
+                           resume}) {
+    switch(controllerStatus) {
+        case CONTROLLER_RUNNING_STATUS_RUNNING:
+            return(<Tooltip title="Pause Timelapse">
+                <IconButton
+                    aria-controls="route-pause"
+                    aria-haspopup="true"
+                    variant="contained"
+                    color="primary"
+                    onClick={pause}
+                    disabled={disableOnNotActiveUser(controllerUserId,activeUserId)}
+                >
+                    <PauseCircleOutlineIcon fontSize='large' />
+                </IconButton>
+            </Tooltip>);
+        case CONTROLLER_RUNNING_STATUS_PAUSED:
+            return(<Tooltip title="Resume Timelapse">
+                <IconButton
+                    aria-controls="route-resume"
+                    aria-haspopup="true"
+                    variant="contained"
+                    color="primary"
+                    onClick={resume}
+                    disabled={disableOnNotActiveUser(controllerUserId,activeUserId)}
+                >
+                    <DoubleArrowRoundedIcon fontSize='large' />
+                </IconButton>
+            </Tooltip>);
+        case CONTROLLER_RUNNING_STATUS_STOPPED:
+            return(<Tooltip title="Start Timelapse Sequence">
+                <IconButton
+                    aria-controls="route-start"
+                    aria-haspopup="true"
+                    variant="contained"
+                    color="primary"
+                    onClick={start(activeUserId, activeProjectId)}
+                    disabled={disableOnNotStoppedNotActiveProject(controllerStatus,activeProjectId)}
+                >
+                    <PlayCircleOutlineIcon fontSize='large' />
+                </IconButton>
+            </Tooltip>);
+    }
+}
+
+const StartPauseResumeButton = connect(mapStartPauseResumeStateToProps, mapStartPauseResumeDispatchToProps)(StartPauseResume);
+
+function Navbar({classes, 
+                 openDrawer, 
+                closeDrawer, 
+                openState, 
+                controllerStatus, 
+                controllerLocation, 
+                activeUserId, 
+                activeUsername, 
+                activeProjectId,
+                controllerUserId, 
+                controllerProjectId, 
+                moveHome, 
+                start, 
+                pause, 
+                resume, 
+                stop, 
+                capture}) {
+    
     return (
             <AppBar 
                 color="transparent"
@@ -77,9 +220,10 @@ function Navbar({classes, openDrawer, closeDrawer, openState, status, location, 
                     <Typography variant="h6" className={classes.title}>
                         AwesomO  
                     </Typography>
-                    <StatusIndicator className={classes.menuButton} activeUser='bliptrip' activeStatus={status} />
+                    <StatusIndicator className={classes.menuButton} activeUser={activeUsername} activeStatus={controllerStatus} />
                     <Container />
                     <ButtonGroup>
+                        <PreviewButton />
                         <Tooltip title="Capture Picture">
                             <IconButton
                                 aria-controls="capture-manual"
@@ -88,6 +232,7 @@ function Navbar({classes, openDrawer, closeDrawer, openState, status, location, 
                                 variant="contained"
                                 color="primary"
                                 onClick={capture}
+                                disabled={disableOnNotStopped(controllerStatus)}
                             >
                                 <CameraIcon fontSize='large' />
                             </IconButton>
@@ -99,21 +244,12 @@ function Navbar({classes, openDrawer, closeDrawer, openState, status, location, 
                                 variant="contained"
                                 color="primary"
                                 onClick={moveHome}
+                                disabled={disableOnNotStopped(controllerStatus)}
                             >
                                 <HomeIcon fontSize='large' />
                             </IconButton>
                         </Tooltip>
-                        <Tooltip title="Start Timelapse Capture Loop">
-                            <IconButton
-                                aria-controls="route-start"
-                                aria-haspopup="true"
-                                variant="contained"
-                                color="primary"
-                                onClick={start}
-                            >
-                                <PlayCircleOutlineIcon fontSize='large' />
-                            </IconButton>
-                        </Tooltip>
+                        <StartPauseResumeButton />
                         <Tooltip title="Stop Timelapse Capture Loop">
                             <IconButton
                                 aria-controls="route-stop"
@@ -121,6 +257,7 @@ function Navbar({classes, openDrawer, closeDrawer, openState, status, location, 
                                 variant="contained"
                                 color="primary"
                                 onClick={stop}
+                                disabled={disableOnStoppedNotActiveUser(controllerStatus, controllerUserId, activeUserId)}
                             >
                                 <StopIcon fontSize='large' />
                             </IconButton>
@@ -139,16 +276,19 @@ function Navbar({classes, openDrawer, closeDrawer, openState, status, location, 
 }
 
 const mapStateToProps = (state) => ({
-    status: state.controller.status,
-    location: state.controller.location,
-    currentUserId: state.controller.currentUserId,
-    currentProjectId: state.controller.currentProjectId
+    controllerStatus: state.controller.currentStatus,
+    controllerLocation: state.controller.location,
+    controllerUserId: state.controller.currentUserId,
+    controllerProjectId: state.controller.currentProjectId,
+    activeUserId: state.user._id,
+    activeUsername: state.user.username,
+    activeProjectId: state.project._id
 });
 
 
 const mapDispatchToProps = (dispatch) => ({
     moveHome: () => dispatch(controllerMoveHome(true,true)),
-    start: () => dispatch(controllerStart()),
+    start: (userId,projectId) => (e) => dispatch(controllerStart(userId,projectId)),
     pause: () => dispatch(controllerPause()),
     resume: () => dispatch(controllerResume()),
     stop: () => dispatch(controllerStop()),
