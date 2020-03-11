@@ -20,6 +20,7 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
 const fs       = require('fs');
+const mkdirp   = require('mkdirp');
 const mongoose = require('mongoose');
 const {Schema} = mongoose;
 
@@ -58,10 +59,11 @@ const StorageConfigSchema = new Schema({
         },
 */
 
-StorageConfigSchema.methods.saveFile = (filename, data) => {
-    switch( this.type ) {
+StorageConfigSchema.methods.saveFile = (storageC, username, filename, data) => {
+    switch( storageC.storageType ) {
         case 'fs':
-            fs.writeFileSync(this.params['path'] + '/' + filename, data);
+            let fullpath = '/home/gilroylab/.awesomo/' + username + '/' + storageC.params.get('path');
+            mkdirp(fullpath).then( made => fs.writeFileSync(fullpath  + '/' + filename, data) );
             break;
         default:
             break;
