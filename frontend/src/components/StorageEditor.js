@@ -145,8 +145,8 @@ const mapDispatchToProps = (dispatch) => ({
         }
         dispatch(storageConfigSetEditorOpen(false));
     },
-    sSave: (storageConfig) => (e) => dispatch(storageConfigSave(storageConfig)),
-    sSaveAs: (storageConfig) => (e) => dispatch(storageConfigSaveAs(storageConfig)),
+    sSave: (storageConfig,project) => (e) => dispatch(storageConfigSave(storageConfig,project)),
+    sSaveAs: (storageConfig,project) => (e) => dispatch(storageConfigSaveAs(storageConfig,project)),
     setShort: (e) => dispatch(storageConfigSetShort(e.target.value)),
     setType: (type) => dispatch(storageConfigSetType(type)),
     setParams: (params) => dispatch(storageConfigSetParams(params))

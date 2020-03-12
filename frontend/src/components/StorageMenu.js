@@ -79,14 +79,13 @@ const StyledMenuItem = withStyles(theme => ({
 }))(MenuItem);
 
 const mapDialogStateToProps = (state) => ({
-    userId: state.user._id,
     savedStorageConfigs: state.storage.savedStorageConfigs,
-    open: state.storage.isLoadDialogOpen
+    open: state.storage.isLoadDialogOpen,
 });
 
 const mapDialogDispatchToProps = (dispatch) => ({
     setEditorOpen: (e) => dispatch(storageConfigSetEditorOpen(true)),
-    storageConfigSetCurrent: (storage) => dispatch(storageConfigLoad(storage)),
+    storageConfigSetCurrent: (storage,project) => dispatch(storageConfigLoad(storage)),
     setOpen: (isOpen) => dispatch(storageConfigSetLoadDialogOpen(isOpen))
 });
 
@@ -102,7 +101,7 @@ function StorageLoadSavedDialog({open, savedStorageConfigs, setOpen, setEditorOp
     }
 
     const loadSelectedChoice = event => {
-        storageConfigSetCurrent(selectedStorage);
+        storageConfigSetCurrent(selectedStorage);;
         setEditorOpen(true);
         setOpen(false);
     }
@@ -142,7 +141,7 @@ function StorageMenu({addStorageConfig,
                         loadSaved,
                         userId,
                         projectId,
-                        currStorageConfig}) {
+                        currStorageConfig }) {
       const [anchorEl, setAnchorEl] = useState(null);
 
       const handleClick = event => {

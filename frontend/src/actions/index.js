@@ -780,7 +780,7 @@ export const cameraConfigFetch = _id => dispatch => {
     .then( cameraConfig => dispatch(cameraConfigFetchSuccess(cameraConfig))));
 };
 
-const cameraConfigSaveHelper = (saveType,cameraConfig,dispatch) => {
+const cameraConfigSaveHelper = (saveType,cameraConfig,dispatch,getState) => {
     let gphoto2Config = JSON.stringify(undefined);
     if( cameraConfig.configs && (cameraConfig.configs !== {}) ) {
         gphoto2Config = JSON.stringify({ 'main': cameraSettings2Gphoto2Config(cameraConfig.configs, cameraConfig.rootid) });
@@ -796,16 +796,23 @@ const cameraConfigSaveHelper = (saveType,cameraConfig,dispatch) => {
         .then( cameraConfig => {
             let camId = cameraConfig._id;
             dispatch(cameraConfigSaveSuccess(camId)); 
-            dispatch(projectSetCameraConfig(camId));
+            switch( saveType) {
+                case 'saveas': //saveas will generate a new storage config, and need to update the project accoringly
+                    dispatch(projectSetCameraConfig(camId));
+                    dispatch(projectSave(getState().project)); //Save the project automatically
+                    break;
+                default:
+                    break;
+            }
         }));
 }
 
-export const cameraConfigSave = (cameraConfig) => dispatch => {
-    return(cameraConfigSaveHelper('save',cameraConfig,dispatch));
+export const cameraConfigSave = (cameraConfig) => (dispatch,getState) => {
+    return(cameraConfigSaveHelper('save',cameraConfig,dispatch,getState));
 }
 
-export const cameraConfigSaveAs = (cameraConfig) => dispatch => {
-    return(cameraConfigSaveHelper('saveas',cameraConfig,dispatch));
+export const cameraConfigSaveAs = (cameraConfig) => (dispatch,getState) => {
+    return(cameraConfigSaveHelper('saveas',cameraConfig,dispatch,getState));
 }
 
 export const cameraConfigLoadSaved = userId => dispatch => {
@@ -825,9 +832,10 @@ export const cameraConfigLoadSaved = userId => dispatch => {
     ));
 };
 
-export const cameraConfigLoad = (camera) => dispatch => {
+export const cameraConfigLoad = (camera) => (dispatch,getState) => {
     dispatch(cameraConfigFetchSuccess(camera)); 
     dispatch(projectSetCameraConfig(camera._id));
+    dispatch(projectSave(getState().project)); //Save the project automatically upon a change
 }
 
 export const cameraConfigRemove = (_id, userId, projectId) => dispatch => {
@@ -1102,7 +1110,7 @@ export const experimentConfigFetch = (_id) => dispatch => {
 
 };
 
-const experimentConfigSaveHelper = (saveType,experimentConfig,dispatch) => {
+const experimentConfigSaveHelper = (saveType,experimentConfig,dispatch,getState) => {
     dispatch(experimentConfigSaveRequest());
     return(fetchAwesomO({
         url: '/api/experiment/'+saveType, 
@@ -1113,16 +1121,23 @@ const experimentConfigSaveHelper = (saveType,experimentConfig,dispatch) => {
         .then( experimentConfig => {
             let eId = experimentConfig._id;
             dispatch(experimentConfigSaveSuccess(eId)); 
-            dispatch(projectSetExperimentConfig(eId));
+            switch( saveType) {
+                case 'saveas': //saveas will generate a new storage config, and need to update the project accoringly
+                    dispatch(projectSetExperimentConfig(eId));
+                    dispatch(projectSave(getState().project)); //Save the project automatically
+                    break;
+                default:
+                    break;
+            }
         }));
 };
 
-export const experimentConfigSave = (experimentConfig) => dispatch => {
-    return(experimentConfigSaveHelper('save',experimentConfig,dispatch));
+export const experimentConfigSave = (experimentConfig) => (dispatch,getState) => {
+    return(experimentConfigSaveHelper('save',experimentConfig,dispatch,getState));
 };
 
-export const experimentConfigSaveAs = (experimentConfig) => dispatch => {
-    return(experimentConfigSaveHelper('saveas',experimentConfig,dispatch));
+export const experimentConfigSaveAs = (experimentConfig) => (dispatch,getState) => {
+    return(experimentConfigSaveHelper('saveas',experimentConfig,dispatch,getState));
 };
 
 export const experimentConfigLoadSaved = userId => dispatch => {
@@ -1136,9 +1151,10 @@ export const experimentConfigLoadSaved = userId => dispatch => {
     ));
 };
 
-export const experimentConfigLoad = (experiment) => dispatch => {
+export const experimentConfigLoad = (experiment) => (dispatch,getState) => {
     dispatch(experimentConfigFetchSuccess(experiment)); 
     dispatch(projectSetExperimentConfig(experiment._id));
+    dispatch(projectSave(getState().project)); //Save the project automatically upon a change
 };
 
 export const experimentConfigRemove = (_id, userId, projectId) => dispatch => {
@@ -1367,13 +1383,14 @@ export const storageConfigLoadSaved = userId => dispatch => {
     ));
 };
 
-export const storageConfigLoad = (storage) => dispatch => {
+export const storageConfigLoad = (storage) => (dispatch,getState) => {
     dispatch(storageConfigFetchSuccess(storage)); 
     dispatch(projectClearStorageConfigs());
     dispatch(projectAddStorageConfig(storage._id));
+    dispatch(projectSave(getState().project)); //Save the project automatically upon a change
 };
 
-const storageConfigSaveHelper = (saveType,storageConfig,dispatch) => {
+const storageConfigSaveHelper = (saveType,storageConfig,dispatch,getState) => {
     dispatch(storageConfigSaveRequest());
     return(fetchAwesomO({
         url: '/api/storage/'+saveType, 
@@ -1384,16 +1401,23 @@ const storageConfigSaveHelper = (saveType,storageConfig,dispatch) => {
         .then( storageConfig => {
             let sId = storageConfig._id;
             dispatch(storageConfigSaveSuccess(sId)); 
-            dispatch(projectClearStorageConfigs());
-            dispatch(projectAddStorageConfig(sId));
+            switch( saveType) {
+                case 'saveas': //saveas will generate a new storage config, and need to update the project accoringly
+                    dispatch(projectClearStorageConfigs());
+                    dispatch(projectAddStorageConfig(sId));
+                    dispatch(projectSave(getState().project)); //Save the project automatically
+                    break;
+                default:
+                    break;
+            }
         }));
 }
-export const storageConfigSave = (storageConfig) => dispatch => {
-    return(storageConfigSaveHelper('save',storageConfig,dispatch));
+export const storageConfigSave = (storageConfig) => (dispatch,getState) => {
+    return(storageConfigSaveHelper('save',storageConfig,dispatch,getState));
 }
 
-export const storageConfigSaveAs = (storageConfig) => dispatch => {
-    return(storageConfigSaveHelper('saveas',storageConfig,dispatch));
+export const storageConfigSaveAs = (storageConfig) => (dispatch,getState) => {
+    return(storageConfigSaveHelper('saveas',storageConfig,dispatch,getState));
 }
 
 export const storageConfigRemove = (_id,userId,projectId) => dispatch => {
@@ -1649,7 +1673,7 @@ export const routeConfigFetch = (_id) => dispatch => {
     ));
 }
 
-const routeConfigSaveHelper = (saveType,routeConfig,dispatch) => {
+const routeConfigSaveHelper = (saveType,routeConfig,dispatch,getState) => {
     dispatch(routeConfigSaveRequest());
     return(fetchAwesomO({
         url: '/api/route/'+saveType, 
@@ -1660,15 +1684,22 @@ const routeConfigSaveHelper = (saveType,routeConfig,dispatch) => {
         .then( routeConfig => {
             let rId = routeConfig._id;
             dispatch(routeConfigSaveSuccess(rId)); 
-            dispatch(projectSetRouteConfig(rId));
+            switch( saveType) {
+                case 'saveas': //saveas will generate a new storage config, and need to update the project accoringly
+                    dispatch(projectSetRouteConfig(rId));
+                    dispatch(projectSave(getState().project)); //Save the project automatically
+                    break;
+                default:
+                    break;
+            }
         }));
 }
-export const routeConfigSave = (routeConfig) => dispatch => {
-    return(routeConfigSaveHelper('save',routeConfig,dispatch));
+export const routeConfigSave = (routeConfig) => (dispatch,getState) => {
+    return(routeConfigSaveHelper('save',routeConfig,dispatch,getState));
 }
 
-export const routeConfigSaveAs = (routeConfig) => dispatch => {
-    return(routeConfigSaveHelper('saveas',routeConfig,dispatch));
+export const routeConfigSaveAs = (routeConfig) => (dispatch,getState) => {
+    return(routeConfigSaveHelper('saveas',routeConfig,dispatch,getState));
 }
 
 export const routeConfigLoadSaved = userId => dispatch => {
@@ -1682,9 +1713,10 @@ export const routeConfigLoadSaved = userId => dispatch => {
     ));
 };
 
-export const routeConfigLoad = (route) => dispatch => {
+export const routeConfigLoad = (route) => (dispatch,getState) => {
     dispatch(routeConfigFetchSuccess(route)); 
     dispatch(projectSetRouteConfig(route._id));
+    dispatch(projectSave(getState().project)); //Save the project automatically upon a change
 };
 
 export const routeConfigRemove = (_id, userId, projectId) => dispatch => {
