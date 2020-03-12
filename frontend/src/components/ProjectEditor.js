@@ -23,13 +23,20 @@ import {connect} from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 
 import Container from '@material-ui/core/Container';
+import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import TextField from '@material-ui/core/TextField';
 
 import CancelIcon from '@material-ui/icons/Cancel';
 
-import {projectSetEditorOpen, projectSetShort, projectSetDescription} from '../actions';
+import SaveButtonBar from './SaveButtonBar';
+
+import {projectSetEditorOpen, 
+        projectSetShort, 
+        projectSave, 
+        projectSaveAs, 
+        projectSetDescription} from '../actions';
 
 const useStyles = makeStyles({
       list: {
@@ -40,7 +47,7 @@ const useStyles = makeStyles({
             },
 });
 
-function ProjectEditor({closeDrawer, shortDescription, description, setShortDescription, setDescription}) {
+function ProjectEditor({closeDrawer, project, pSave, pSaveAs, shortDescription, description, setShortDescription, setDescription}) {
     const classes = useStyles();
 
     return (
@@ -48,11 +55,9 @@ function ProjectEditor({closeDrawer, shortDescription, description, setShortDesc
             className={classes.fullList}
             role="presentation"
         >
+            <SaveButtonBar descriptor="Project" entry={project} save={pSave} saveAs={pSaveAs} />
+            <Divider />
             <List>
-                <ListItem>
-                    <CancelIcon fontSize='small' onClick={closeDrawer}/>
-                    <Container />
-                </ListItem>
                 <ListItem>
                     <TextField label="Short Description" value={shortDescription} onChange={setShortDescription} />
                 </ListItem>
@@ -66,7 +71,8 @@ function ProjectEditor({closeDrawer, shortDescription, description, setShortDesc
 
 const mapStateToProps = (state) => ({
     shortDescription: state.project.shortDescription,
-    description: state.project.description
+    description: state.project.description,
+    project: state.project
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -76,6 +82,8 @@ const mapDispatchToProps = (dispatch) => ({
         }
         dispatch(projectSetEditorOpen(false));
     },
+    pSave: (project) => (e) => dispatch(projectSave(project)),
+    pSaveAs: (project) => (e) => dispatch(projectSaveAs(project)),
     setShortDescription: (event) => dispatch(projectSetShort(event.target.value)),
     setDescription: (event) => dispatch(projectSetDescription(event.target.value))
 });

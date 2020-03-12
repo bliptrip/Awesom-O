@@ -45,7 +45,11 @@ import Tooltip from '@material-ui/core/Tooltip';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 
+import SaveButtonBar from './SaveButtonBar';
+
 import {experimentConfigSetEditorOpen,
+        experimentConfigSave,
+        experimentConfigSaveAs,
         experimentConfigSetShort,
         experimentConfigSetDatetime,
         experimentConfigSetRename,
@@ -69,7 +73,25 @@ const useStyles = makeStyles({
     },
 });
 
-function ExperimentEditor({eshort, datetime, rename, imageMeta, filenameFields, plateMeta, setShort, setDatetime, setRename, setImageMeta, addFilenameField, removeFilenameField, clearFilenameFields, addPlate, clearPlateMeta, closeDrawer}) {
+function ExperimentEditor({eshort,  
+                           experiment,
+                           datetime, 
+                           rename, 
+                           imageMeta, 
+                           filenameFields, 
+                           plateMeta, 
+                           setShort, 
+                           setDatetime, 
+                           setRename, 
+                           setImageMeta, 
+                           addFilenameField, 
+                           removeFilenameField, 
+                           clearFilenameFields, 
+                           addPlate, 
+                           clearPlateMeta, 
+                           closeDrawer,
+                           eSave,
+                           eSaveAs}) {
     const classes = useStyles();
     const disableRenameOptions = rename ? "" : "disabled";
     const disableFieldnameOptions = (rename && imageMeta) ? "" : "disabled";
@@ -103,6 +125,8 @@ function ExperimentEditor({eshort, datetime, rename, imageMeta, filenameFields, 
             className={classes.fullList}
             role="presentation"
         >
+            <SaveButtonBar descriptor="Experiment Configuration" entry={experiment} save={eSave} saveAs={eSaveAs} />
+            <Divider />
             <List>
                 <ListItem>
                     <TextField label="Short Description" onChange={setShort} value={eshort} />
@@ -188,7 +212,8 @@ const mapStateToProps = (state) => ({
     rename: state.experiment.rename,
     imageMeta: state.experiment.imageMeta,
     filenameFields: state.experiment.filenameFields,
-    plateMeta: state.experiment.plateMeta
+    plateMeta: state.experiment.plateMeta,
+    experiment: state.experiment
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -207,6 +232,8 @@ const mapDispatchToProps = (dispatch) => ({
     clearFilenameFields: () => dispatch(experimentConfigClearFilenameFields()),
     addPlate:  (row,col,meta) => dispatch(experimentConfigAddPlate(row,col,meta)),
     clearPlateMeta:  () => dispatch(experimentConfigClearPlateMeta()),
+    eSave: (experiment) => (e) => dispatch(experimentConfigSave(experiment)),
+    eSaveAs: (experiment) => (e) => dispatch(experimentConfigSaveAs(experiment))
 });
 
 export default connect(mapStateToProps,mapDispatchToProps)(ExperimentEditor);

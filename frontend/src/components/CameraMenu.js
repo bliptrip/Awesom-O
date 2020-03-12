@@ -34,18 +34,21 @@ import MenuItem from '@material-ui/core/MenuItem';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import CameraAltTwoToneIcon from '@material-ui/icons/CameraAltTwoTone';
-import AddCircleTwoToneIcon from '@material-ui/icons/AddCircleTwoTone';
-import FolderOpenTwoToneIcon from '@material-ui/icons/FolderOpenTwoTone';
-import SettingsIcon from '@material-ui/icons/Settings';
-import SettingsApplicationsIcon from '@material-ui/icons/SettingsApplications';
-import SettingsApplicationsTwoToneIcon from '@material-ui/icons/SettingsApplicationsTwoTone';
-import SaveTwoToneIcon from '@material-ui/icons/SaveTwoTone';
-import SaveAltTwoToneIcon from '@material-ui/icons/SaveAltTwoTone';
 import Tooltip from '@material-ui/core/Tooltip';
 import Select from '@material-ui/core/Select';
 
-import {cameraConfigCreate, cameraConfigLoadSaved, cameraConfigLoadSettings, cameraConfigApplySettings, cameraConfigSave, cameraConfigSaveAs, cameraConfigLoad, cameraConfigSetLoadDialogOpen, cameraConfigSetEditorOpen} from '../actions';
+import CameraAltTwoToneIcon from '@material-ui/icons/CameraAltTwoTone';
+import AddCircleTwoToneIcon from '@material-ui/icons/AddCircleTwoTone';
+import FolderOpenTwoToneIcon from '@material-ui/icons/FolderOpenTwoTone';
+import SettingsApplicationsTwoToneIcon from '@material-ui/icons/SettingsApplicationsTwoTone';
+
+import {cameraConfigCreate, 
+        cameraConfigLoadSaved, 
+        cameraConfigLoadSettings, 
+        cameraConfigApplySettings, 
+        cameraConfigLoad, 
+        cameraConfigSetLoadDialogOpen, 
+        cameraConfigSetEditorOpen} from '../actions';
 
 const StyledMenu = withStyles({
       paper: {
@@ -136,7 +139,16 @@ function CameraLoadSavedDialog({open, savedCameraConfigs, setOpen, setEditorOpen
 
 const ConnectedCameraLoadSavedDialog = connect(mapDialogStateToProps, mapDialogDispatchToProps)(CameraLoadSavedDialog);
 
-function CameraMenu({loadSaved,loadSettings,applySettings,userId,setDialogOpen,cSave,cSaveAs,currCameraConfig,addCameraConfig,camConfigs,projectId,setEditorOpen}) {
+function CameraMenu({loadSaved,
+                     loadSettings,
+                    applySettings,
+                    userId,
+                    setDialogOpen,
+                    currCameraConfig,
+                    addCameraConfig,
+                    camConfigs,
+                    projectId,
+                    setEditorOpen}) {
       const [anchorEl, setAnchorEl] = useState(null);
 
       const handleClick = event => {
@@ -164,15 +176,6 @@ function CameraMenu({loadSaved,loadSettings,applySettings,userId,setDialogOpen,c
         handleClose();
     };
 
-    const handleSave = (saveType) => (e) => {
-        if( saveType === "saveas" ) {
-            cSaveAs(currCameraConfig);
-        } else {
-            cSave(currCameraConfig);
-        }
-        handleClose();
-    };
-
       return (
               <div>
                 <Tooltip title="Camera">
@@ -193,7 +196,7 @@ function CameraMenu({loadSaved,loadSettings,applySettings,userId,setDialogOpen,c
                   open={Boolean(anchorEl)}
                   onClose={handleClose}
                 >
-                  <StyledMenuItem onClick={handleAdd(userId,projectId)}>
+                  <StyledMenuItem onClick={handleAdd(userId,projectId)} disabled={projectId === undefined}>
                     <ListItemIcon>
                       <AddCircleTwoToneIcon fontSize="large" />
                     </ListItemIcon>
@@ -201,36 +204,20 @@ function CameraMenu({loadSaved,loadSettings,applySettings,userId,setDialogOpen,c
                         <ListItemText primary="New Camera Settings" />
                     </ListItem>
                   </StyledMenuItem>
-                  <StyledMenuItem onClick={handleLoad}>
+                  <StyledMenuItem onClick={handleLoad} disabled={projectId === undefined}>
                     <ListItemIcon>
                       <FolderOpenTwoToneIcon fontSize="large" />
                     </ListItemIcon>
                     <ListItem button >
-                        <ListItemText primary="Load Saved Settings" />
+                        <ListItemText primary="Load Saved Camera Settings" />
                     </ListItem>
                   </StyledMenuItem>
-                  <StyledMenuItem onClick={handleEdit}>
+                  <StyledMenuItem onClick={handleEdit} disabled={(projectId === undefined) || (currCameraConfig._id === undefined)}>
                     <ListItemIcon>
                       <SettingsApplicationsTwoToneIcon fontSize="large" />
                     </ListItemIcon>
                     <ListItem button >
-                        <ListItemText primary="Edit Settings" />
-                    </ListItem>
-                  </StyledMenuItem>
-                  <StyledMenuItem onClick={handleSave('save')}>
-                    <ListItemIcon>
-                      <SaveTwoToneIcon fontSize="large" />
-                    </ListItemIcon>
-                    <ListItem button >
-                        <ListItemText primary="Save Settings" />
-                    </ListItem>
-                  </StyledMenuItem>
-                  <StyledMenuItem onClick={handleSave('saveas')}>
-                    <ListItemIcon>
-                      <SaveAltTwoToneIcon fontSize="large" />
-                    </ListItemIcon>
-                    <ListItem button >
-                        <ListItemText primary="Save As New Camera Settings" />
+                        <ListItemText primary="Edit Camera Settings" />
                     </ListItem>
                   </StyledMenuItem>
                 </StyledMenu>
@@ -253,8 +240,6 @@ const mapDispatchToProps = (dispatch) => ({
     loadSaved: (id) => dispatch(cameraConfigLoadSaved(id)),
     loadSettings: (camIndex) => dispatch(cameraConfigLoadSettings(camIndex)),
     applySettings: (camIndex,camConfigs) => (e) => dispatch(cameraConfigApplySettings(camIndex,camConfigs)),
-    cSave: (cameraConfig) => dispatch(cameraConfigSave(cameraConfig)),
-    cSaveAs: (cameraConfig) => dispatch(cameraConfigSaveAs(cameraConfig))
 });
 
 export default connect(mapStateToProps,mapDispatchToProps)(CameraMenu);

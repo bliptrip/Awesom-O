@@ -38,12 +38,14 @@ import BackupTwoToneIcon from '@material-ui/icons/BackupTwoTone';
 import AddCircleTwoToneIcon from '@material-ui/icons/AddCircleTwoTone';
 import FolderOpenTwoToneIcon from '@material-ui/icons/FolderOpenTwoTone';
 import SettingsApplicationsTwoToneIcon from '@material-ui/icons/SettingsApplicationsTwoTone';
-import SaveTwoToneIcon from '@material-ui/icons/SaveTwoTone';
-import SaveAltTwoToneIcon from '@material-ui/icons/SaveAltTwoTone';
 import Tooltip from '@material-ui/core/Tooltip';
 import Select from '@material-ui/core/Select';
 
-import {storageConfigCreate, storageConfigLoadSaved, storageConfigSave, storageConfigSaveAs, storageConfigSetEditorOpen, storageConfigLoad, storageConfigSetLoadDialogOpen} from '../actions';
+import {storageConfigCreate, 
+        storageConfigLoadSaved, 
+        storageConfigSetEditorOpen, 
+        storageConfigLoad, 
+        storageConfigSetLoadDialogOpen} from '../actions';
 
 const StyledMenu = withStyles({
       paper: {
@@ -134,7 +136,13 @@ function StorageLoadSavedDialog({open, savedStorageConfigs, setOpen, setEditorOp
 
 const ConnectedStorageLoadSavedDialog = connect(mapDialogStateToProps, mapDialogDispatchToProps)(StorageLoadSavedDialog);
 
-function StorageMenu({addStorageConfig,setEditorOpen,setDialogOpen,loadSaved,sSave,sSaveAs,userId,projectId,currStorageConfig}) {
+function StorageMenu({addStorageConfig,
+                        setEditorOpen,
+                        setDialogOpen,
+                        loadSaved,
+                        userId,
+                        projectId,
+                        currStorageConfig}) {
       const [anchorEl, setAnchorEl] = useState(null);
 
       const handleClick = event => {
@@ -162,15 +170,6 @@ function StorageMenu({addStorageConfig,setEditorOpen,setDialogOpen,loadSaved,sSa
         handleClose();
     };
 
-    const handleSave = (saveType) => (e) => {
-        if( saveType === "saveas" ) {
-            sSaveAs(currStorageConfig);
-        } else {
-            sSave(currStorageConfig);
-        }
-        handleClose();
-    };
-
       return (
               <div>
                 <Tooltip title="Image Storage Settings">
@@ -191,7 +190,7 @@ function StorageMenu({addStorageConfig,setEditorOpen,setDialogOpen,loadSaved,sSa
                   open={Boolean(anchorEl)}
                   onClose={handleClose}
                 >
-                  <StyledMenuItem onClick={handleAdd(userId,projectId)}>
+                  <StyledMenuItem onClick={handleAdd(userId,projectId)} disabled={projectId === undefined}>
                     <ListItemIcon>
                       <AddCircleTwoToneIcon fontSize="large" />
                     </ListItemIcon>
@@ -199,7 +198,7 @@ function StorageMenu({addStorageConfig,setEditorOpen,setDialogOpen,loadSaved,sSa
                         <ListItemText primary="Add Storage Configuration" />
                     </ListItem>
                   </StyledMenuItem>
-                  <StyledMenuItem onClick={handleLoad}>
+                  <StyledMenuItem onClick={handleLoad} disabled={projectId === undefined}>
                     <ListItemIcon>
                       <FolderOpenTwoToneIcon fontSize="large" />
                     </ListItemIcon>
@@ -207,28 +206,12 @@ function StorageMenu({addStorageConfig,setEditorOpen,setDialogOpen,loadSaved,sSa
                         <ListItemText primary="Load Saved Storage Configuration" />
                     </ListItem>
                   </StyledMenuItem>
-                  <StyledMenuItem onClick={handleEdit}>
+                  <StyledMenuItem onClick={handleEdit} disabled={(projectId === undefined) || (currStorageConfig._id === undefined)}>
                     <ListItemIcon>
                       <SettingsApplicationsTwoToneIcon fontSize="large" />
                     </ListItemIcon>
                     <ListItem button >
                         <ListItemText primary="Edit Current Storage Configuration" />
-                    </ListItem>
-                  </StyledMenuItem>
-                  <StyledMenuItem onClick={handleSave('save')}>
-                    <ListItemIcon>
-                      <SaveTwoToneIcon fontSize="large" />
-                    </ListItemIcon>
-                    <ListItem button >
-                        <ListItemText primary="Save Current Storage Configuration" />
-                    </ListItem>
-                  </StyledMenuItem>
-                  <StyledMenuItem onClick={handleSave('saveas')}>
-                    <ListItemIcon>
-                      <SaveAltTwoToneIcon fontSize="large" />
-                    </ListItemIcon>
-                    <ListItem button >
-                        <ListItemText primary="Save As New Storage Configuration" />
                     </ListItem>
                   </StyledMenuItem>
                 </StyledMenu>
@@ -247,9 +230,7 @@ const mapDispatchToProps = (dispatch) => ({
     addStorageConfig: (uid, pid) => dispatch(storageConfigCreate(uid, pid)),
     setEditorOpen: (open) => dispatch(storageConfigSetEditorOpen(open)),
     setDialogOpen: (open) => dispatch(storageConfigSetLoadDialogOpen(open)),
-    loadSaved: (id) => dispatch(storageConfigLoadSaved(id)),
-    sSave: (storageConfig) => dispatch(storageConfigSave(storageConfig)),
-    sSaveAs: (storageConfig) => dispatch(storageConfigSaveAs(storageConfig))
+    loadSaved: (id) => dispatch(storageConfigLoadSaved(id))
 });
 
 export default connect(mapStateToProps,mapDispatchToProps)(StorageMenu);

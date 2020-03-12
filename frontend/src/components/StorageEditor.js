@@ -33,12 +33,14 @@ import TextField from '@material-ui/core/TextField';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 
-import parse from 'csv-parse';
+import SaveButtonBar from './SaveButtonBar';
 
 import {storageConfigSetEditorOpen,
         storageConfigSetShort,
         storageConfigSetType,
-        storageConfigSetParams} from '../actions';
+        storageConfigSetParams,
+        storageConfigSave, 
+        storageConfigSaveAs} from '../actions';
 
 const useStyles = makeStyles({
     list: {
@@ -49,7 +51,18 @@ const useStyles = makeStyles({
     }
 });
 
-function StorageEditor({sshort, closeDrawer, storageType, params, supportedTypes, supportedParams, setShort, setType, setParams}) {
+function StorageEditor({currStorageConfig,
+                        sshort, 
+                        closeDrawer, 
+                        sSave,
+                        sSaveAs,
+                        storageType, 
+                        params, 
+                        supportedTypes, 
+                        supportedParams, 
+                        setShort, 
+                        setType, 
+                        setParams}) {
     const classes = useStyles();
     let disableOptions = (!supportedTypes || (supportedTypes === [])) ? "disabled" : "";
     let sparams = {};
@@ -86,6 +99,8 @@ function StorageEditor({sshort, closeDrawer, storageType, params, supportedTypes
             className={classes.fullList}
             role="presentation"
         >
+            <SaveButtonBar descriptor="Storage Configuration" entry={currStorageConfig} save={sSave} saveAs={sSaveAs} />
+            <Divider />
             <List>
                 <ListItem>
                     <Tooltip title="Short description of this Storage Configuration">
@@ -115,6 +130,7 @@ function StorageEditor({sshort, closeDrawer, storageType, params, supportedTypes
 }
 
 const mapStateToProps = (state) => ({
+    currStorageConfig: state.storage,
     storageType: state.storage.storageType,
     sshort: state.storage.shortDescription,
     params: state.storage.params,
@@ -129,6 +145,8 @@ const mapDispatchToProps = (dispatch) => ({
         }
         dispatch(storageConfigSetEditorOpen(false));
     },
+    sSave: (storageConfig) => (e) => dispatch(storageConfigSave(storageConfig)),
+    sSaveAs: (storageConfig) => (e) => dispatch(storageConfigSaveAs(storageConfig)),
     setShort: (e) => dispatch(storageConfigSetShort(e.target.value)),
     setType: (type) => dispatch(storageConfigSetType(type)),
     setParams: (params) => dispatch(storageConfigSetParams(params))

@@ -38,9 +38,13 @@ import TextField from '@material-ui/core/TextField';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 
+import SaveButtonBar from './SaveButtonBar';
+
 import parse from 'csv-parse';
 
 import {routeConfigSetShort,
+        routeConfigSave, 
+        routeConfigSaveAs, 
         routeConfigSetEditorOpen,
         routeConfigClearRoute,
         routeConfigAddRoute,
@@ -63,7 +67,27 @@ const useStyles = makeStyles({
     }
 });
 
-function RouteEditor({route, rshort, interplateDelay, loopDelay, stepsPerCmX, stepsPerCmY, distanceX, distanceY, clearRoutes, setShort, addRoute, setInterplateDelay, setLoopDelay, setStepsPerCmX, setStepsPerCmY, setDistanceX, setDistanceY, closeDrawer }) {
+function RouteEditor({route, 
+                      routeConfig,
+                      rshort, 
+                      interplateDelay, 
+                      loopDelay, 
+                      stepsPerCmX, 
+                      stepsPerCmY, 
+                      distanceX, 
+                      distanceY, 
+                      clearRoutes, 
+                      setShort, 
+                      addRoute, 
+                      setInterplateDelay, 
+                      setLoopDelay, 
+                      setStepsPerCmX, 
+                      setStepsPerCmY, 
+                      setDistanceX, 
+                      setDistanceY, 
+                      closeDrawer,
+                      rSave,
+                      rSaveAs}) {
     const classes = useStyles();
 
     const importRoutes = (event) => {
@@ -91,6 +115,8 @@ function RouteEditor({route, rshort, interplateDelay, loopDelay, stepsPerCmX, st
             className={classes.fullList}
             role="presentation"
         >
+            <SaveButtonBar descriptor="Route Configuration" entry={routeConfig} save={rSave} saveAs={rSaveAs} />
+            <Divider />
             <List>
                 <ListItem>
                     <Tooltip title="Short Descriptor of this Route">
@@ -173,6 +199,7 @@ const mapStateToProps = (state) => ({
     stepsPerCmY: state.route.stepsPerCmY,
     distanceX: state.route.distanceX,
     distanceY: state.route.distanceY,
+    routeConfig: state.route,
     route: state.route.route
 });
 
@@ -183,6 +210,8 @@ const mapDispatchToProps = (dispatch) => ({
         }
         dispatch(routeConfigSetEditorOpen(false));
     },
+    rSave: (routeConfig) => (e) => dispatch(routeConfigSave(routeConfig)),
+    rSaveAs: (routeConfig) => (e) => dispatch(routeConfigSaveAs(routeConfig)),
     clearRoutes: () => dispatch(routeConfigClearRoute()),
     setShort: (e) => dispatch(routeConfigSetShort(e.target.value)),
     addRoute: (row,col) => dispatch(routeConfigAddRoute(row,col)),

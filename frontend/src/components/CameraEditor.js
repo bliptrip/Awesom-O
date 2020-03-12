@@ -20,7 +20,14 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 import React from 'react';
 import {connect} from 'react-redux';
-import {cameraConfigSetEntryValue, cameraConfigSetEditorOpen, cameraConfigSetShort, cameraConfigSetDescription, cameraConfigLoadSettings, cameraConfigApplySettings} from '../actions';
+import {cameraConfigSetEntryValue, 
+        cameraConfigSetEditorOpen, 
+        cameraConfigSave,
+        cameraConfigSaveAs,
+        cameraConfigSetShort, 
+        cameraConfigSetDescription, 
+        cameraConfigLoadSettings, 
+        cameraConfigApplySettings} from '../actions';
 
 import Checkbox from '@material-ui/core/Checkbox';
 import Divider from '@material-ui/core/Divider';
@@ -36,6 +43,8 @@ import Tooltip from '@material-ui/core/Tooltip';
 
 import SettingsIcon from '@material-ui/icons/Settings';
 import SettingsApplicationsIcon from '@material-ui/icons/SettingsApplications';
+
+import SaveButtonBar from './SaveButtonBar';
 
 const useStyles = makeStyles({
       list: {
@@ -204,7 +213,17 @@ const mapCameraConfigurationSettingsStateToProps = (state) => ({
 
 const DynCameraConfigurationSettings = connect(mapCameraConfigurationSettingsStateToProps)(CameraConfigurationSettings); 
 
-function CameraEditor({cshort, cdescription, camConfigs, closeDrawer, setShort, setDescription, loadSettings, applySettings}) {
+function CameraEditor({cshort, 
+                       cdescription, 
+                       camera,
+                       camConfigs, 
+                       closeDrawer, 
+                       cSave, 
+                       cSaveAs, 
+                       setShort, 
+                       setDescription, 
+                       loadSettings, 
+                       applySettings}) {
     const classes = useStyles();
 
     return (
@@ -212,6 +231,8 @@ function CameraEditor({cshort, cdescription, camConfigs, closeDrawer, setShort, 
             className={classes.fullList}
             role="presentation"
         >
+            <SaveButtonBar descriptor="Camera Configuration" entry={camera} save={cSave} saveAs={cSaveAs} />
+            <Divider />
             <List>
                 <ListItem>
                     <TextField label="Short Description" onChange={setShort} value={cshort} />
@@ -244,6 +265,7 @@ const mapStateToProps = (state) => ({
     cdeviceVersion: state.camera.deviceVersion,
     csn: state.camera.sn,
     camConfigs: state.camera.configs,
+    camera: state.camera
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -253,6 +275,8 @@ const mapDispatchToProps = (dispatch) => ({
         }
         dispatch(cameraConfigSetEditorOpen(false));
     },
+    cSave: (camera) => (e) => dispatch(cameraConfigSave(camera)),
+    cSaveAs: (camera) => (e) => dispatch(cameraConfigSaveAs(camera)),
     setShort: (event) => dispatch(cameraConfigSetShort(event.target.value)),
     setDescription: (event) => dispatch(cameraConfigSetDescription(event.target.value)),
     loadSettings: (camIndex) => (e) => dispatch(cameraConfigLoadSettings(camIndex)),

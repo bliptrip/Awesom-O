@@ -42,17 +42,12 @@ import AccountTreeTwoToneIcon from '@material-ui/icons/AccountTreeTwoTone';
 import AddCircleTwoToneIcon from '@material-ui/icons/AddCircleTwoTone';
 import EditIcon from '@material-ui/icons/Edit';
 import FolderOpenTwoToneIcon from '@material-ui/icons/FolderOpenTwoTone';
-import SaveTwoToneIcon from '@material-ui/icons/SaveTwoTone';
-import SaveAltTwoToneIcon from '@material-ui/icons/SaveAltTwoTone';
-
 
 import {projectCreate, 
-    projectLoadSaved, 
-    projectSave, 
-    projectSaveAs, 
-    projectFetch, 
-    projectSetLoadDialogOpen, 
-    projectSetEditorOpen} from '../actions';
+        projectLoadSaved, 
+        projectFetch, 
+        projectSetLoadDialogOpen, 
+        projectSetEditorOpen} from '../actions';
 
 const StyledMenu = withStyles({
       paper: {
@@ -149,7 +144,7 @@ function ProjectLoadSavedDialog({open,
 
 const ConnectedProjectLoadSavedDialog = connect(mapDialogStateToProps, mapDialogDispatchToProps)(ProjectLoadSavedDialog);
 
-function ProjectMenu({userId, currProject, addProject, setEditorOpen, setDialogOpen, loadSaved, pSave, pSaveAs}) {
+function ProjectMenu({userId, currProject, addProject, setEditorOpen, setDialogOpen, loadSaved}) {
       const [anchorEl, setAnchorEl] = useState(null);
 
       const handleClick = event => {
@@ -164,16 +159,6 @@ function ProjectMenu({userId, currProject, addProject, setEditorOpen, setDialogO
               loadSaved(userId);
               setDialogOpen(true);
             };
-
-    const handleSave = (saveType) => (e) => {
-        if( saveType === "saveas" ) {
-            pSaveAs(currProject);
-        } else {
-            pSave(currProject);
-        }
-        handleClose();
-    };
-
 
       return (
               <div>
@@ -203,14 +188,6 @@ function ProjectMenu({userId, currProject, addProject, setEditorOpen, setDialogO
                         <ListItemText primary="New Project" />
                     </ListItem>
                   </StyledMenuItem>
-                  <StyledMenuItem onClick={setEditorOpen}>
-                    <ListItemIcon>
-                      <EditIcon fontSize="large" />
-                    </ListItemIcon>
-                    <ListItem button >
-                        <ListItemText primary="Edit Current Project" />
-                    </ListItem>
-                  </StyledMenuItem>
                   <StyledMenuItem onClick={handleLoad}>
                     <ListItemIcon>
                       <FolderOpenTwoToneIcon fontSize="large" />
@@ -219,20 +196,12 @@ function ProjectMenu({userId, currProject, addProject, setEditorOpen, setDialogO
                         <ListItemText primary="Load Saved Project" />
                     </ListItem>
                   </StyledMenuItem>
-                  <StyledMenuItem onClick={handleSave('save')}>
+                  <StyledMenuItem onClick={setEditorOpen} disabled={currProject._id === undefined}>
                     <ListItemIcon>
-                      <SaveTwoToneIcon fontSize="large" />
+                      <EditIcon fontSize="large" />
                     </ListItemIcon>
                     <ListItem button >
-                        <ListItemText primary="Save Current Project" />
-                    </ListItem>
-                  </StyledMenuItem>
-                  <StyledMenuItem onClick={handleSave('saveas')}>
-                    <ListItemIcon>
-                      <SaveAltTwoToneIcon fontSize="large" />
-                    </ListItemIcon>
-                    <ListItem button >
-                        <ListItemText primary="Save As New Project" />
+                        <ListItemText primary="Edit Current Project" />
                     </ListItem>
                   </StyledMenuItem>
                 </StyledMenu>
@@ -251,8 +220,6 @@ const mapDispatchToProps = (dispatch) => ({
     setEditorOpen: (e) => dispatch(projectSetEditorOpen(true)),
     setDialogOpen: (open) => dispatch(projectSetLoadDialogOpen(open)),
     loadSaved: (id) => dispatch(projectLoadSaved(id)),
-    pSave: (project) => dispatch(projectSave(project)),
-    pSaveAs: (project) => dispatch(projectSaveAs(project))
 });
 
 export default connect(mapStateToProps,mapDispatchToProps)(ProjectMenu);
