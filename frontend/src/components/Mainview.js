@@ -22,15 +22,15 @@ along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 import React from 'react';
 import {connect} from 'react-redux';
 import clsx from 'clsx';
+
+//Material-UI
 import Editors from './Editors';
 import Navbar from './Navbar';
 import VisibleViewport from './Viewport';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
-import Drawer from '@material-ui/core/Drawer';
-import Container from '@material-ui/core/Container';
-import Grid from '@material-ui/core/Grid';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import Divider from '@material-ui/core/Divider';
+
+//Icons
 import IconButton from '@material-ui/core/IconButton';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
@@ -39,64 +39,58 @@ import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
 
-import {controllerMovePlate} from '../actions';
+import RouteDrawer from './RouteDrawer';
 
-const drawerWidth = 240;
+const drawerWidth = 640;
 
 const useStyles = makeStyles(theme => ({
-      root: {
-              display: 'flex',
-            },
-      appBar: {
-              transition: theme.transitions.create(['margin', 'width'], {
-                        easing: theme.transitions.easing.sharp,
-                        duration: theme.transitions.duration.leavingScreen,
-                      }),
-            },
-      appBarShift: {
-              width: `calc(100% - ${drawerWidth}px)`,
-              marginLeft: drawerWidth,
-              transition: theme.transitions.create(['margin', 'width'], {
-                        easing: theme.transitions.easing.easeOut,
-                        duration: theme.transitions.duration.enteringScreen,
-                      }),
-            },
-      menuButton: {
-              marginRight: theme.spacing(2),
-            },
-      hide: {
-              display: 'none',
-            },
-      drawer: {
-              width: drawerWidth,
-              flexShrink: 0,
-            },
-      drawerPaper: {
-              width: drawerWidth,
-            },
-      drawerHeader: {
-              display: 'flex',
-              alignItems: 'center',
-              padding: theme.spacing(0, 1),
-              ...theme.mixins.toolbar,
-              justifyContent: 'flex-end',
-            },
-      content: {
-              flexGrow: 1,
-              padding: theme.spacing(3),
-              transition: theme.transitions.create('margin', {
-                        easing: theme.transitions.easing.sharp,
-                        duration: theme.transitions.duration.leavingScreen,
-                      }),
-              marginLeft: -drawerWidth,
-            },
-      contentShift: {
-              transition: theme.transitions.create('margin', {
-                        easing: theme.transitions.easing.easeOut,
-                        duration: theme.transitions.duration.enteringScreen,
-                      }),
-              marginLeft: 0,
-            },
+    root: {
+        display: 'flex',
+    },
+    appBar: {
+        transition: theme.transitions.create(['margin', 'width'], {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.leavingScreen,
+        }),
+    },
+    appBarShift: {
+        width: `calc(100% - ${drawerWidth}px)`,
+        marginLeft: drawerWidth,
+        transition: theme.transitions.create(['margin', 'width'], {
+                easing: theme.transitions.easing.easeOut,
+                duration: theme.transitions.duration.enteringScreen,
+                }),
+    },
+    drawer: {
+            width: drawerWidth,
+            flexShrink: 0,
+          },
+    drawerPaper: {
+            width: drawerWidth,
+          },
+    drawerHeader: {
+            display: 'flex',
+            alignItems: 'center',
+            padding: theme.spacing(0, 1),
+            ...theme.mixins.toolbar,
+            justifyContent: 'flex-end',
+          },
+    content: {
+            flexGrow: 1,
+            padding: theme.spacing(3),
+            transition: theme.transitions.create('margin', {
+                      easing: theme.transitions.easing.sharp,
+                      duration: theme.transitions.duration.leavingScreen,
+                    }),
+            marginLeft: -drawerWidth,
+          },
+    contentShift: {
+            transition: theme.transitions.create('margin', {
+                      easing: theme.transitions.easing.easeOut,
+                      duration: theme.transitions.duration.enteringScreen,
+                    }),
+            marginLeft: 0,
+          },
     toolbar: {
         display: 'flex',
         alignItems: 'center',
@@ -106,117 +100,43 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
+function MainView() {
+    const classes = useStyles();
+    const theme = useTheme();
+    const [open, setOpen] = React.useState(false);
 
-function MainView({movePlate}) {
-  const classes = useStyles();
-  const theme = useTheme();
-  const [open, setOpen] = React.useState(false);
+    const handleDrawerOpen = () => {
+        setOpen(true);
+    };
 
-  const handleDrawerOpen = () => {
-    setOpen(true);
-  };
-
-  const handleDrawerClose = () => {
-    setOpen(false);
-  };
+    const handleDrawerClose = () => {
+        setOpen(false);
+    };
     
-    const handleMove = (direction) => (event) => {
-        movePlate(direction,1);
-    }
-
-  return (
-    <div className={classes.root}>
-      <CssBaseline />
-      <Navbar classes={classes} openDrawer={handleDrawerOpen} closeDrawer={handleDrawerClose} openState={open} />
-      <Drawer
-        className={classes.drawer}
-        variant="persistent"
-        anchor="left"
-        open={open}
-        classes={{
-            paper: classes.drawerPaper,
-        }}
-      >
-        <div className={classes.toolbar}>
-          <IconButton onClick={handleDrawerClose}>
-            {theme.direction === 'rtl' ? <ChevronRightIcon /> : <ChevronLeftIcon />}
-          </IconButton>
-        </div>
-        <Divider />
-      </Drawer>
-      <main className={clsx(classes.content, {
-                    [classes.contentShift]: open,
-                  })}
-      >
-        <div className={classes.drawerHeader} />
-        <Grid container alignContent='center' alignItems='center' justify='center' spacing={0}>
-            <Grid item xs={1}>
-                <IconButton
-                    aria-controls="route-up"
-                    aria-haspopup="true"
-                    variant="contained"
-                    color="primary"
-                    edge="false"
-                    onClick={handleMove('north')}
-                >
-                    <ArrowUpwardIcon fontSize='large' />
-                </IconButton>
-            </Grid>
-        </Grid>
-        <Grid container alignContent='center' alignItems='center' justify='center' spacing={0}>
-            <Container />
-            <Grid item xs={1}>
-                <IconButton
-                    aria-controls="route-left"
-                    aria-haspopup="true"
-                    variant="contained"
-                    color="primary"
-                    edge="false"
-                    onClick={handleMove('west')}
-                >
-                    <ArrowBackIcon fontSize='large' />
-                </IconButton>
-            </Grid>
-            <Grid item xs={6}>
+    return (
+        <div className={classes.root}>
+            <CssBaseline />
+            <Navbar   className={clsx(classes.appBar, {
+                            [classes.appBarShift]: open,
+                        })}
+                        openDrawer={handleDrawerOpen} 
+                        openState={open}
+            />
+            <RouteDrawer  classes={classes}
+                          closeDrawer={handleDrawerClose} 
+                          openState={open}
+            />
+            <main className={clsx(classes.content, {
+                            [classes.contentShift]: open,
+                        })}
+            >
+                <div className={classes.drawerHeader} />
                 <VisibleViewport />
-            </Grid>
-            <Grid item xs={1}>
-                <IconButton
-                    aria-controls="route-right"
-                    aria-haspopup="true"
-                    variant="contained"
-                    color="primary"
-                    edge="false"
-                    onClick={handleMove('east')}
-                >
-                    <ArrowForwardIcon fontSize='large' />
-                </IconButton>
-            </Grid>
-            <Container />
-        </Grid>
-        <Grid container alignContent='center' alignItems='center' justify='center' spacing={0}>
-            <Grid item xs={1}>
-                <IconButton
-                    aria-controls="route-down"
-                    aria-haspopup="true"
-                    variant="contained"
-                    color="primary"
-                    edge="false"
-                    onClick={handleMove('south')}
-                >
-                    <ArrowDownwardIcon fontSize='large' />
-                </IconButton>
-            </Grid>
-        </Grid>
-      <div className={classes.drawerHeader} />
-      <Editors />
-      </main>
-    </div>
-  );
+                <div className={classes.drawerHeader} />
+                <Editors />
+            </main>
+        </div>
+    );
 }
 
-const mapDispatchToProps = (dispatch) => ({
-    movePlate: (direction,numPlates) => dispatch(controllerMovePlate(direction,numPlates))
-});
-
-export default connect(null, mapDispatchToProps)(MainView);
+export default MainView;

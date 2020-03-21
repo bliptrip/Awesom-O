@@ -385,6 +385,23 @@ const checkIfNotProject = (req, res, next) => {
     next();
 };
 
+const checkIfRouteConfig = (req, res, next) => {
+    if( current_project === undefined ) {
+        res.status(409).json({errors:
+            {message: "Project id not set."}
+        }); 
+        return;
+    }
+    if( (current_project.routeConfig === undefined) || (current_project.routeConfig._id === undefined) ) {
+        res.status(409).json({errors:
+            {message: "Route configuration parameters (steps per cm, distance between plates) not defined for project " + current_project.shortDescription + "."}
+        }); 
+        return;
+    }
+    next();
+};
+
+
 export const checkIfStopped = (req, res, next) => {
     if( current_state !== CONTROLLER_RUNNING_STATUS_STOPPED ) {
         res.status(409).json({errors:
@@ -574,7 +591,7 @@ const moveMotors = (cardinal, units, distance) => {
     return(sendCommandMoveAndWait([{index: axis, steps: conversions.steps}], MOVE_TIMEOUT));
 }
 
-router.put('/move/:cardinal/:units/:distance', auth.sess, checkIfStopped, checkIfSerial, (req, res, next) => {
+router.put('/move/:cardinal/:units/:distance', auth.sess, checkIfStopped, checkIfSerial, checkIfProject, checkIfRouteConfig, (req, res, next) => {
     moveMotors(req.params.cardinal, req.params.units, req.params.distance)
     .then( () => res.status(200).json(current_location) )
     .catch( (err) => res.status(409).json({errors: {message: err}}) );
@@ -622,11 +639,26 @@ const setCurrentProject = (projectId) => {
                 current_project = undefined;
                 reject(err);
             } 
+            if( (project.routeConfig === undefined) || (project.routeConfig._id === undefined) ) {
+                reject("Route configuration not defined for project " 
+                        + project.shortDescription 
+                        + ".  Please define a route configuration for the current project before executing this operation.");
+            }
+            if( (project.cameraConfig === undefined) || (project.cameraConfig._id === undefined) ) {
+                reject("Camera configuration not defined for project " 
+                        + project.shortDescription 
+                        + ".  Please define a camera configuration for the current project before executing this operation.");
+            }
+            if( (project.experimentConfig === undefined) || (project.experimentConfig._id === undefined) ) {
+                reject("Experiment metadata configuration not defined for project " 
+                        + project.shortDescription 
+                        + ".  Please define an experiment metadata configuration for the current project before executing this operation.");
+            }
             current_project = project;
             resolve(project);
-        })
+        });
     });
-}
+};
 
 router.put('/project/set/:projectid', auth.sess, checkIfStopped, checkIfNotProject, (req, res, next) => {
     setCurrentProject(req.params.projectid)

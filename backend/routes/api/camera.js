@@ -19,7 +19,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this Awesom-O.  If not, see <https://www.gnu.org/licenses/>.
 **************************************************************************************/
 
-import {viewportSetCurrentPicture,viewportSetPreviewEnabled} from '../../../frontend/src/actions'; 
+import {viewportSetCurrentPicture,viewportSetThumbnail,viewportSetPreviewEnabled} from '../../../frontend/src/actions'; 
 import {wss} from '../../lib/websocket';
 import {checkIfStopped} from './controller';
 
@@ -45,6 +45,7 @@ gphoto.on('log', function (level, domain, message) {
 });
 var camera = undefined;
 var camera_list = undefined; 
+var camera_thumbnails = {};
 
 const addCameraToUser = (userId, fieldId) => {
     return(Users.updateOne({_id: userId}, {"$addToSet": {cameras: fieldId}}));
@@ -117,7 +118,21 @@ export const snapShot = (user, project, row, col) => {
                 encodeImage(pdata)
                     .then( (edata) => {
                         wss.broadcast(edata);
+                        return Jimp.read(pdata);
+                    })
+                    .then( (img) => {
+                        return encodeThumbnail(row,col,img);
+                    })
+                    .then( (thumb) => {
+                        if( !camera_thumbnails[row] )
+                            camera_thumbnails[row] = {};
+                        camera_thumbnails[row][col] = thumb;
+                        wss.broadcast(thumb);
                         resolve();
+                    })
+                    .catch(err => {
+                        console.log(err);
+                        reject(err);
                     });
             } else {
                 reject(err);
@@ -165,6 +180,24 @@ const encodeImage = (data,useJimp=false,rotateAngle=90) => {
     }
 };
 
+const encodeThumbnail = (row,col,data) => {
+    const wrapup = image => {
+        let src = 'data:image/jpeg;base64,' + btoa(image);
+        let edata = JSON.stringify(viewportSetThumbnail(row,col,src));
+        return(edata);
+    }
+
+    return (Jimp.read(data)
+            .then(img => {
+                return img.resize(320,Jimp.AUTO)
+                          .getBufferAsync(Jimp.MIME_JPEG);
+                          .then( thumb => new Promise( (resolve,reject) => (resolve(wrapup(thumb))) ) );
+            })
+            .catch(err => {
+                console.log(err);
+            }));
+};
+
 //Retrieve/refresh cameras
 router.get('/list', auth.sess, (req, res, next) => {
     camera = null;
@@ -184,7 +217,7 @@ router.put('/set/:index', auth.sess, (req, res, next) => {
 
 //Get settings retrieves the current settings for a camera
 router.get('/settings/:camIndex', auth.sess, checkIfCameraList, (req, res, next) => {
-    camera_list[req.params.camIndex].getConfig( (err, settings) => {
+    camera_list[req.params.camIndex].getConfig( (err, sesstings) => {
         if( err ) {
             res.sendStatus(400);
         } else {
@@ -339,6 +372,19 @@ router.put('/preview/stop/:camIndex', auth.sess, checkIfPreview, (req, res, next
     preview_timer = undefined;
     sendPreviewEnabled(false);
     res.sendStatus(200);
+});
+
+router.put('/thumbnails/reset', auth.sess, (req, res, next) => {
+    camera_thumbnails = {};
+    res.status(200).send();
+});
+
+router.put('/thumbnails/get/:row/:col', auth.sess, (req, res, next) => {
+    let thumb = undefined;
+    if( camera_thumbnails[req.params.row] )
+        thumb = camera_thumbnails[req.params.row][req.params.col]
+    res.setHeader('Content-type': 'application/json');
+    res.status(200).send(thumb);
 });
 
 //Create a new user -- NOTE: Eventually will want an admin to approve this

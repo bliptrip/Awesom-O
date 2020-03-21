@@ -24,13 +24,26 @@ const viewport = (state = {
                     src: undefined,
                     isFetching: false,
                     errorStatus: undefined,
-                    previewEnabled: false
+                    previewEnabled: false,
+                    thumbnails: {}
                   }, action) => {
     let newstate = state;
     switch( action.type ) {
         case viewportC.VIEWPORT_SET_CURRENT_PICTURE:
             newstate = {...state,
                         src: action.src};
+            break;
+        case viewportC.VIEWPORT_SET_THUMBNAIL:
+            newstate = {...state};
+            if (newstate.thumbnails)
+                newstate.thumbnails = {...newstate.thumbnails};
+            if (newstate.thumbnails[action.row])
+                newstate.thumbnails[action.row] = {...newstate.thumbnails[action.row]};
+            else
+                newstate.thumbnails[action.row] = {}
+            if (newstate.thumbnails[action.row][action.col])
+                newstate.thumbnails[action.row][action.col] = {...newstate.thumbnails[action.row][action.col]};
+            newstate.thumbnails[action.row][action.col] = action.src
             break;
         case viewportC.VIEWPORT_GET_CURRENT_PICTURE_REQUEST:
             newstate = {...state,

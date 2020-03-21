@@ -1740,6 +1740,14 @@ export const viewportSetCurrentPicture = (src) => ({
     src
 });
 
+export const VIEWPORT_SET_THUMBNAIL = "VIEWPORT_SET_THUMBNAIL";
+export const viewportSetThumbnail = (row,col,src) => ({
+    type: VIEWPORT_SET_THUMBNAIL,
+    row,
+    col,
+    src
+});
+
 export const VIEWPORT_GET_CURRENT_PICTURE_REQUEST = "VIEWPORT_GET_CURRENT_PICTURE_REQUEST";
 export const viewportGetCurrentPictureRequest = () => ({
     type: VIEWPORT_GET_CURRENT_PICTURE_REQUEST
