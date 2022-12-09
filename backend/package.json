@@ -33,7 +33,7 @@
     "crypto": "^1.0.1",
     "errorhandler": "^1.5.0",
     "esm": "^3.2.25",
-    "express": "^4.16.4",
+    "express": "^4.17.3",
     "express-session": "^1.15.6",
     "express-ws": "^4.0.0",
     "gphoto2": "^0.3.0",
